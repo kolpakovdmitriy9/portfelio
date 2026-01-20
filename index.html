@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Портфолио</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="font" href="https://kolpakovdmitriy9.github.io/newbring.github.io/lovelllas.hyperesources/ONYTrackMoscow-Condenced_1.woff" type="font/woff" crossorigin>
+<style>
+*,*::before,*::after{box-sizing:border-box}
+@font-face{font-family:'ONY Track Moscow';src:url('https://kolpakovdmitriy9.github.io/newbring.github.io/lovelllas.hyperesources/ONYTrackMoscow-Condenced_1.woff') format('woff');font-weight:400;font-style:normal;font-display:swap}
+html{height:100%}
+body{margin:0;padding:0 0 80px;width:100%;overflow-x:hidden;font-family:'Sui',sans-serif;background:#fff;display:block}
+body.design{background:linear-gradient(to bottom,#fff,#FDF7F3);background-attachment:fixed}
+body.interfaces{background:linear-gradient(to bottom,#fff,#e6f5ff);background-attachment:fixed}
+body.branding{background:linear-gradient(to bottom,#fff,#f5e6ff);background-attachment:fixed}
+.hero-container{height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:0 clamp(20px,5vw,80px);box-sizing:border-box}
+.header-section,.marquee-container,.cta-container{margin:0;padding:0}
+.header-section{margin-bottom:16px}
+.marquee-container{margin:clamp(16px,3vw,80px) 0 clamp(72px,5vw,120px)}
+.cta-container{margin-top:16px}
+.header-section{width:100%;max-width:360px;display:flex;flex-direction:column;align-items:center;gap:16px;text-align:center}
+.lottie-wrapper{width:64px;height:64px}
+.text-slider{position:relative;height:36px;overflow:hidden;width:100%;text-align:center;font-size:18px;line-height:1.2;letter-spacing:-0.02em;font-weight:500;display:flex;align-items:center;justify-content:center}
+.text-slide{position:absolute;width:100%;left:0;transition:transform .3s ease-out}
+.logo-wrapper{display:flex;justify-content:center;align-items:center}
+.portfolio-logo{height:34px;width:auto;max-width:100%}
+.marquee-container{white-space:nowrap;overflow:hidden;width:100vw;position:relative;height:200px;padding:0;margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw)}
+.marquee-text{display:inline-block;font-size:140px;line-height:1;position:absolute;top:50%;left:0;transform:translateY(-50%);will-change:transform}
+.word{color:#000;transition:color .2s ease}
+.word:hover{color:rgba(0,0,0,.2)}
+.cursor-follower{position:fixed;width:180px;height:180px;border-radius:50%;pointer-events:none;z-index:2147483647;top:0;left:0;opacity:0;transform:scale(.4);transition:opacity .15s ease-out,transform .15s cubic-bezier(.22,.61,.36,1);overflow:hidden}
+.cursor-follower img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+.cta-container{width:100%;max-width:800px;display:flex;flex-direction:column;align-items:center;text-align:center;padding:0 clamp(20px,5vw,80px)}
+.cta-button{background:#e74c3c;color:#fff;border:none;padding:0;font-size:20px;font-weight:500;line-height:1.2;letter-spacing:0;border-radius:50px;cursor:pointer;display:inline-flex;align-items:center;gap:16px;width:274px;height:76px;justify-content:flex-start;padding-left:40px;padding-right:20px;transition:background .2s ease}
+.cta-button:hover{background:#d33a2c}
+.cta-arrow{width:36px;height:36px;flex-shrink:0}
+.tagline{font-size:18px;line-height:1.5;color:#333;margin-top:48px;max-width:600px;margin-left:auto;margin-right:auto}
+.highlight{color:#e74c3c;font-weight:inherit}
+.projects-section-mock{max-width:1440px;margin:80px auto 80px;padding:0 30px;display:flex;gap:30px;align-items:flex-start;width:100%}
+.project-card{flex:1;max-width:720px;display:flex;flex-direction:column;gap:30px}
+.project-image-container{width:100%;max-width:690px;height:690px;position:relative;overflow:hidden}
+.image-bg{width:100%;height:100%;background:#ff3000}
+.logo-container{width:384px;height:384px;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;align-items:center;justify-content:center;background:#fff;border-radius:12px;overflow:hidden}
+.logo-img{width:384px;height:384px;display:block;object-fit:contain}
+.project-description{width:100%;text-align:left;color:#000;font-size:24px;font-weight:400;line-height:23px;word-wrap:break-word}
+.designer-header{display:flex;align-items:flex-end;gap:18px}
+.designer-avatar{width:86px;height:76px;border-radius:76px;object-fit:cover;display:block}
+.designer-info{display:flex;flex-direction:column;align-items:flex-start;gap:6px}
+.designer-name{text-align:left;color:#000;font-size:24px;font-weight:400;line-height:1.2;word-wrap:break-word}
+.designer-role{text-align:left;color:#a2a2a2;font-size:18px;font-weight:500;line-height:1.2;word-wrap:break-word}
+.project-content-row{display:flex;gap:30px;margin-top:98px}
+.project-image-small{width:100%;max-width:330px;display:flex;flex-direction:column;align-items:flex-start;gap:10px}
+.image-small-container{width:100%;max-width:330px;height:486px;position:relative;overflow:hidden}
+.project-text-content{flex:1;display:flex;flex-direction:column;justify-content:space-between;align-items:flex-start}
+.project-title{width:100%;color:#000;font-size:24px;font-weight:400;line-height:23px;word-wrap:break-word}
+.project-full-width{max-width:1440px;margin:80px auto 80px;padding:0 30px;width:100%}
+.third-project{display:flex;gap:30px;margin-top:0}
+.text-block-with-border{width:330px;height:612px;display:flex;flex-direction:column;padding-left:30px;position:relative}
+.border-line-bg{position:absolute;top:0;left:0;width:1px;height:100%;background:#e0e0e3;z-index:0}
+.border-line-fill{position:absolute;top:0;left:0;width:1px;height:0;background:#F9393B;transition:height 1.2s cubic-bezier(.22,.61,.36,1);z-index:1}
+.stat-item{height:306px;display:flex;flex-direction:column;justify-content:flex-end;gap:6px;position:relative;z-index:2}
+.stat-number{color:#000;font-size:90px;font-family:'ONY Track Moscow',sans-serif;font-weight:400;line-height:90px;word-wrap:break-word}
+.stat-label{color:#000;font-size:18px;font-weight:400;line-height:1.2;word-wrap:break-word}
+.project-image-large{flex:1;height:612px;position:relative;overflow:hidden}
+.project-image-large img{width:100%;height:100%;object-fit:cover;display:block}
+.third-title{text-align:right;margin-top:30px;font-size:24px;font-weight:400;line-height:23px;color:#000;word-wrap:break-word}
+.stat-block{width:100%;max-width:300px;padding-bottom:30px;position:relative;display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-start;gap:18px}
+.stat-line-bg{position:absolute;bottom:0;left:0;width:100%;height:1px;background:#e0e0e3}
+.stat-line-fill{position:absolute;bottom:0;left:0;width:0;height:1px;background:#F9393B;transition:width 1.2s cubic-bezier(.22,.61,.36,1)}
+@media (max-width:1024px){
+.projects-section-mock{flex-direction:column;gap:60px}
+.project-card{max-width:none}
+.project-image-container{max-width:100%;height:400px}
+.logo-container{width:200px;height:200px;left:50%;top:50%;transform:translate(-50%,-50%)}
+.logo-img{width:200px;height:200px}
+.project-content-row,.third-project{flex-direction:column;gap:30px}
+.text-block-with-border{width:100%;height:auto;border-left:none;border-top:1px solid #e0e0e3;padding-left:0;padding-top:30px;position:relative}
+.border-line-bg,.border-line-fill{width:100%;height:1px;top:auto;bottom:0;left:0;right:0}
+.border-line-fill{height:1px;width:0;transition:width 1.2s cubic-bezier(.22,.61,.36,1)}
+.stat-item{height:auto;padding:15px 0;justify-content:flex-end}
+.project-image-large{height:400px}
+.project-image-small{max-width:100%;padding-left:0}
+.image-small-container{max-width:100%;height:300px}
+.stat-number{font-size:60px;line-height:60px}
+.stat-label{font-size:16px}
+.third-title{text-align:left}
+}
+@media (max-width:768px){
+.marquee-container{height:120px}
+.marquee-text{font-size:100px}
+.designer-header{flex-direction:column;align-items:center;gap:10px}
+.designer-avatar{width:60px;height:60px}
+.designer-name{font-size:20px}
+.designer-role{font-size:16px}
+.project-title,.third-title{font-size:20px}
+.stat-number{font-size:48px;line-height:48px}
+}
+@media (max-height:700px){
+.marquee-container{height:160px}
+.marquee-text{font-size:120px}
+.cta-container{margin-top:clamp(40px,8vh,100px)}
+}
+@media (max-height:600px){
+.marquee-container{height:130px}
+.marquee-text{font-size:100px}
+.cta-container{margin-top:clamp(30px,6vh,80px)}
+.tagline{font-size:16px}
+}
+.tab-item {
+  transition: color 0.2s ease, transform 0.15s ease;
+}
+.tab-item:hover:not(.active) {
+  color: #000000 !important;
+}
+</style>
+</head>
+<body>
+
+<div class="hero-container">
+  <div class="header-section">
+    <div class="lottie-wrapper" id="lottieContainer"></div>
+    <div class="text-slider" id="textSlider">Загрузка...</div>
+    <div class="logo-wrapper">
+      <img class="portfolio-logo" src="https://raw.githubusercontent.com/kolpakovdmitriy9/newbring.github.io/363a26cc3be7802444e16917935d498c46c70b68/lovelllas.hyperesources/portfelix.svg" alt="Портфеликс" />
+    </div>
+  </div>
+  <div class="marquee-container" id="marqueeContainer">
+    <div class="marquee-text" id="marqueeText"></div>
+  </div>
+  <div class="cta-container">
+    <button class="cta-button">
+      <span class="cta-text">Обсудить проект</span>
+      <svg class="cta-arrow" width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="18" cy="18" r="18" fill="white" fill-opacity="0.2"/>
+        <path d="M12.6953 18.0533H23.1953M17.9986 23.3566L23.3019 18.0533L17.9986 12.75" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+    <p class="tagline">Используем дизайн и технологии как ключевые инструменты для создания <span class="highlight">готового продукта</span></p>
+  </div>
+</div>
+
+<div class="projects-section-mock">
+  <div class="project-card">
+    <div class="project-image-container">
+      <div class="image-bg"></div>
+      <div class="logo-container">
+        <img class="logo-img" src="https://raw.githubusercontent.com/kolpakovdmitriy9/newbring.github.io/65c8f71142ffe21f96907117722fa8f919f89915/lovelllas.hyperesources/project%231.svg" alt="RUSS PASS" />
+      </div>
+    </div>
+    <div class="project-description">Сервис для планирования путешествий</div>
+  </div>
+  <div class="project-card">
+    <div class="designer-header">
+      <img class="designer-avatar" src="https://raw.githubusercontent.com/kolpakovdmitriy9/newbring.github.io/refs/heads/master/lovelllas.hyperesources/avatar.png" alt="Дмитрий Колпаков" />
+      <div class="designer-info">
+        <div class="designer-name">Дмитрий Колпаков</div>
+        <div class="designer-role">ux/ui designer</div>
+      </div>
+    </div>
+    <div class="project-content-row">
+      <div class="project-image-small">
+        <div class="image-small-container">
+          <img src="https://raw.githubusercontent.com/kolpakovdmitriy9/newbring.github.io/refs/heads/master/lovelllas.hyperesources/project%232.png" alt="Фестиваль" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;z-index:1;" />
+          <img src="https://raw.githubusercontent.com/kolpakovdmitriy9/newbring.github.io/fb371906d555052a7d2e6df92416763b979cf20f/lovelllas.hyperesources/project%232.svg" alt="Покажи Москву" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);max-width:80%;max-height:80%;z-index:2;pointer-events:none;" />
+        </div>
+      </div>
+      <div class="project-text-content">
+        <div class="project-title">Фестиваль возрождения чайных традиций</div>
+        <div class="stat-block">
+          <div class="stat-number">+100</div>
+          <div class="stat-label">площадок выступают партнерами проекта</div>
+          <div class="stat-line-bg"></div>
+          <div class="stat-line-fill"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="project-full-width">
+  <div class="project-content-row third-project">
+    <div class="text-block-with-border" style="height:612px;">
+      <div class="border-line-bg"></div>
+      <div id="third-project-border-fill" class="border-line-fill"></div>
+      <div class="stat-item">
+        <div class="stat-number">+80</div>
+        <div class="stat-label" style="margin-top:10px;">точек выдачи карт маршрутов</div>
+      </div>
+      <div class="stat-item stat-item-trigger">
+        <div class="stat-number">10 тыс</div>
+        <div class="stat-label" style="margin-top:10px;">школьников из России и других стран приняли участие в конкурсе</div>
+      </div>
+    </div>
+    <div class="project-image-large">
+      <img src="https://raw.githubusercontent.com/kolpakovdmitriy9/newbring.github.io/refs/heads/master/lovelllas.hyperesources/project%233.png" alt="Общегородской онлайн-конкурс маршрутов">
+    </div>
+  </div>
+  <div class="project-title third-title">Общегородской онлайн-конкурс маршрутов</div>
+</div>
+
+<div class="about-me-section" style="max-width:1440px;margin:120px auto 0;padding:0 30px;display:flex;gap:30px;align-items:flex-start;height:788px;">
+  
+  <!-- ЛЕВАЯ ЧАСТЬ — ОБНОВЛЕНА -->
+  <div style="
+    width: 690px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    padding-top: 0;
+    box-sizing: border-box;
+  ">
+
+    <!-- КРУГ ВИДЕО -->
+    <div style="
+      width: 400px;
+      height: 400px;
+      min-width: 400px;
+      min-height: 400px;
+      max-width: 400px;
+      max-height: 400px;
+      border-radius: 50%;
+      overflow: hidden;
+      position: relative;
+      box-sizing: border-box;
+      flex-shrink: 0;
+    ">
+      <video
+        id="video-element"
+        src="https://github.com/kolpakovdmitriy9/newbring.github.io/raw/refs/heads/master/lovelllas.hyperesources/video.mp4"
+        muted
+        playsinline
+        preload="auto"
+        style="
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          display: block;
+        "
+      ></video>
+
+      <!-- SVG с двумя кругами -->
+      <svg
+        width="380"
+        height="380"
+        viewBox="0 0 380 380"
+        style="
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%) rotate(-90deg);
+          pointer-events: none;
+          z-index: 1;
+        "
+      >
+        <!-- Фоновый полупрозрачный круг -->
+        <circle cx="190" cy="190" r="187" fill="none" stroke="white" stroke-width="3" stroke-opacity="0.5" />
+        <!-- Анимированный прогресс -->
+        <circle
+          id="video-progress-circle"
+          cx="190"
+          cy="190"
+          r="187"
+          fill="none"
+          stroke="white"
+          stroke-width="3"
+          stroke-linecap="round"
+          stroke-dasharray="1175"
+          stroke-dashoffset="1175"
+        />
+      </svg>
+    </div>
+
+    <!-- СТАТИСТИКА -->
+    <div style="
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      height: 122px
+      gap: 30px;
+      margin-top: 61px;
+    ">
+      <div style="text-align: left;">
+        <div id="year-trigger" style="
+          font-size: 90px;
+          font-family: 'ONY Track Moscow', sans-serif;
+          font-weight: 400;
+          line-height: 90px;
+          color: black;
+        ">1 ГОД</div>
+        <div class="stat-label" style="margin-top: 10px;">в роли ментором в helper</div>
+      </div>
+
+      <div style="text-align: right;">
+        <div style="
+          font-size: 90px;
+          font-family: 'ONY Track Moscow', sans-serif;
+          font-weight: 400;
+          line-height: 90px;
+          color: black;
+        ">12 ЛЕТ</div>
+        <div class="stat-label" style="margin-top: 10px;">в профессии</div>
+      </div>
+    </div>
+
+    <!-- КНОПКИ -->
+    <div style="
+      width: 100%;
+      margin-top: 160px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-sizing: border-box;
+    ">
+      <span style="
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 200px;
+        height: 76px;
+        border: 1px solid #F9393B;
+        border-radius: 38px;
+        color: #F9393B;
+        font-size: 18px;
+        font-weight: 500;
+        cursor: text;
+        user-select: text;
+      ">Готов к работе</span>
+
+      <a href="https://t.me/kooodiii" target="_blank" style="
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 86px;
+        height: 76px;
+        border-radius: 38px;
+        background: #2AABEE;
+        color: white;
+        text-decoration: none;
+        transition: background 0.2s ease;
+      " onmouseover="this.style.background = '#2299cc';" onmouseout="this.style.background = '#2AABEE';">
+        <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path fill-rule="evenodd" clip-rule="evenodd" d="M9.05564 19.7889C14.886 17.2487 18.7739 15.574 20.7192 14.7649C26.2734 12.4547 27.4275 12.0534 28.1798 12.0402C28.3452 12.0373 28.7151 12.0783 28.9548 12.2727C29.1571 12.4369 29.2128 12.6587 29.2394 12.8143C29.266 12.97 29.2992 13.3246 29.2728 13.6017C28.9719 16.7641 27.6695 24.4386 27.0069 27.9806C26.7266 29.4794 26.1746 29.9819 25.6401 30.0311C24.4787 30.138 23.5967 29.2636 22.4718 28.5262C20.7116 27.3723 19.7171 26.654 18.0085 25.528C16.0339 24.2268 17.3139 23.5116 18.4393 22.3428C18.7338 22.0369 23.8511 17.3823 23.9501 16.9601C23.9625 16.9072 23.974 16.7104 23.8571 16.6065C23.7401 16.5025 23.5675 16.5381 23.443 16.5663C23.2664 16.6064 20.4544 18.465 15.0069 22.1423C14.2087 22.6904 13.4857 22.9574 12.838 22.9434C12.1239 22.928 10.7502 22.5397 9.72904 22.2077C8.47654 21.8006 7.48108 21.5853 7.56776 20.8939C7.61291 20.5337 8.10887 20.1654 9.05564 19.7889Z" fill="white"/>
+        </svg>
+      </a>
+    </div>
+
+  </div>
+
+  <!-- ПРАВАЯ ЧАСТЬ -->
+  <div style="width:690px;height:898px;display:flex;flex-direction:column;position:relative;">
+    <div style="position:absolute;top:0;left:0;width:1px;height:898px;background:#e0e0e3;pointer-events:none;"></div>
+    <div id="about-border-fill" style="position:absolute;top:0;left:0;width:1px;height:0;background:#F9393B;transition:height 1.2s cubic-bezier(.22,.61,.36,1);z-index:1;"></div>
+    
+    <!-- ТАБЫ -->
+    <div class="about-tabs" style="
+      display: flex;
+      gap: 30px;
+      margin-left: 30px;
+      padding-top: 0;
+      width: fit-content;
+      position: relative;
+      z-index: 20;
+    ">
+      <div class="tab-item active" data-tab="websites" style="
+        cursor: pointer;
+        font-family: 'ONY Track Moscow', sans-serif;
+        font-size: 48px;
+        font-weight: 400;
+        line-height: 1;
+        color: black;
+      ">САЙТЫ</div>
+      <div class="tab-item" data-tab="branding" style="
+        cursor: pointer;
+        font-family: 'ONY Track Moscow', sans-serif;
+        font-size: 48px;
+        font-weight: 400;
+        line-height: 1;
+        color: #e5e5e5;
+      ">БРЕНДИНГ</div>
+      <div class="tab-item" data-tab="apps" style="
+        cursor: pointer;
+        font-family: 'ONY Track Moscow', sans-serif;
+        font-size: 48px;
+        font-weight: 400;
+        line-height: 1;
+        color: #e5e5e5;
+      ">ПРИЛОЖЕНИЯ</div>
+    </div>
+
+    <!-- ДВЕ КОЛОНКИ -->
+    <div style="
+      display: flex;
+      gap: 30px;
+      width: 100%;
+      height: 100%;
+      padding: 30px 0 0 30px;
+      box-sizing: border-box;
+    ">
+      <!-- ЛЕВАЯ КОЛОНКА -->
+<div style="
+  width: 330px;
+  height: 100%;
+  position: relative;
+  box-sizing: border-box;
+">
+  <div id="progress-bars" style="
+    display: flex;
+    gap: 8px;
+    height: 56px;
+    align-items: center;
+    justify-content: flex-start;
+    position: relative;
+    z-index: 10;
+  "></div>
+  <div id="progress-percent" style="
+    font-size: 238px;
+    font-family: 'ONY Track Moscow', sans-serif;
+    color: #e5e5e5;
+    line-height: 1;
+    font-weight: 400;
+    text-align: left;
+    margin-top: 0px;
+    position: relative;
+    z-index: 1;
+    pointer-events: none;
+  ">0%</div>
+  <div id="tab-description" class="stat-label" style="
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    margin: 0;
+    max-width: 330px;
+    display: flex;
+    align-items: flex-end; 
+  ">
+    Сайты — мой фокус. Лендинги, магазины, многостраничные — от идеи до финала с анимацией и адаптивом.
+  </div>
+</div>
+
+      <!-- ПРАВАЯ КОЛОНКА -->
+      <div id="placeholder-area" style="
+        width: 330px;
+        height: 100%;
+        background: #e0e0e3;
+      "></div>
+    </div>
+
+    <div style="
+      width: 100%;
+      display: flex;
+      justify-content: left;
+      margin-top: 160px;
+      padding: 0 30px 80px 30px;
+    ">
+      <a href="#" class="offer-button" style="
+        display: inline-flex;
+        align-items: center;
+        justify-content: space-between;
+        background: #000;
+        color: white;
+        border-radius: 38px;
+        padding: 0 20px 0 40px;
+        text-decoration: none;
+        font-size: 18px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        gap: 16px;
+        height: 76px;
+        min-width: 200px;
+        max-width: 659px;
+      "
+      onmouseover="this.style.backgroundColor = '#222';"
+      onmouseout="this.style.backgroundColor = '#000';">
+        Предложить оффер
+        <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="18" cy="18" r="18" fill="white" fill-opacity="0.2"/>
+          <path d="M12.6953 18.0533H23.1953M17.9986 23.3566L23.3019 18.0533L17.9986 12.75" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="cursor-follower" id="follower">
+  <img id="follower-img" src="" alt="" aria-hidden="true">
+</div>
+
+<script src="https://unpkg.com/lottie-web@5.12.2/build/player/lottie.min.js"></script>
+<script>
+// === УСТАНОВКА ВЫСОТЫ HERO ===
+function setHeroHeight() {
+  const hero = document.querySelector('.hero-container');
+  if (hero) hero.style.height = window.innerHeight + 'px';
+}
+setHeroHeight();
+window.addEventListener('resize', setHeroHeight);
+
+// === MARQUEE ===
+const marqueeWords = [
+  { text: "Дизайн.", url: "https://cdn.dribbble.com/userupload/21570629/file/original-0117c11987d7ef037c9c1f997ff0b3cf.gif", className: "design" },
+  { text: "Интерфейсы.", url: "https://cdn.dribbble.com/userupload/21570629/file/original-0117c11987d7ef037c9c1f997ff0b3cf.gif", className: "interfaces" },
+  { text: "Брендинг.", url: "https://cdn.dribbble.com/userupload/21570629/file/original-0117c11987d7ef037c9c1f997ff0b3cf.gif", className: "branding" }
+];
+
+document.addEventListener('DOMContentLoaded', () => {
+  const marqueeTextEl = document.getElementById('marqueeText');
+  if (marqueeTextEl) {
+    const wordsHtml = marqueeWords.map(w =>
+      `<span class="word ${w.className}" data-image="${w.url}">${w.text}</span>`
+    ).join('');
+    marqueeTextEl.innerHTML = wordsHtml.repeat(4);
+    adjustMarqueeScale();
+    animateMarquee();
+    initCursor();
+  }
+
+  // === LOTTIE ===
+  const phrases = [
+    "Привет. Познакомимся?",
+    "Поработаем вместе?",
+    "Пиццу будешь?",
+    "Почему не отвечаешь...",
+    "Понял. Попробуем еще раз"
+  ];
+  let currentPhraseIndex = 0;
+  let anim = null;
+
+  anim = lottie.loadAnimation({
+    container: document.getElementById('lottieContainer'),
+    renderer: 'svg',
+    loop: true,
+    autoplay: true,
+    path: 'https://kolpakovdmitriy9.github.io/newbring.github.io/assets/animate.json'
+  });
+
+  anim.addEventListener('DOMLoaded', () => {
+    showPhrase(phrases[0]);
+    setInterval(() => {
+      currentPhraseIndex = (currentPhraseIndex + 1) % phrases.length;
+      showPhrase(phrases[currentPhraseIndex]);
+    }, 2500);
+  });
+
+  anim.addEventListener('error', (err) => {
+    console.error('❌ Lottie error:', err);
+    document.getElementById('textSlider').textContent = 'Ошибка анимации';
+  });
+
+  function showPhrase(text) {
+    const slider = document.getElementById('textSlider');
+    if (!slider) return;
+    slider.innerHTML = '';
+    const slide = document.createElement('div');
+    slide.className = 'text-slide';
+    slide.textContent = text;
+    slide.style.transform = 'translateY(0)';
+    slider.appendChild(slide);
+  }
+
+  window.addEventListener('beforeunload', () => {
+    if (anim) anim.destroy();
+  });
+
+  // === АНИМАЦИЯ ЛИНИЙ ===
+  const statBlocks = document.querySelectorAll('.stat-block:not(.about-me-section .stat-block)');
+  statBlocks.forEach(block => {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const fillLine = entry.target.querySelector('.stat-line-fill');
+          if (fillLine && !fillLine.hasAttribute('data-animated')) {
+            setTimeout(() => {
+              fillLine.style.width = '100%';
+              fillLine.setAttribute('data-animated', 'true');
+            }, 300);
+          }
+        }
+      });
+    }, { threshold: 0.1 });
+    observer.observe(block);
+  });
+
+  // === АНИМАЦИЯ БОРДЕРА В ТРЕТЬЕМ ПРОЕКТЕ ===
+  const tenThousandTrigger = document.querySelector('.stat-item-trigger');
+  if (tenThousandTrigger) {
+    const observer1 = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const thirdBorder = document.getElementById('third-project-border-fill');
+          if (thirdBorder && !thirdBorder.hasAttribute('data-animated')) {
+            thirdBorder.style.height = '612px';
+            thirdBorder.setAttribute('data-animated', 'true');
+          }
+          observer1.unobserve(tenThousandTrigger);
+        }
+      });
+    }, { threshold: 0.1 });
+    observer1.observe(tenThousandTrigger);
+  }
+
+  // === ВИДЕО С КРУГОВЫМ ПРОГРЕССОМ ===
+  const video = document.getElementById('video-element');
+  const progressCircle = document.getElementById('video-progress-circle');
+  if (video && progressCircle) {
+    const duration = 5;
+    const circumference = 2 * Math.PI * 187;
+    progressCircle.style.strokeDasharray = `${circumference}`;
+    progressCircle.style.strokeDashoffset = `${circumference}`;
+    let isPlaying = false;
+
+    function updateProgress(currentTime) {
+      const cycleTime = currentTime % duration;
+      const offset = circumference - (cycleTime / duration) * circumference;
+      progressCircle.style.strokeDashoffset = offset;
+    }
+
+    function startVideoAndProgress() {
+      if (isPlaying) return;
+      video.play().then(() => {
+        isPlaying = true;
+        function syncProgress() {
+          if (video.currentTime >= duration) video.currentTime = 0;
+          updateProgress(video.currentTime);
+          if (isPlaying) requestAnimationFrame(syncProgress);
+        }
+        syncProgress();
+      }).catch(err => {
+        console.warn('❌ Автоплей заблокирован:', err);
+      });
+    }
+
+    video.addEventListener('canplay', () => {
+      setTimeout(startVideoAndProgress, 300);
+    });
+    video.addEventListener('click', startVideoAndProgress);
+    video.addEventListener('ended', () => {
+      if (isPlaying) {
+        video.currentTime = 0;
+        video.play();
+      }
+    });
+  }
+});
+
+// === MARQUEE АНИМАЦИЯ ===
+function animateMarquee() {
+  const container = document.querySelector('.marquee-container');
+  const text = document.querySelector('.marquee-text');
+  if (!container || !text) return;
+  let position = 0;
+  const speed = 1.2;
+  function step() {
+    position -= speed;
+    if (position <= -text.offsetWidth / 2) position = 0;
+    text.style.transform = `translateX(${position}px) translateY(-50%) scale(${window._marqueeScale || 1})`;
+    requestAnimationFrame(step);
+  }
+  step();
+}
+
+function adjustMarqueeScale() {
+  const container = document.querySelector('.marquee-container');
+  const text = document.querySelector('.marquee-text');
+  if (!container || !text) return;
+  const containerHeight = container.clientHeight;
+  const textHeight = text.scrollHeight;
+  const maxHeight = containerHeight * 0.9;
+  let scale = 1;
+  if (textHeight > maxHeight) scale = maxHeight / textHeight;
+  window._marqueeScale = scale;
+  text.style.transform = `translateY(-50%) scale(${scale})`;
+}
+
+window.addEventListener('resize', adjustMarqueeScale);
+
+// === КУРСОР ===
+function initCursor() {
+  const container = document.getElementById('marqueeContainer');
+  if (!container) return;
+  const words = container.querySelectorAll('.word');
+  const follower = document.getElementById('follower');
+  const followerImg = document.getElementById('follower-img');
+  let isPaused = false;
+  if (!follower || !followerImg) return;
+  words.forEach(word => {
+    const imgUrl = word.getAttribute('data-image');
+    const className = word.classList[1];
+    word.addEventListener('mouseenter', () => {
+      if (!isPaused) {
+        container.classList.add('is-paused');
+        isPaused = true;
+      }
+      followerImg.src = imgUrl;
+      follower.style.opacity = '1';
+      follower.style.transform = 'scale(1)';
+      document.body.classList.remove('design', 'interfaces', 'branding');
+      if (className) document.body.classList.add(className);
+    });
+    word.addEventListener('mousemove', (e) => {
+      if (!follower) return;
+      follower.style.left = (e.clientX - 90) + 'px';
+      follower.style.top = (e.clientY - 90) + 'px';
+    });
+    word.addEventListener('mouseleave', () => {
+      follower.style.opacity = '0';
+      follower.style.transform = 'scale(0.4)';
+      document.body.classList.remove('design', 'interfaces', 'branding');
+    });
+  });
+  container.addEventListener('mouseleave', () => {
+    setTimeout(() => {
+      const hovered = [...words].some(w => w.matches(':hover'));
+      if (!hovered && isPaused) {
+        container.classList.remove('is-paused');
+        isPaused = false;
+      }
+    }, 50);
+  });
+}
+
+// === ТАБЫ И ПАЛОЧКИ С АНИМАЦИЕЙ ПО ВЬЮПОРТУ ===
+setTimeout(() => {
+  const tabs = document.querySelectorAll('.tab-item');
+  const percents = { websites: 65, apps: 10, branding: 25 };
+  const descriptions = {
+    websites: 'Сайты — мой фокус. Лендинги, магазины, многостраничные — от идеи до финала с анимацией и адаптивом.',
+    apps: 'Приложения — UX/UI с глубокой проработкой. От прототипа до сдачи разработчикам. Адаптив, микроанимации, дарк-мод.',
+    branding: 'Брендинг — от названия до гайда. Логотипы, тональность, визуал. Работаю с бизнесом и стартапами.'
+  };
+
+  let hasAnimatedProgress = false;
+
+  function getPlaceholderColor(tabName, index) {
+    const colors = {
+      websites: ['#FF5722','#4CAF50','#2196F3','#E91E63','#FFC107','#9C27B0','#00BCD4','#8BC34A','#FF9800','#673AB7','#009688','#FFEB3B','#795548'],
+      branding: ['#FF5722','#4CAF50','#2196F3','#E91E63','#FFC107'],
+      apps: ['#FF5722','#4CAF50']
+    };
+    return colors[tabName]?.[index] || '#e0e0e3';
+  }
+
+  function updateProgress(tabName) {
+    if (window.fillIntervalId) clearInterval(window.fillIntervalId);
+    if (window.barTimeouts) window.barTimeouts.forEach(t => clearTimeout(t));
+    window.barTimeouts = [];
+
+    const container = document.getElementById('progress-bars');
+    const percentEl = document.getElementById('progress-percent');
+    const descEl = document.getElementById('tab-description');
+    const placeholderArea = document.getElementById('placeholder-area');
+
+    if (!container || !percentEl || !descEl || !placeholderArea) {
+      console.error('❌ Элементы прогресса не найдены');
+      return;
+    }
+
+    const targetPercent = percents[tabName] || 0;
+    const activeCount = Math.round(targetPercent / 5);
+    const totalBars = 20;
+
+    // Очищаем контейнер
+    container.innerHTML = '';
+
+    // Создаём все палочки (серые)
+    for (let i = 0; i < totalBars; i++) {
+      const bar = document.createElement('div');
+      bar.style.width = '6px';
+      bar.style.height = '56px';
+      bar.style.background = '#e5e5e5';
+      bar.style.transition = 'background 0.3s ease';
+      bar.style.cursor = 'pointer';
+      container.appendChild(bar);
+    }
+
+    // Анимация процента
+    let current = 0;
+    window.fillIntervalId = setInterval(() => {
+      if (current >= targetPercent) {
+        clearInterval(window.fillIntervalId);
+        percentEl.textContent = `${targetPercent}%`;
+      } else {
+        current += 5;
+        if (current > targetPercent) current = targetPercent;
+        percentEl.textContent = `${current}%`;
+      }
+    }, 80);
+
+    // Получаем палочки
+    const bars = container.querySelectorAll('div');
+
+    // Показываем активные палочки с задержкой
+    for (let i = 0; i < activeCount; i++) {
+      const delay = i * 100;
+      const timeoutId = setTimeout(() => {
+        if (bars[i]) {
+          bars[i].style.background = '#F9393B';
+
+          // Только mouseenter — без mouseleave
+          bars[i].addEventListener('mouseenter', () => {
+            const color = getPlaceholderColor(tabName, i);
+            placeholderArea.style.backgroundColor = color;
+            // Сохраняем текущий цвет
+            window.currentPlaceholderColor = color;
+          });
+        }
+      }, delay);
+      window.barTimeouts.push(timeoutId);
+    }
+
+    // Устанавливаем описание
+    descEl.textContent = descriptions[tabName];
+
+    // === НОВОЕ: сразу активируем первую палочку ===
+    if (activeCount > 0 && bars[0]) {
+      // Ждём, пока анимация палочки завершится
+      setTimeout(() => {
+        bars[0].style.background = '#F9393B';
+        const firstColor = getPlaceholderColor(tabName, 0);
+        placeholderArea.style.backgroundColor = firstColor;
+        window.currentPlaceholderColor = firstColor;
+      }, 100);
+    }
+  }
+
+  function activateTab(tabName) {
+    tabs.forEach(tab => {
+      if (tab.dataset.tab === tabName) {
+        tab.classList.add('active');
+        tab.style.color = 'black';
+      } else {
+        tab.classList.remove('active');
+        tab.style.color = '#e5e5e5';
+      }
+    });
+
+    // Анимация бордера "О себе"
+    const aboutBorder = document.getElementById('about-border-fill');
+    if (aboutBorder && !aboutBorder.hasAttribute('data-animated')) {
+      aboutBorder.style.height = '898px';
+      aboutBorder.setAttribute('data-animated', 'true');
+    }
+
+    updateProgress(tabName);
+  }
+
+  if (tabs.length > 0) {
+    const aboutSection = document.querySelector('.about-me-section');
+    if (aboutSection) {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting && !hasAnimatedProgress) {
+            activateTab('websites');
+            hasAnimatedProgress = true;
+            observer.unobserve(aboutSection);
+          }
+        });
+      }, { threshold: 0.1 });
+      observer.observe(aboutSection);
+    } else {
+      activateTab('websites');
+    }
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', (e) => {
+        e.preventDefault();
+        activateTab(tab.dataset.tab);
+      });
+    });
+  }
+}, 300);
+</script>
+</body>
+</html>
