@@ -25,19 +25,22 @@ body.branding{background:linear-gradient(to bottom,#fff,#f5e6ff);background-atta
 .cta-container{margin-top:16px}
 .header-section{width:100%;max-width:360px;display:flex;flex-direction:column;align-items:center;gap:16px;text-align:center}
 .lottie-wrapper{width:64px;height:64px}
-.text-slider{position:relative;height:36px;overflow:hidden;width:100%;text-align:center;font-size:18px;line-height:1.2;letter-spacing:-0.02em;font-weight:500;display:flex;align-items:center;justify-content:center}
+.text-slider{position:relative;height:36px;overflow:hidden;width:100%;text-align:center;font-size:18px;line-height:1.2;letter-spacing:-0.02em;font-weight:400;display:flex;align-items:center;justify-content:center}
 .text-slide{position:absolute;width:100%;left:0;transition:transform .3s ease-out}
 .logo-wrapper{display:flex;justify-content:center;align-items:center}
 .portfolio-logo{height:34px;width:auto;max-width:100%}
 /* === MARQUEE === */
 .marquee-container {
+--band: 200px;            /* высота полосы, как она занимает место в потоке */
+--bleed: 40px;            /* запас сверху и снизу, чтобы клип не резал буквы */
 white-space: nowrap;
 overflow: hidden;
 width: 100vw;
 position: relative;
-height: 200px;
+z-index: 1;
+height: calc(var(--band) + var(--bleed) * 2);
 padding: 0;
-margin: clamp(16px, 3vw, 80px) 0 clamp(72px, 5vw, 120px);
+margin: calc(clamp(16px, 3vw, 80px) - var(--bleed)) 0 calc(clamp(72px, 5vw, 120px) - var(--bleed));
 }
 .marquee-inner {
 display: inline-block;
@@ -64,7 +67,7 @@ touch-action: manipulation;
 .cursor-follower{display:none}
 }
 .cta-container{width:100%;max-width:800px;display:flex;flex-direction:column;align-items:center;text-align:center;padding:0 clamp(20px,5vw,80px)}
-.cta-button{background:#e74c3c;color:#fff;border:none;padding:0;font-size:20px;font-weight:500;line-height:1.2;letter-spacing:0;border-radius:50px;cursor:pointer;display:inline-flex;align-items:center;gap:16px;width:min(274px,100%);height:76px;justify-content:flex-start;padding-left:40px;padding-right:20px;transition:background .2s ease;font-family:'ONY One',sans-serif;touch-action:manipulation}
+.cta-button{background:#e74c3c;color:#fff;border:none;padding:0;font-size:20px;font-weight:400;line-height:1.2;letter-spacing:0;border-radius:50px;cursor:pointer;display:inline-flex;align-items:center;gap:16px;min-width:min(274px,100%);height:76px;justify-content:flex-start;padding-left:40px;padding-right:20px;white-space:nowrap;transition:background .2s ease;font-family:'ONY One',sans-serif;touch-action:manipulation}
 .cta-arrow{width:36px;height:36px;flex-shrink:0}
 .tagline{font-size:18px;line-height:1.5;color:#333;margin-top:48px;max-width:600px;margin-left:auto;margin-right:auto}
 .highlight{color:#e74c3c;font-weight:inherit}
@@ -104,7 +107,7 @@ transition: opacity 0.5s linear;
 .designer-avatar{width:86px;height:76px;border-radius:76px;object-fit:cover;display:block}
 .designer-info{display:flex;flex-direction:column;align-items:flex-start;gap:6px}
 .designer-name{text-align:left;color:#000;font-size:24px;font-weight:400;line-height:1.2;word-wrap:break-word}
-.designer-role{text-align:left;color:#a2a2a2;font-size:18px;font-weight:500;line-height:1.2;word-wrap:break-word}
+.designer-role{text-align:left;color:#a2a2a2;font-size:18px;font-weight:400;line-height:1.2;word-wrap:break-word}
 .project-content-row{display:flex;gap:30px;margin-top:98px}
 .project-image-small{width:100%;max-width:330px;display:flex;flex-direction:column;align-items:flex-start;gap:10px}
 .image-small-container{width:100%;max-width:330px;height:486px;position:relative;overflow:hidden}
@@ -196,7 +199,7 @@ height: clamp(180px, 45vw, 440px);
 .about-stat--right{text-align:right}
 .about-stat-number{font-size:90px;font-family:'ONY Track Moscow',sans-serif;font-weight:400;line-height:90px;color:#000}
 .about-buttons-row{width:100%;margin-top:160px;display:flex;justify-content:space-between;align-items:center;box-sizing:border-box;gap:16px}
-.ready-badge{display:inline-flex;align-items:center;justify-content:center;width:200px;max-width:100%;height:76px;border:1px solid #F9393B;border-radius:38px;color:#F9393B;font-size:18px;font-weight:500;cursor:text;user-select:text}
+.ready-badge{display:inline-flex;align-items:center;justify-content:center;width:200px;max-width:100%;height:76px;border:1px solid #F9393B;border-radius:38px;color:#F9393B;font-size:18px;font-weight:400;cursor:text;user-select:text}
 .telegram-btn{display:flex;align-items:center;justify-content:center;width:86px;height:76px;flex-shrink:0;border-radius:38px;background:#2AABEE;color:#fff;text-decoration:none;transition:background .2s ease;touch-action:manipulation}
 .about-right{width:690px;max-width:100%;flex:1;height:898px;display:flex;flex-direction:column;position:relative}
 .about-border-bg{position:absolute;top:0;left:0;width:1px;height:100%;background:#e0e0e3;pointer-events:none}
@@ -215,15 +218,15 @@ height: clamp(180px, 45vw, 440px);
 .fill{position:absolute;top:0;height:100%;z-index:1;opacity:0;pointer-events:none}
 .fill-l{left:0;background:#F4A4A5}
 .fill-r{right:0;background:#A8D9A7}
-.label{position:absolute;font-size:20px;font-weight:500;color:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:5;font-family:'ONY One',sans-serif}
+.label{position:absolute;font-size:20px;font-weight:400;color:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:5;font-family:'ONY One',sans-serif}
 #txtL{left:30px;width:86px;height:32px;border-radius:16px;transition:background .2s ease,color .1s ease}
 #txtR{right:30px;transition:opacity .2s ease}
 #handle{width:147px;height:76px;background:#000;border-radius:38px;position:absolute;left:50%;transform:translateX(-50%);display:flex;justify-content:center;align-items:center;z-index:10;cursor:grab;touch-action:none}
-#handleTxt{color:#fff;font-size:20px;pointer-events:none;font-family:'ONY One',sans-serif;font-weight:500}
+#handleTxt{color:#fff;font-size:20px;pointer-events:none;font-family:'ONY One',sans-serif;font-weight:400}
 .final-stats{position:absolute;width:100%;text-align:center;opacity:0;pointer-events:none;z-index:20;color:#fff;display:flex;flex-direction:column;transform:translateY(10px);transition:opacity .4s ease,transform .4s ease;transition-delay:.2s}
-.amount{font-size:20px;font-weight:500;padding:0 10px;font-family:'ONY One',sans-serif}
+.amount{font-size:20px;font-weight:400;padding:0 10px;font-family:'ONY One',sans-serif}
 .count{font-size:16px;opacity:.8;margin-top:4px;font-family:'ONY One',sans-serif}
-.amount-active{background:#E74F30 !important;color:#ffffff !important;font-size:20px !important;font-weight:500 !important;font-family:'ONY One', sans-serif !important}
+.amount-active{background:#E74F30 !important;color:#ffffff !important;font-size:20px !important;font-weight:400 !important;font-family:'ONY One', sans-serif !important}
 
 /* === ХОВЕРЫ ТОЛЬКО ДЛЯ УСТРОЙСТВ С МЫШЬЮ === */
 @media (hover:hover) and (pointer:fine){
@@ -270,7 +273,7 @@ height: clamp(180px, 45vw, 440px);
 }
 
 @media (max-width:768px){
-.marquee-container{height:120px}
+.marquee-container{--band:120px}
 .marquee-inner{font-size:100px}
 .designer-header{flex-direction:column;align-items:center;gap:10px}
 .designer-avatar{width:60px;height:60px}
@@ -302,12 +305,12 @@ height: clamp(180px, 45vw, 440px);
 }
 
 @media (max-height:700px){
-.marquee-container{height:160px}
+.marquee-container{--band:160px}
 .marquee-inner{font-size:120px}
 .cta-container{margin-top:clamp(40px,8vh,100px)}
 }
 @media (max-height:600px){
-.marquee-container{height:130px}
+.marquee-container{--band:130px}
 .marquee-inner{font-size:100px}
 .cta-container{margin-top:clamp(30px,6vh,80px)}
 .tagline{font-size:16px}
@@ -499,7 +502,7 @@ touch-action: none;
         <article class="dial-slide">
           <div class="dial-mark">
             <span class="dial-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" clip-rule="evenodd" d="M5 7C5 4.23858 7.23858 2 10 2H14C16.7614 2 19 4.23858 19 7V15C19 18.866 15.866 22 12 22C8.13401 22 5 18.866 5 15V7ZM11 7C11 6.44772 11.4477 6 12 6C12.5523 6 13 6.44772 13 7V10C13 10.5523 12.5523 11 12 11C11.4477 11 11 10.5523 11 10V7Z"/></svg></span>
-            <span class="dial-count">10 994</span>
+            <span class="dial-count">10 994</span>
           </div>
           <div class="dial-copy">
             <h3 class="dial-title">Проскроллено в Figma</h3>
