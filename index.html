@@ -132,29 +132,25 @@ body.branding{background:linear-gradient(to bottom,#fff,#f5e6ff);background-atta
   height:calc((var(--dial-count) * var(--dial-vh) * 1vh) + 100vh);
 }
 .dial-sticky{position:sticky;top:0;height:100vh;display:grid;place-items:center;overflow:hidden}
-.dial-ring{position:relative;width:min(86vmin,720px);aspect-ratio:1/1;display:grid;place-items:center}
+.dial-ring{position:relative;width:min(90vmin,952px);aspect-ratio:1/1;display:grid;place-items:center}
 .dial-svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
 .dial-svg line{stroke-linecap:round}
 /* прозрачностью дуги управляет скрипт — в CSS её задавать нельзя, стиль перебьёт атрибут */
 .dial-aura{stroke-width:24}
-.dial-slides{position:relative;width:min(72%,470px);display:grid;place-items:center}
+.dial-slides{position:relative;width:min(64%,560px);display:grid;place-items:center}
 .dial-slide{grid-area:1/1;text-align:center;display:flex;flex-direction:column;align-items:center;gap:16px;opacity:0;will-change:opacity,transform;pointer-events:none}
 .dial-badge{display:inline-flex;align-items:center;gap:8px;padding:8px 16px 8px 12px;border-radius:999px;background:#f2f2f4;color:#000;font-size:16px;font-weight:500;line-height:1;font-variant-numeric:tabular-nums}
 .dial-badge svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
 .dial-title{margin:0;color:#000;font-size:clamp(22px,2.7vw,40px);font-weight:500;line-height:1.15;letter-spacing:-.02em}
 .dial-text{margin:0;color:#585860;font-size:clamp(14px,1.3vw,18px);font-weight:400;line-height:1.35}
-.dial-dots{position:absolute;left:50%;bottom:-2%;transform:translateX(-50%);display:flex;gap:8px}
-.dial-dots i{width:6px;height:6px;border-radius:50%;background:#e0e0e3;transition:background .35s ease,width .35s ease,border-radius .35s ease}
-.dial-dots i.is-on{width:20px;border-radius:4px;background:var(--dial-accent)}
 @media (max-width:1024px){
 .dial-stage{margin-top:60px}
-.dial-ring{width:88vmin}
-.dial-slides{width:70%}
+.dial-ring{width:92vmin}
+.dial-slides{width:66%}
 .dial-title{font-size:clamp(20px,4.6vw,28px)}
 .dial-text{font-size:15px}
 /* на узких экранах верстаем текст потоком, а не по авторским строкам */
 .dial-title br,.dial-text br{display:none}
-.dial-dots{bottom:-8%}
 }
 @media (max-width:768px){
 /* текст должен уместиться внутри кольца: радиус на узком экране меньше */
@@ -269,6 +265,7 @@ body.branding{background:linear-gradient(to bottom,#fff,#f5e6ff);background-atta
           </filter>
         </defs>
         <path id="dialAura" class="dial-aura" filter="url(#dialAuraBlur)" stroke="url(#dialAuraGrad)" fill="none" stroke-linecap="round"></path>
+        <path id="dialAuraHover" class="dial-aura" filter="url(#dialAuraBlur)" stroke="url(#dialAuraGrad)" fill="none" stroke-linecap="round" opacity="0"></path>
         <g id="dialTicks"></g>
         <g id="dialTicksHot" filter="url(#dialHotGlow)"></g>
       </svg>
@@ -292,8 +289,6 @@ body.branding{background:linear-gradient(to bottom,#fff,#f5e6ff);background-atta
           <p class="dial-text">Развиваем функциональность, следим за метриками <br>и держим витрину стабильной 24/7</p>
         </article>
       </div>
-
-      <div class="dial-dots" id="dialDots" aria-hidden="true"><i></i><i></i><i></i></div>
 
     </div>
   </div>
@@ -993,6 +988,9 @@ setTimeout(() => {
     inertia     : 0.14,   // «догоняние» скролла
     velBoost    : 0.55,   // доп. вытягивание на быстром скролле
     idleDelay   : 420,    // мс без скролла, после которых круг начинает выравниваться
+    hoverSigma  : 18,     // ширина зоны магнита под курсором, градусы
+    hoverLen    : 34,     // насколько вытягиваются деления под курсором
+    hoverBand   : 0.16,   // полоса вокруг кольца (в долях ширины круга), где курсор ловится
     attack      : 0.18,   // скорость появления магнита
     release     : 0.028,  // скорость затухания магнита (≈2 c до ровного круга)
     stops       : [0.00, 0.38, 0.72, 1.00]
@@ -1003,8 +1001,9 @@ setTimeout(() => {
   const ticksG = document.getElementById('dialTicks');
   const hotG   = document.getElementById('dialTicksHot');
   const auraEl = document.getElementById('dialAura');
+  const auraHov = document.getElementById('dialAuraHover');
+  const ring   = stage.querySelector('.dial-ring');
   const slides = Array.from(stage.querySelectorAll('.dial-slide'));
-  const dots   = Array.from(stage.querySelectorAll('.dial-dots i'));
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   const N    = slides.length;
@@ -1085,11 +1084,14 @@ setTimeout(() => {
   (function drawAura(){
     const r = CFG.radius - 6, a = CFG.auraSpread;
     const p0 = polar(-a, r), p1 = polar(a, r);
-    auraEl.setAttribute('d', 'M ' + p0.x + ' ' + p0.y + ' A ' + r + ' ' + r + ' 0 0 1 ' + p1.x + ' ' + p1.y);
+    const d = 'M ' + p0.x + ' ' + p0.y + ' A ' + r + ' ' + r + ' 0 0 1 ' + p1.x + ' ' + p1.y;
+    auraEl.setAttribute('d', d);
+    auraHov.setAttribute('d', d);   // та же дуга, скрипт поворачивает её под курсор
   })();
 
   let progress = 0, rot = 0, rotTarget = 0, vel = 0;
   let energy = 0, lastInput = -Infinity, ticking = false;
+  let hoverAngle = 0, hoverW = 0, hoverTarget = 0;
 
   /* прогресс сцены: 0 — сцена только прилипла, 1 — вот-вот отлипнет */
   function sceneProgress(){
@@ -1124,9 +1126,17 @@ setTimeout(() => {
       // магнит работает только пока круг движется, в покое остаётся одна стрелка на 12 часах
       const mag  = Math.exp(-Math.pow(a / sigma, 2)) * pull * energy;
       const rest = Math.exp(-Math.pow(a / CFG.restSigma, 2)) * calm;
-      const w    = clamp(Math.max(mag, rest), 0, 1);
 
-      const len = CFG.lenBase + (CFG.lenMax - CFG.lenBase) * clamp(mag, 0, 1.3) + CFG.lenRest * rest;
+      // тот же магнит, но под курсором: тянет и подсвечивает там, где ведут мышкой
+      let dh = (a - hoverAngle) % 360;
+      if (dh > 180) dh -= 360;
+      if (dh < -180) dh += 360;
+      const hov = Math.exp(-Math.pow(dh / CFG.hoverSigma, 2)) * hoverW;
+
+      const w = clamp(Math.max(mag, rest, hov), 0, 1);
+
+      const len = CFG.lenBase + (CFG.lenMax - CFG.lenBase) * clamp(mag, 0, 1.3)
+                + CFG.lenRest * rest + CFG.hoverLen * hov;
       const wid = CFG.widthBase + (CFG.widthMax - CFG.widthBase) * w;
 
       // базовая часть висит на окружности, прирост расходится в обе стороны
@@ -1158,12 +1168,13 @@ setTimeout(() => {
     }
 
     auraEl.setAttribute('opacity', (0.42 * energy).toFixed(3));
+    auraHov.setAttribute('opacity', (0.42 * hoverW).toFixed(3));
+    auraHov.setAttribute('transform', 'rotate(' + hoverAngle.toFixed(1) + ' ' + CX + ' ' + CY + ')');
   }
 
   /* HOLD + FADE = половина расстояния между блоками, поэтому уходящий текст
      успевает погаснуть до появления следующего */
   function renderSlides(p){
-    let active = 0, best = -1;
     for (let i = 0; i < N; i++){
       const center = N === 1 ? 0.5 : i * GAP;
       const d = p - center;
@@ -1175,10 +1186,7 @@ setTimeout(() => {
       el.style.transform = 'translate3d(0,' + (-Math.sign(d) * (1 - o) * 34).toFixed(1) + 'px,0) scale(' + (0.94 + 0.06 * o).toFixed(3) + ')';
       el.style.visibility    = o < 0.005 ? 'hidden' : 'visible';
       el.style.pointerEvents = o > 0.6 ? 'auto' : 'none';
-
-      if (t > best){ best = t; active = i; }
     }
-    dots.forEach((d, i) => d.classList.toggle('is-on', i === active));
   }
 
   function loop(){
@@ -1194,6 +1202,7 @@ setTimeout(() => {
 
     const want = idle ? 0 : 1;
     energy += (want - energy) * (want > energy ? CFG.attack : CFG.release);
+    hoverW += (hoverTarget - hoverW) * (hoverTarget > hoverW ? 0.22 : 0.08);
 
     accent = accentAt(progress);
     updateRamp();
@@ -1202,22 +1211,40 @@ setTimeout(() => {
     renderTicks();
     renderSlides(progress);
 
-    if (!idle || Math.abs(rotTarget - rot) > 0.01 || Math.abs(vel) > 0.01 || energy > 0.002){
+    if (!idle || Math.abs(rotTarget - rot) > 0.01 || Math.abs(vel) > 0.01
+        || energy > 0.002 || hoverW > 0.002 || hoverTarget > 0){
       requestAnimationFrame(loop);
     } else {
-      rot = rotTarget; vel = 0; energy = 0;
+      rot = rotTarget; vel = 0; energy = 0; hoverW = 0;
       renderTicks();
       ticking = false;
     }
   }
+  function wake(){
+    if (!ticking){ ticking = true; requestAnimationFrame(loop); }
+  }
   function kick(){
     progress  = sceneProgress();
-    lastInput = performance.now();
-    if (!ticking){ ticking = true; requestAnimationFrame(loop); }
+    lastInput = performance.now();   // ховер сюда не пишет, иначе круг не считался бы отдыхающим
+    wake();
   }
 
   addEventListener('scroll', kick, { passive:true });
   addEventListener('resize', kick);
+
+  ring.addEventListener('pointermove', function(e){
+    if (e.pointerType === 'touch') return;          // на тачскрине это был бы просто скролл
+    const r  = ring.getBoundingClientRect();
+    const dx = e.clientX - (r.left + r.width / 2);
+    const dy = e.clientY - (r.top  + r.height / 2);
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    const ringPx = r.width / 2 * (CFG.radius / CX);  // радиус кольца в пикселях экрана
+    const band   = r.width * CFG.hoverBand;          // насколько далеко от кольца ещё ловим курсор
+    hoverTarget = clamp(1 - Math.abs(dist - ringPx) / band, 0, 1);
+    if (hoverTarget > 0) hoverAngle = Math.atan2(dy, dx) * 180 / Math.PI + 90;
+    wake();
+  }, { passive:true });
+  ring.addEventListener('pointerleave', function(){ hoverTarget = 0; wake(); });
 
   progress = sceneProgress();
   readPalette();
