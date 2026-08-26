@@ -130,6 +130,12 @@ body.branding{background:linear-gradient(to bottom,#fff,#f5e6ff);background-atta
   --dial-book:350;               /* Book — облегчённое начертание, им набрано описание */
   --dial-regular:400;            /* Regular — им набраны заголовок и число */
   --dial-tracking:-.02em;      /* задаётся на каждом текстовом элементе: em наследуется уже в px */
+  /* размеры сняты с макета при круге 952 и выражены в vmin, чтобы расти вместе с кольцом */
+  --dial-icon:clamp(56px,8.6vmin,96px);
+  --dial-num:clamp(44px,8.06vmin,90px);
+  --dial-h:clamp(22px,4.3vmin,48px);
+  --dial-p:clamp(14px,2.15vmin,24px);
+  --dial-gap:clamp(16px,2.87vmin,32px);
   --dial-count:3;                /* количество блоков — должно совпадать с числом .dial-slide */
   --dial-vh:100;                 /* сколько vh скролла приходится на один блок */
   position:relative;
@@ -142,25 +148,28 @@ body.branding{background:linear-gradient(to bottom,#fff,#f5e6ff);background-atta
 .dial-svg line{stroke-linecap:butt}
 /* прозрачностью дуги управляет скрипт — в CSS её задавать нельзя, стиль перебьёт атрибут */
 .dial-aura{stroke-width:24}
-.dial-slides{position:relative;width:min(60%,560px);display:grid;place-items:center}
-.dial-slide{grid-area:1/1;text-align:center;display:flex;flex-direction:column;align-items:center;gap:16px;opacity:0;will-change:opacity,transform;pointer-events:none;font-family:var(--dial-font)}
-.dial-badge{display:inline-flex;align-items:center;gap:8px;padding:8px 16px 8px 12px;border-radius:999px;background:#f2f2f4;color:#000;font-size:16px;font-weight:var(--dial-regular);line-height:1;letter-spacing:var(--dial-tracking);font-variant-numeric:tabular-nums}
-.dial-badge svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
-.dial-title{margin:0;color:#000;font-size:clamp(22px,2.7vw,40px);font-weight:var(--dial-regular);line-height:1.15;letter-spacing:var(--dial-tracking)}
-.dial-text{margin:0;color:#585860;font-size:clamp(14px,1.3vw,18px);font-weight:var(--dial-book);line-height:1.35;letter-spacing:var(--dial-tracking)}
+.dial-slides{position:relative;width:min(58%,617px);display:grid;place-items:center}
+.dial-slide{grid-area:1/1;text-align:center;display:flex;flex-direction:column;align-items:center;gap:var(--dial-gap);opacity:0;will-change:opacity,transform;pointer-events:none;font-family:var(--dial-font)}
+.dial-mark,.dial-copy{display:flex;flex-direction:column;align-items:center;gap:var(--dial-gap)}
+.dial-copy{width:100%}
+.dial-icon{width:var(--dial-icon);height:var(--dial-icon);flex:none;border:1px solid var(--dial-accent);border-radius:50%;display:grid;place-items:center;color:var(--dial-accent)}
+/* иконка у каждого блока своя: по умолчанию заливка,
+   обводочному глифу достаточно своих fill="none" stroke="currentColor" */
+.dial-icon svg{width:38%;height:38%}
+.dial-icon svg:not([fill]){fill:currentColor}
+/* число набрано Regular без трекинга — в макете межбуквенное задано только тексту */
+.dial-count{color:var(--dial-accent);font-size:var(--dial-num);font-weight:var(--dial-regular);line-height:1;font-variant-numeric:tabular-nums;white-space:nowrap}
+.dial-title{margin:0;color:#000;font-size:var(--dial-h);font-weight:var(--dial-regular);line-height:1;letter-spacing:var(--dial-tracking)}
+.dial-text{margin:0;color:#000;font-size:var(--dial-p);font-weight:var(--dial-book);line-height:1.2;letter-spacing:var(--dial-tracking)}
 @media (max-width:1024px){
 .dial-stage{margin-top:60px}
 .dial-slides{width:64%}
-.dial-title{font-size:clamp(20px,4.6vw,28px)}
-.dial-text{font-size:15px}
 /* на узких экранах верстаем текст потоком, а не по авторским строкам */
 .dial-title br,.dial-text br{display:none}
 }
 @media (max-width:768px){
 /* текст должен уместиться внутри кольца: радиус на узком экране меньше */
 .dial-slides{width:60%}
-.dial-badge{font-size:14px;padding:7px 14px 7px 10px}
-.dial-text{font-size:14px}
 }
 </style>
 </head>
@@ -271,21 +280,39 @@ body.branding{background:linear-gradient(to bottom,#fff,#f5e6ff);background-atta
 
       <div class="dial-slides" id="dialSlides">
         <article class="dial-slide">
-          <span class="dial-badge"><svg viewBox="0 0 24 24"><path d="M6 6h15l-1.6 8.2a2 2 0 0 1-2 1.6H9.3a2 2 0 0 1-2-1.7L5.5 3.8A1 1 0 0 0 4.5 3H2.5"/><circle cx="10" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/></svg>2840</span>
-          <h3 class="dial-title">Есть опыт работы <br>с интернет-магазинами</h3>
-          <p class="dial-text">Знаем лучшие практики, которые могут быть применены <br>на вашем проекте чтобы сделать его лучше</p>
+          <div class="dial-mark">
+            <span class="dial-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" clip-rule="evenodd" d="M5 7C5 4.23858 7.23858 2 10 2H14C16.7614 2 19 4.23858 19 7V15C19 18.866 15.866 22 12 22C8.13401 22 5 18.866 5 15V7ZM11 7C11 6.44772 11.4477 6 12 6C12.5523 6 13 6.44772 13 7V10C13 10.5523 12.5523 11 12 11C11.4477 11 11 10.5523 11 10V7Z"/></svg></span>
+            <span class="dial-count">10 994</span>
+          </div>
+          <div class="dial-copy">
+            <h3 class="dial-title">Проскроллено в Figma</h3>
+
+            <p class="dial-text">Столько метров до дна Марианской впадины. <br>Туда не доплывают даже батискафы, а я долистал</p>
+          </div>
         </article>
 
         <article class="dial-slide">
-          <span class="dial-badge"><svg viewBox="0 0 24 24"><path d="M3 17l5-6 4 4 4-6 5 5"/><path d="M3 21h18"/></svg>128</span>
-          <h3 class="dial-title">Ускоряем загрузку <br>и растим конверсию</h3>
-          <p class="dial-text">Оптимизируем Core Web Vitals и путь пользователя, <br>чтобы каждый визит приносил больше заказов</p>
+          <div class="dial-mark">
+            <span class="dial-icon"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-6 4 4 4-6 5 5"/><path d="M3 21h18"/></svg></span>
+            <span class="dial-count">128</span>
+          </div>
+          <div class="dial-copy">
+            <h3 class="dial-title">Ускоряем загрузку <br>и растим конверсию</h3>
+
+            <p class="dial-text">Оптимизируем Core Web Vitals и путь пользователя, <br>чтобы каждый визит приносил больше заказов</p>
+          </div>
         </article>
 
         <article class="dial-slide">
-          <span class="dial-badge"><svg viewBox="0 0 24 24"><path d="M12 3l2.6 5.6 6.1.8-4.5 4.2 1.2 6.1L12 16.8 6.6 19.7l1.2-6.1L3.3 9.4l6.1-.8z"/></svg>17</span>
-          <h3 class="dial-title">Поддерживаем проект <br>после запуска</h3>
-          <p class="dial-text">Развиваем функциональность, следим за метриками <br>и держим витрину стабильной 24/7</p>
+          <div class="dial-mark">
+            <span class="dial-icon"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.6 5.6 6.1.8-4.5 4.2 1.2 6.1L12 16.8 6.6 19.7l1.2-6.1L3.3 9.4l6.1-.8z"/></svg></span>
+            <span class="dial-count">17</span>
+          </div>
+          <div class="dial-copy">
+            <h3 class="dial-title">Поддерживаем проект <br>после запуска</h3>
+
+            <p class="dial-text">Развиваем функциональность, следим за метриками <br>и держим витрину стабильной 24/7</p>
+          </div>
         </article>
       </div>
 
