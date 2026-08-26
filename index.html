@@ -42,6 +42,10 @@ height: calc(var(--band) + var(--bleed) * 2);
 padding: 0;
 margin: calc(clamp(16px, 3vw, 80px) - var(--bleed)) 0 calc(clamp(72px, 5vw, 120px) - var(--bleed));
 }
+@keyframes marquee-scroll {
+from { transform: translate(0, -50%); }
+to   { transform: translate(-50%, -50%); }  /* контент задублирован ровно 2x — 50% его ширины это один полный круг */
+}
 .marquee-inner {
 display: inline-block;
 font-size: 140px;
@@ -51,11 +55,12 @@ top: 50%;
 left: 0;
 transform: translateY(-50%);
 will-change: transform;
+animation: marquee-scroll 29.24s linear infinite;  /* 2106px (ширина одной копии при 140px) / 72px/с — та же скорость на всех брейкпоинтах ниже */
 }
 .word {
 color: #000;
 transition: color 0.2s ease;
-margin-right: 40px;
+margin-right: 0.2em;
 cursor: pointer;
 display: inline-block;
 touch-action: manipulation;
@@ -69,7 +74,7 @@ touch-action: manipulation;
 .cta-container{width:100%;max-width:800px;display:flex;flex-direction:column;align-items:center;text-align:center;padding:0 clamp(20px,5vw,80px)}
 .cta-button{background:#e74c3c;color:#fff;border:none;padding:0;font-size:20px;font-weight:400;line-height:1.2;letter-spacing:0;border-radius:50px;cursor:pointer;display:inline-flex;align-items:center;gap:16px;min-width:min(274px,100%);height:76px;justify-content:flex-start;padding-left:40px;padding-right:20px;white-space:nowrap;transition:background .2s ease;font-family:'ONY One',sans-serif;touch-action:manipulation}
 .cta-arrow{width:36px;height:36px;flex-shrink:0}
-.tagline{font-size:18px;line-height:1.5;color:#333;margin-top:48px;max-width:600px;margin-left:auto;margin-right:auto}
+.tagline{font-size:18px;line-height:1.2;color:#333;margin-top:48px;max-width:600px;margin-left:auto;margin-right:auto}
 .highlight{color:#e74c3c;font-weight:inherit}
 .projects-section-mock{max-width:1440px;margin:80px auto 80px;padding:0 30px;display:flex;gap:30px;align-items:flex-start;width:100%}
 .project-card{flex:1;max-width:720px;display:flex;flex-direction:column;gap:30px}
@@ -253,6 +258,8 @@ height: clamp(180px, 45vw, 440px);
 .image-small-container{max-width:100%;height:300px}
 .stat-number{font-size:60px;line-height:60px}
 .stat-label{font-size:16px}
+.tagline{font-size:16px}
+.text-slider{font-size:16px}
 .third-title{text-align:left}
 
 .about-me-section{flex-direction:column;height:auto;gap:60px}
@@ -306,12 +313,12 @@ height: clamp(180px, 45vw, 440px);
 
 @media (max-height:700px){
 .marquee-container{--band:160px}
-.marquee-inner{font-size:120px}
+.marquee-inner{font-size:120px;animation-duration:25.06s}
 .cta-container{margin-top:clamp(40px,8vh,100px)}
 }
 @media (max-height:600px){
 .marquee-container{--band:130px}
-.marquee-inner{font-size:100px}
+.marquee-inner{font-size:100px;animation-duration:20.89s}
 .cta-container{margin-top:clamp(30px,6vh,80px)}
 .tagline{font-size:16px}
 }
@@ -402,14 +409,12 @@ touch-action: none;
   .lottie-wrapper{width:40px;height:40px}
   .portfolio-logo{height:20px}
 
-  /* бегущая строка мельче и по центру между логотипом и кнопкой: пересчитан band,
-     иначе высота полосы остаётся десктопной и текст «плавает» в пустом контейнере */
+  /* бегущая строка по центру между логотипом и кнопкой: band пересчитан под
+     новый кегль, иначе высота полосы «плавает» отдельно от текста внутри.
+     Крупнее, чем раньше, — это важный акцент главного блока */
   .header-section{margin-bottom:8px}
-  .marquee-container{--band:52px;margin:24px 0 16px}
-  .marquee-inner{font-size:40px}
-
-  /* текст под кнопкой — кегль как у описания проекта, интервал плотнее */
-  .tagline{font-size:24px;line-height:1.3}
+  .marquee-container{--band:132px;margin:20px 0 16px}
+  .marquee-inner{font-size:132px;animation-duration:27.57s}
 
   /* круг: не сжимаем его под ширину экрана — пусть уходит за края,
      текст внутри держит свою ширину независимо от диаметра кольца */
@@ -663,16 +668,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const fullHTML = baseHTML + baseHTML;
   const marqueeInner = document.getElementById('marqueeInner');
   if (marqueeInner) marqueeInner.innerHTML = fullHTML;
-
-  let position = 0;
-  function animateMarquee() {
-    const contentWidth = marqueeInner.scrollWidth / 2;
-    position -= 1.2;
-    if (position <= -contentWidth) position = 0;
-    if (marqueeInner) marqueeInner.style.transform = `translateX(${position}px) translateY(-50%)`;
-    requestAnimationFrame(animateMarquee);
-  }
-  animateMarquee();
+  // движение задано в CSS через @keyframes marquee-scroll — так оно считается
+  // композитором, а не этим потоком, и не спотыкается о нашу же остальную работу
 
   // === CURSOR FOLLOWER (только для устройств с мышью — на тач-экранах ховера нет и он не нужен) ===
   if (canHover) {
