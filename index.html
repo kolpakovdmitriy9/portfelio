@@ -393,6 +393,32 @@ touch-action: none;
 /* текст должен уместиться внутри кольца: радиус на узком экране меньше */
 .dial-slides{width:60%}
 }
+
+@media (max-width:768px){
+  .hero-container{padding:32px 12px 0}
+  .cta-container{padding:0 12px}
+
+  /* лотти и логотип уменьшены пропорционально относительно десктопных 64px/34px */
+  .lottie-wrapper{width:40px;height:40px}
+  .portfolio-logo{height:20px}
+
+  /* бегущая строка мельче и по центру между логотипом и кнопкой: пересчитан band,
+     иначе высота полосы остаётся десктопной и текст «плавает» в пустом контейнере */
+  .header-section{margin-bottom:8px}
+  .marquee-container{--band:52px;margin:24px 0 16px}
+  .marquee-inner{font-size:40px}
+
+  /* текст под кнопкой — кегль как у описания проекта, интервал плотнее */
+  .tagline{font-size:24px;line-height:1.3}
+
+  /* круг: не сжимаем его под ширину экрана — пусть уходит за края,
+     текст внутри держит свою ширину независимо от диаметра кольца */
+  /* центрируем через absolute, а не place-items:center: когда элемент шире
+     контейнера с overflow:hidden, грид по умолчанию откатывается на 'safe center'
+     (по факту — прижимает к левому краю), чтобы не терять контент при скролле */
+  .dial-ring{width:150vmin;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)}
+  .dial-slides{width:min(80vw,340px)}
+}
 </style>
 </head>
 <body>
