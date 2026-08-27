@@ -76,7 +76,8 @@ touch-action: manipulation;
 .cta-arrow{width:36px;height:36px;flex-shrink:0}
 .tagline{font-size:18px;line-height:1.2;color:#333;margin-top:48px;max-width:600px;margin-left:auto;margin-right:auto}
 .highlight{color:#e74c3c;font-weight:inherit}
-.projects-section-mock{max-width:1440px;margin:80px auto 80px;padding:0 30px;display:flex;gap:30px;align-items:flex-start;width:100%}
+.projects-section-mock{max-width:1440px;margin:80px auto 70px;padding:0 30px;display:flex;gap:30px;align-items:flex-start;width:100%}  /* нижний отступ 70, а не 80 — соседний .project-full-width тоже 70 сверху:
+     margin-ы соседних блоков схлопываются по большему из двух, поэтому оба должны совпадать */
 .project-card{flex:1;max-width:720px;display:flex;flex-direction:column;gap:30px}
 .project-image-container{
 width:100%;
@@ -113,12 +114,12 @@ transition: opacity 0.5s linear;
 .designer-info{display:flex;flex-direction:column;align-items:flex-start;gap:6px}
 .designer-name{text-align:left;color:#000;font-size:24px;font-weight:400;line-height:1.2;word-wrap:break-word}
 .designer-role{text-align:left;color:#a2a2a2;font-size:18px;font-weight:400;line-height:1.2;word-wrap:break-word}
-.project-content-row{display:flex;gap:30px;margin-top:98px}
+.project-content-row{display:flex;gap:30px;margin-top:83px}  /* .project-card уже даёт gap:30 между header и этим блоком, плюс margin-top:83 = 113px, как в макете */
 .project-image-small{width:100%;max-width:330px;display:flex;flex-direction:column;align-items:flex-start;gap:10px}
 .image-small-container{width:100%;max-width:330px;aspect-ratio:330/486;position:relative;overflow:hidden}
 .project-text-content{flex:1;display:flex;flex-direction:column;justify-content:space-between;align-items:flex-start}
 .project-title{width:100%;color:#000;font-size:24px;font-weight:400;line-height:23px;word-wrap:break-word}
-.project-full-width{max-width:1440px;margin:80px auto 80px;padding:0 30px;width:100%}
+.project-full-width{max-width:1440px;margin:70px auto 80px;padding:0 30px;width:100%}
 /* align-items:flex-start — без этого дефолтный stretch растягивал .project-image-large
    до высоты соседней text-block-with-border (612px фиксированно), и aspect-ratio
    на картинке просто игнорировался в промежуточных ширинах */
