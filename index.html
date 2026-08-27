@@ -81,7 +81,7 @@ touch-action: manipulation;
 .project-image-container{
 width:100%;
 max-width:690px;
-height:690px;
+aspect-ratio:1/1;
 position:relative;
 overflow:hidden;
 touch-action:manipulation;
@@ -115,24 +115,27 @@ transition: opacity 0.5s linear;
 .designer-role{text-align:left;color:#a2a2a2;font-size:18px;font-weight:400;line-height:1.2;word-wrap:break-word}
 .project-content-row{display:flex;gap:30px;margin-top:98px}
 .project-image-small{width:100%;max-width:330px;display:flex;flex-direction:column;align-items:flex-start;gap:10px}
-.image-small-container{width:100%;max-width:330px;height:486px;position:relative;overflow:hidden}
+.image-small-container{width:100%;max-width:330px;aspect-ratio:330/486;position:relative;overflow:hidden}
 .project-text-content{flex:1;display:flex;flex-direction:column;justify-content:space-between;align-items:flex-start}
 .project-title{width:100%;color:#000;font-size:24px;font-weight:400;line-height:23px;word-wrap:break-word}
 .project-full-width{max-width:1440px;margin:80px auto 80px;padding:0 30px;width:100%}
-.third-project{display:flex;gap:30px;margin-top:0}
+/* align-items:flex-start — без этого дефолтный stretch растягивал .project-image-large
+   до высоты соседней text-block-with-border (612px фиксированно), и aspect-ratio
+   на картинке просто игнорировался в промежуточных ширинах */
+.third-project{display:flex;gap:30px;margin-top:0;align-items:flex-start}
 .text-block-with-border{width:330px;height:612px;display:flex;flex-direction:column;padding-left:30px;position:relative}
 .border-line-bg{position:absolute;top:0;left:0;width:1px;height:100%;background:#e0e0e3;z-index:0}
 .border-line-fill{position:absolute;top:0;left:0;width:1px;height:0;background:#F9393B;transition:height 1.2s cubic-bezier(.22,.61,.36,1);z-index:1}
 .stat-item{height:306px;display:flex;flex-direction:column;justify-content:flex-end;gap:6px;position:relative;z-index:2}
 .stat-number{color:#000;font-size:90px;font-family:'ONY Track Moscow',sans-serif;font-weight:400;line-height:90px;word-wrap:break-word}
 .stat-label{color:#000;font-size:18px;font-weight:400;line-height:1.2;word-wrap:break-word}
-.project-image-large{flex:1;height:612px;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.project-image-large{flex:1;aspect-ratio:1020/612;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center}
 .project-image-large img{width:100%;height:100%;object-fit:cover;display:block}
 /* === ТРЕТИЙ ПРОЕКТ: 3D VOLUME LOGO === */
 .third-project .canvas-container {
 position: relative;
-width: 1020px;
-height: 612px;
+width: 100%;
+height: 100%;
 background-image: url('https://raw.githubusercontent.com/kolpakovdmitriy9/newbring.github.io/refs/heads/master/lovelllas.hyperesources/sls.png');
 background-size: cover;
 background-position: center;
@@ -173,15 +176,7 @@ z-index: 100;
 .third-project .layer-side {
 filter: brightness(0.85) contrast(1.05);
 }
-@media (min-width: 1920px) {
-.third-project .canvas-container { width: 1020px; height: 612px; }
-}
 @media (max-width: 1080px) {
-.third-project .canvas-container {
-width: calc(100% - 32px);
-height: auto;
-aspect-ratio: 1020 / 612;
-}
 .third-project .logo-3d-stack {
 width: clamp(180px, 45vw, 440px);
 height: clamp(180px, 45vw, 440px);
@@ -245,17 +240,20 @@ height: clamp(180px, 45vw, 440px);
 @media (max-width:1024px){
 .projects-section-mock{flex-direction:column;gap:60px}
 .project-card{max-width:none}
-.project-image-container{max-width:100%;height:400px}
+.project-image-container{max-width:100%}
 .logo-container{width:200px;height:200px;left:50%;top:50%;transform:translate(-50%,-50%)}
 .logo-img{width:200px;height:200px}
 .project-content-row,.third-project{flex-direction:column;gap:30px}
+/* колонкой align-items:flex-start (десктопный фикс ratio) означал бы 'не растягивать по ширине' —
+   возвращаем ширину-на-всю-колонку, как было исходно на мобильном */
+.third-project{align-items:stretch}
 .text-block-with-border{width:100%;height:auto;border-left:none;border-top:1px solid #e0e0e3;padding-left:0;padding-top:30px;position:relative}
 .border-line-bg,.border-line-fill{width:100%;height:1px;top:auto;bottom:0;left:0;right:0}
 .border-line-fill{height:1px;width:0;transition:width 1.2s cubic-bezier(.22,.61,.36,1)}
 .stat-item{height:auto;padding:15px 0;justify-content:flex-end}
-.project-image-large{height:400px}
+
 .project-image-small{max-width:100%;padding-left:0}
-.image-small-container{max-width:100%;height:300px}
+.image-small-container{max-width:100%}
 .stat-number{font-size:60px;line-height:60px}
 .stat-label{font-size:16px}
 .tagline{font-size:16px}
@@ -805,7 +803,37 @@ document.addEventListener('DOMContentLoaded', () => {
       layer.style.transform = `translateZ(${(i - layersCount / 2) * step}px)`;
       logo.appendChild(layer);
     }
-    if (!canHover) return;
+    if (!canHover) {
+      // На тачскрине курсора нет — наклон логотипа ведёт гироскоп телефона.
+      // Точка отсчёта берётся из первого показания, а не абсолютного «плашмя»:
+      // так эффект реагирует на наклон ОТ того, как телефон держат сейчас,
+      // а не требует держать его идеально вертикально.
+      let baseBeta = null, baseGamma = null;
+      const clampDeg = (v) => Math.max(-24, Math.min(24, v));
+      const onOrient = (e) => {
+        if (e.beta == null || e.gamma == null) return;
+        if (baseBeta === null) { baseBeta = e.beta; baseGamma = e.gamma; }
+        const rotateX = clampDeg(-(e.beta - baseBeta) / 1.3);
+        const rotateY = clampDeg((e.gamma - baseGamma) / 1.3);
+        logo.style.transform = `rotateX(${rotateX.toFixed(2)}deg) rotateY(${rotateY.toFixed(2)}deg)`;
+      };
+      const enableTilt = () => window.addEventListener('deviceorientation', onOrient);
+      // iOS 13+ отдаёт данные датчика только после явного разрешения, и
+      // запросить его можно исключительно из обработчика жеста пользователя —
+      // поэтому вешаем это на первое касание, а не пытаемся получить доступ сразу
+      if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+        const grantTilt = () => {
+          DeviceOrientationEvent.requestPermission().then((state) => {
+            if (state === 'granted') enableTilt();
+          }).catch(() => {});
+          container.removeEventListener('touchstart', grantTilt);
+        };
+        container.addEventListener('touchstart', grantTilt, { once: true, passive: true });
+      } else if (typeof DeviceOrientationEvent !== 'undefined') {
+        enableTilt();
+      }
+      return;
+    }
     const handleMouseMove = (e) => {
       const rect = container.getBoundingClientRect();
       const rotateX = (rect.height / 2 - (e.clientY - rect.top)) / 15;
@@ -1197,12 +1225,13 @@ switchTab('websites');
     auraSpread  : 58,     // полуширина дуги подсветки, градусы
     inertia     : 0.14,   // «догоняние» скролла
     velBoost    : 0.55,   // доп. вытягивание на быстром скролле
-    idleDelay   : 420,    // мс без скролла, после которых круг начинает выравниваться
+    idleDelay   : 180,    // мс без скролла, после которых круг начинает выравниваться
     hoverSigma  : 18,     // ширина зоны магнита под курсором, градусы
     hoverLen    : 34,     // насколько вытягиваются деления под курсором
-    hoverBand   : 0.16,   // полоса вокруг кольца (в долях ширины круга), где курсор ловится
+    hoverBand   : 0.16,   // за пределами кольца магнит гаснет на этом расстоянии (в долях ширины круга)
+    hoverDead   : 0.35,    // мёртвая зона у самого центра (в долях радиуса) — там угол «дрожит»
     attack      : 0.18,   // скорость появления магнита
-    release     : 0.028,  // скорость затухания магнита (≈2 c до ровного круга)
+    release     : 0.08,   // скорость затухания магнита (≈0.7 c до ровного круга)
     stops       : [0.00, 0.38, 0.72, 1.00]
   };
 
@@ -1454,8 +1483,13 @@ switchTab('websites');
     const dy = e.clientY - (r.top  + r.height / 2);
     const dist = Math.sqrt(dx * dx + dy * dy);
     const ringPx = r.width / 2 * (CFG.radius / CX) * dialScale;  // радиус кольца в пикселях экрана
-    const band   = r.width * CFG.hoverBand;          // насколько далеко от кольца ещё ловим курсор
-    hoverTarget = clamp(1 - Math.abs(dist - ringPx) / band, 0, 1);
+    const band   = r.width * CFG.hoverBand;          // насколько далеко за кольцом магнит ещё виден
+    // магнит реагирует на НАПРАВЛЕНИЕ курсора от центра, а не только на точный
+    // контур делений: если курсор справа внизу — тянет деления справа внизу,
+    // независимо от того, стоит ли он ровно над штрихом или чуть в стороне
+    const inner = clamp(dist / (ringPx * CFG.hoverDead), 0, 1);       // у самого центра гасим — угол там дрожит
+    const outer = 1 - clamp((dist - ringPx) / band, 0, 1);            // за кольцом плавно гаснет
+    hoverTarget = clamp(Math.min(inner, outer), 0, 1);
     if (hoverTarget > 0) hoverAngle = Math.atan2(dy, dx) * 180 / Math.PI + 90;
     wake();
   }, { passive:true });
