@@ -1229,6 +1229,7 @@ switchTab('websites');
     preSpin     : 16,     // градусов лёгкой подкрутки, пока блок подъезжает снизу
     scaleFar    : 1,      // масштаб круга, пока блок ещё далеко
     scaleNear   : 0.92,   // масштаб круга, когда блок прилип
+    sizeMax     : 1.28,   // во сколько раз круг крупнее к последнему блоку (число делений то же)
     scaleFrom   : 0.35,   // с какой доли подхода круг начинает ужиматься (раньше он ещё за экраном)
     auraSpread  : 58,     // полуширина дуги подсветки, градусы
     inertia     : 0.14,   // «догоняние» скролла
@@ -1254,8 +1255,9 @@ switchTab('websites');
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   /* ───── Цифры-барабаны: каждая цифра прокручивается сверху вниз при появлении слайда.
-     Запускается один раз и дальше идёт своим ходом (CSS-transition), скролл её не двигает
-     и не может остановить на полпути. */
+     Само вращение идёт своим ходом (CSS-transition), скролл её не двигает и не может
+     остановить на полпути — но при уходе слайда из фокуса барабан сбрасывается на 0,
+     чтобы при следующем появлении отыграть заново. */
   function digitSpan(d){ const s = document.createElement('span'); s.textContent = d; return s; }
   function buildReel(text){
     const frag = document.createDocumentFragment();
@@ -1282,8 +1284,8 @@ switchTab('websites');
     return { frag, reels };
   }
   function startRoll(el){
-    if (!el || !el._reels || el._started) return;
-    el._started = true;
+    if (!el || !el._reels || el._rolled) return;
+    el._rolled = true;
     // двойной rAF: сначала браузер красит цифры в исходном положении (0),
     // и только потом мы задаём целевой transform — иначе transition не сыграет
     requestAnimationFrame(function(){
@@ -1291,6 +1293,15 @@ switchTab('websites');
         el._reels.forEach(function(r){ r.strip.style.transform = 'translateY(' + r.landing + 'em)'; });
       });
     });
+  }
+  function resetRoll(el){
+    if (!el || !el._reels || !el._rolled) return;
+    el._rolled = false;
+    // слайд в этот момент уже невидим (opacity ~0) — откатываем без transition,
+    // рывок назад никто не увидит, зато следующий заход отыграет барабан с нуля
+    el._reels.forEach(function(r){ r.strip.style.transition = 'none'; r.strip.style.transform = 'translateY(0)'; });
+    void el.offsetWidth;
+    el._reels.forEach(function(r){ r.strip.style.transition = ''; });
   }
 
   const counters = slides.map(function(s){ return s.querySelector('.dial-count'); });
@@ -1308,12 +1319,19 @@ switchTab('websites');
   let stageSeen = reduced;
   const prevSlideO = new Array(slides.length).fill(0);
   if (!reduced && 'IntersectionObserver' in window){
+    // у крайних слайдов (первого и последнего) прогресс скролла на границе всей секции
+    // совпадает с их «центром», поэтому их opacity никогда не падает до нуля сама по себе —
+    // сброс барабанов на выходе решаем отдельно, по факту ухода всей секции с экрана
     const dialIO = new IntersectionObserver(function(entries){
       entries.forEach(function(en){
-        if (!en.isIntersecting) return;
-        stageSeen = true;
-        slides.forEach(function(s, i){ if (parseFloat(s.style.opacity || '0') > 0.001) startRoll(counters[i]); });
-        dialIO.disconnect();
+        if (en.isIntersecting){
+          stageSeen = true;
+          slides.forEach(function(s, i){ if (parseFloat(s.style.opacity || '0') > 0.001) startRoll(counters[i]); });
+        } else if (stageSeen){
+          // prevSlideO не трогаем: у крайних слайдов o всегда «1» на этой границе,
+          // обнуление тут же обмануло бы кроссфейд-детектор на следующем кадре
+          counters.forEach(resetRoll);
+        }
       });
     }, { threshold: 0.01 });
     dialIO.observe(stage);
@@ -1381,6 +1399,20 @@ switchTab('websites');
     const flat = HOLD / GAP;
     const t    = smooth(clamp((x - i - flat) / (1 - 2 * flat), 0, 1));
     return mix(accents[i], accents[i + 1], t);
+  }
+
+  /* круг растёт от блока к блоку — число делений то же самое (CFG.tickCount),
+     просто сам круг крупнее; переход синхронизирован с тем же плато/кроссфейдом,
+     что и акцентный цвет */
+  function sizeAt(p){
+    if (N < 2) return 1;
+    const x    = clamp(p / GAP, 0, N - 1);
+    const i    = Math.min(Math.floor(x), N - 2);
+    const flat = HOLD / GAP;
+    const t    = smooth(clamp((x - i - flat) / (1 - 2 * flat), 0, 1));
+    const s0 = 1 + (CFG.sizeMax - 1) * i / (N - 1);
+    const s1 = 1 + (CFG.sizeMax - 1) * (i + 1) / (N - 1);
+    return s0 + (s1 - s0) * t;
   }
 
   function polar(angleDeg, r){
@@ -1499,8 +1531,13 @@ switchTab('websites');
       el.style.pointerEvents = o > 0.6 ? 'auto' : 'none';
 
       // барабан цифр стартует в момент, когда слайд только-только начал проявляться —
-      // ждать полной непрозрачности не нужно, а после старта скролл на него уже не влияет
-      if (stageSeen && prevSlideO[i] <= 0.001 && o > 0.001) startRoll(counters[i]);
+      // ждать полной непрозрачности не нужно, а после старта скролл на него уже не влияет.
+      // когда слайд гаснет обратно до невидимого — сбрасываем барабан, чтобы при
+      // следующем возврате к блоку цифры отыграли заново, а не остались на месте
+      if (stageSeen){
+        if (prevSlideO[i] <= 0.001 && o > 0.001) startRoll(counters[i]);
+        else if (prevSlideO[i] > 0.001 && o <= 0.001) resetRoll(counters[i]);
+      }
       prevSlideO[i] = o;
     }
   }
@@ -1516,8 +1553,8 @@ switchTab('websites');
     // в покое круг доводится до ближайшего деления, чтобы стрелка встала ровно на 12 часов
     rotTarget = (idle && gate > 0.99) ? Math.round(raw / STEP) * STEP : raw;
 
-    // и круг ужимается по мере приближения
-    dialScale = CFG.scaleFar + (CFG.scaleNear - CFG.scaleFar) * near;
+    // и круг ужимается по мере приближения, а затем растёт от блока к блоку
+    dialScale = (CFG.scaleFar + (CFG.scaleNear - CFG.scaleFar) * near) * sizeAt(progress);
     svg.style.transform = 'scale(' + dialScale.toFixed(4) + ')';
 
     const prev = rot;
@@ -1584,7 +1621,7 @@ switchTab('websites');
   updateRamp();
   stage.style.setProperty('--dial-accent', rgb(accent));
   const near0 = smooth(clamp((approach - CFG.scaleFrom) / (1 - CFG.scaleFrom), 0, 1));
-  dialScale = CFG.scaleFar + (CFG.scaleNear - CFG.scaleFar) * near0;
+  dialScale = (CFG.scaleFar + (CFG.scaleNear - CFG.scaleFar) * near0) * sizeAt(progress);
   svg.style.transform = 'scale(' + dialScale.toFixed(4) + ')';
   const raw0 = progress * CFG.rotationTotal - CFG.preSpin * (1 - near0);
   // страница может открыться уже внутри сцены — сразу доводим стрелку на 12 часов
