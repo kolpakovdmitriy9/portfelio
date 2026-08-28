@@ -387,6 +387,13 @@ touch-action: none;
 .dial-icon svg:not([fill]){fill:currentColor}
 /* число набрано Regular без трекинга — в макете межбуквенное задано только тексту */
 .dial-count{color:var(--dial-accent);font-size:var(--dial-num);font-weight:var(--dial-regular);line-height:1;font-variant-numeric:tabular-nums;white-space:nowrap}
+/* цифра — барабан: колонка 0…9 (+довесок до нужного значения) едет вверх и приземляется на цель.
+   Анимация запускается один раз скриптом и идёт временем CSS-transition, а не скроллом —
+   если слайд уйдёт из фокуса, барабан всё равно доедет до конца. */
+.digit-reel{display:inline-block;overflow:hidden;height:1em;line-height:1em;vertical-align:top}
+.digit-reel-strip{display:flex;flex-direction:column;transform:translateY(0);transition:transform 1.15s cubic-bezier(.16,.86,.24,1)}
+.digit-reel-strip span{display:block;height:1em;line-height:1em;text-align:center}
+.dial-sep{display:inline-block;white-space:pre}
 .dial-title{margin:0;color:#000;font-size:var(--dial-h);font-weight:var(--dial-regular);line-height:1;letter-spacing:var(--dial-tracking)}
 .dial-text{margin:0;color:#000;font-size:var(--dial-p);font-weight:var(--dial-book);line-height:1.2;letter-spacing:var(--dial-tracking)}
 @media (max-width:1024px){
@@ -1246,6 +1253,74 @@ switchTab('websites');
   const slides = Array.from(stage.querySelectorAll('.dial-slide'));
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+  /* ───── Цифры-барабаны: каждая цифра прокручивается сверху вниз при появлении слайда.
+     Запускается один раз и дальше идёт своим ходом (CSS-transition), скролл её не двигает
+     и не может остановить на полпути. */
+  function digitSpan(d){ const s = document.createElement('span'); s.textContent = d; return s; }
+  function buildReel(text){
+    const frag = document.createDocumentFragment();
+    const reels = [];
+    for (const ch of text){
+      if (ch >= '0' && ch <= '9'){
+        const target = +ch;
+        const strip = document.createElement('span');
+        strip.className = 'digit-reel-strip';
+        for (let d = 0; d <= 9; d++) strip.appendChild(digitSpan(d));
+        for (let d = 0; d <= target; d++) strip.appendChild(digitSpan(d));
+        const reel = document.createElement('span');
+        reel.className = 'digit-reel';
+        reel.appendChild(strip);
+        frag.appendChild(reel);
+        reels.push({ strip, landing: -(10 + target) });
+      } else {
+        const sep = document.createElement('span');
+        sep.className = 'dial-sep';
+        sep.textContent = ch;
+        frag.appendChild(sep);
+      }
+    }
+    return { frag, reels };
+  }
+  function startRoll(el){
+    if (!el || !el._reels || el._started) return;
+    el._started = true;
+    // двойной rAF: сначала браузер красит цифры в исходном положении (0),
+    // и только потом мы задаём целевой transform — иначе transition не сыграет
+    requestAnimationFrame(function(){
+      requestAnimationFrame(function(){
+        el._reels.forEach(function(r){ r.strip.style.transform = 'translateY(' + r.landing + 'em)'; });
+      });
+    });
+  }
+
+  const counters = slides.map(function(s){ return s.querySelector('.dial-count'); });
+  if (!reduced){
+    counters.forEach(function(el){
+      if (!el) return;
+      const text = el.textContent.trim();
+      el.setAttribute('aria-label', text);
+      const built = buildReel(text);
+      el.textContent = '';
+      el.appendChild(built.frag);
+      el._reels = built.reels;
+    });
+  }
+  let stageSeen = reduced;
+  const prevSlideO = new Array(slides.length).fill(0);
+  if (!reduced && 'IntersectionObserver' in window){
+    const dialIO = new IntersectionObserver(function(entries){
+      entries.forEach(function(en){
+        if (!en.isIntersecting) return;
+        stageSeen = true;
+        slides.forEach(function(s, i){ if (parseFloat(s.style.opacity || '0') > 0.001) startRoll(counters[i]); });
+        dialIO.disconnect();
+      });
+    }, { threshold: 0.01 });
+    dialIO.observe(stage);
+  } else if (!reduced){
+    stageSeen = true;
+  }
+
   const N    = slides.length;
   const GAP  = N > 1 ? 1 / (N - 1) : 1;   // расстояние между центрами блоков в долях прогресса
   const FADE = GAP * 0.13;                // зона гашения текста
@@ -1422,6 +1497,11 @@ switchTab('websites');
       el.style.transform = 'translate3d(0,' + (-Math.sign(d) * (1 - o) * 34).toFixed(1) + 'px,0) scale(' + (0.94 + 0.06 * o).toFixed(3) + ')';
       el.style.visibility    = o < 0.005 ? 'hidden' : 'visible';
       el.style.pointerEvents = o > 0.6 ? 'auto' : 'none';
+
+      // барабан цифр стартует в момент, когда слайд только-только начал проявляться —
+      // ждать полной непрозрачности не нужно, а после старта скролл на него уже не влияет
+      if (stageSeen && prevSlideO[i] <= 0.001 && o > 0.001) startRoll(counters[i]);
+      prevSlideO[i] = o;
     }
   }
 
