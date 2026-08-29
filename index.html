@@ -1356,6 +1356,77 @@ switchTab('websites');
     el._reels.forEach(function(r){ r.strip.style.transition = ''; });
   }
 
+  /* ───── Первый (красный) слайд: динамический номер посетителя и текст под него.
+     Сайт статический, без бэкенда — «настоящего» общего счётчика взять неоткуда,
+     поэтому номер считается по формуле: дни с даты запуска × среднее число
+     просмотров в день + плавающая добавка, которая меняется каждые несколько
+     секунд (от захода к заходу номер почти всегда разный, а в среднем растёт
+     день ото дня). Дальше по номеру подбирается один из пяти сценариев текста. */
+  (function(){
+    const first = slides[0];
+    if (!first) return;
+    const countEl = first.querySelector('.dial-count');
+    const titleEl = first.querySelector('.dial-title');
+    const textEl  = first.querySelector('.dial-text');
+    if (!countEl || !titleEl || !textEl) return;
+
+    const LAUNCH_AT   = new Date('2026-08-29T00:00:00Z').getTime(); // дата запуска этого счётчика
+    const AVG_PER_DAY = 24;   // среднее число просмотров в день — правит скорость роста
+    const START_BASE  = 1;    // с этого число стартует в момент запуска — первые визиты должны
+                               // реально попадать в эксклюзивный сценарий «первая десятка»
+
+    function visitorNumber(){
+      const now = Date.now();
+      const elapsedDays = Math.max(0, (now - LAUNCH_AT) / 86400000);
+      const trend  = START_BASE + elapsedDays * AVG_PER_DAY;
+      // небольшая плавающая добавка (0–2, меняется раз в 5 секунд) — заход почти
+      // всегда с новым числом, но не настолько большая, чтобы перескочить через
+      // ранние эксклюзивные сценарии в первые же часы после запуска
+      const jitter = Math.floor(now / 5000) % 3;
+      return Math.max(1, Math.round(trend + jitter));
+    }
+    function fmt(n){ return n.toLocaleString('ru-RU'); }
+    function isRepdigit(n){ const s = String(n); return s.length >= 2 && /^(\d)\1+$/.test(s); }
+
+    function pickCopy(n){
+      const num = fmt(n);
+      if (n <= 10){
+        return {
+          title: 'Ранний доступ зафиксирован: сессия №' + num,
+          text: 'Вы в числе первых, кто видит эти кейсы и обновлённую логику. Можно бронировать кандидата без очереди.'
+        };
+      }
+      if (n % 100 === 0){
+        return {
+          title: 'Вы выбили ровную цифру на счётчике — #' + num,
+          text: 'Ровно ' + num + ' заходов на страницу. С вас юбилейный созвон, с меня — готовые решения для вашего продукта.'
+        };
+      }
+      if (isRepdigit(n)){
+        return {
+          title: 'Комбинация на удачу: зафиксирован лог #' + num,
+          text: 'Статистика считает, что одинаковые цифры на экране — прямой знак назначить знакомство и закрыть вакансию.'
+        };
+      }
+      if (n < 100){
+        return {
+          title: 'Заход в числе ранних сессий: #' + num,
+          text: 'Проект только вышел в свет, а вы уже в первой сотне. Отличный момент забрать дизайнера до того, как его завалят офферами.'
+        };
+      }
+      return {
+        title: 'Порядковый номер этого просмотра: #' + num,
+        text: 'Ровно ' + num + ' человек уже изучили эти макеты. Станьте тем, кто переведёт этот клик в реальный оффер.'
+      };
+    }
+
+    const n = visitorNumber();
+    const copy = pickCopy(n);
+    countEl.textContent = fmt(n);
+    titleEl.textContent = copy.title;
+    textEl.textContent  = copy.text;
+  })();
+
   const counters = slides.map(function(s){ return s.querySelector('.dial-count'); });
   if (!reduced){
     counters.forEach(function(el){
