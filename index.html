@@ -662,6 +662,54 @@ document.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('orientationchange', setHeroHeight);
   if (window.visualViewport) window.visualViewport.addEventListener('resize', setHeroHeight);
 
+  // === ВЫРАВНИВАНИЕ КАРТИНОК ПРОЕКТОВ 1 И 2 ПО НИЗУ ===
+  // картинка первого проекта квадратная и растёт вместе с шириной колонки, а у
+  // второго проекта высота стека (шапка дизайнера + отступ + картинка 486px)
+  // от ширины не зависит — совпадают они по нижнему краю только ровно на 1440px,
+  // на любой другой ширине расходятся. Подгоняем высоту первой картинки под
+  // фактическую высоту второго блока, чтобы низ всегда совпадал.
+  (function(){
+    const img1 = document.querySelector('.project-image-container');
+    const imgSmall = document.querySelector('.image-small-container');
+    if (!img1 || !imgSmall) return;
+    function alignProjectImages(){
+      // на ≤1024px колонки идут друг под другом (см. медиа-запрос) — выравнивать нечего
+      if (window.innerWidth <= 1024) { img1.style.height = ''; img1.style.aspectRatio = ''; return; }
+      const r1 = img1.getBoundingClientRect();
+      const r2 = imgSmall.getBoundingClientRect();
+      const targetH = r2.bottom - r1.top;
+      // aspect-ratio:1/1 остаётся в CSS — если его не снять, браузер учитывает эту
+      // пропорцию и при расчёте flex-basis (предпочтительной ширины) карточки 1 в
+      // общем ряду, «хочет» растянуть её пропорционально новой высоте и отжимает
+      // ширину у соседней карточки — а та у́же, ниже, targetH пересчитывается
+      // на следующий кадр уже неверно. Явный height отменяет высоту сам по себе,
+      // но ширину — только если ratio тоже снят.
+      if (targetH > 0){ img1.style.aspectRatio = 'auto'; img1.style.height = targetH + 'px'; }
+    }
+    alignProjectImages();
+    window.addEventListener('resize', alignProjectImages);
+    window.addEventListener('load', alignProjectImages);
+  })();
+
+  // === ТО ЖЕ САМОЕ — КАРТИНКА ТРЕТЬЕГО ПРОЕКТА ПО НИЗУ ТЕКСТОВОГО БЛОКА ===
+  // .text-block-with-border фиксированной высоты 612px, а картинка растёт по
+  // aspect-ratio вместе с шириной колонки — совпадают они только ровно на 1440px
+  (function(){
+    const imgLarge = document.querySelector('.project-image-large');
+    const textBlock = document.querySelector('.text-block-with-border');
+    if (!imgLarge || !textBlock) return;
+    function alignThirdProject(){
+      if (window.innerWidth <= 1024) { imgLarge.style.height = ''; imgLarge.style.aspectRatio = ''; return; }
+      const r1 = imgLarge.getBoundingClientRect();
+      const r2 = textBlock.getBoundingClientRect();
+      const targetH = r2.bottom - r1.top;
+      if (targetH > 0){ imgLarge.style.aspectRatio = 'auto'; imgLarge.style.height = targetH + 'px'; }
+    }
+    alignThirdProject();
+    window.addEventListener('resize', alignThirdProject);
+    window.addEventListener('load', alignThirdProject);
+  })();
+
   // === MARQUEE ===
   const words = [
     { text: "Дизайн.", className: "design" },
@@ -1229,6 +1277,7 @@ switchTab('websites');
     preSpin     : 16,     // градусов лёгкой подкрутки, пока блок подъезжает снизу
     scaleFar    : 1,      // масштаб круга, пока блок ещё далеко
     scaleNear   : 0.92,   // масштаб круга, когда блок прилип
+    pulseScale  : 1.18,   // во сколько раз круг крупнее во время активного скролла (энергия→1)
     sizeGrowFrom: 0.85,   // с какой доли прогресса сцены начинается рост — только хвост третьего блока
     sizeGrowRate: 2.4,    // насколько круг прибавляет в размере за единицу прогресса после старта — без потолка
     fadeGrowFrom: 0.92,   // с этой точки роста круг начинает растворяться
@@ -1569,18 +1618,22 @@ switchTab('websites');
     // в покое круг доводится до ближайшего деления, чтобы стрелка встала ровно на 12 часов
     rotTarget = (idle && gate > 0.99) ? Math.round(raw / STEP) * STEP : raw;
 
-    // и круг ужимается по мере приближения, а затем растёт от блока к блоку
-    dialScale = (CFG.scaleFar + (CFG.scaleNear - CFG.scaleFar) * near) * sizeAt(progressGrow);
+    const want = idle ? 0 : 1;
+    energy += (want - energy) * (want > energy ? CFG.attack : CFG.release);
+    hoverW += (hoverTarget - hoverW) * (hoverTarget > hoverW ? 0.22 : 0.08);
+
+    // и круг ужимается по мере приближения, растёт от блока к блоку, а поверх
+    // этого ещё пульсирует крупнее, пока идёт активный скролл (energy→1), и
+    // возвращается к текущему размеру в покое (energy→0) — та же плавность,
+    // что уже управляет нагревом делений и подкруткой
+    const pulse = 1 + (CFG.pulseScale - 1) * energy;
+    dialScale = (CFG.scaleFar + (CFG.scaleNear - CFG.scaleFar) * near) * sizeAt(progressGrow) * pulse;
     svg.style.transform = 'scale(' + dialScale.toFixed(4) + ')';
     svg.style.opacity = fadeAt(progressGrow).toFixed(3);
 
     const prev = rot;
     rot += (rotTarget - rot) * (reduced ? 1 : CFG.inertia);
     vel += ((rot - prev) - vel) * 0.25;
-
-    const want = idle ? 0 : 1;
-    energy += (want - energy) * (want > energy ? CFG.attack : CFG.release);
-    hoverW += (hoverTarget - hoverW) * (hoverTarget > hoverW ? 0.22 : 0.08);
 
     accent = accentAt(progress);
     updateRamp();
