@@ -1625,8 +1625,14 @@ switchTab('websites');
     // и круг ужимается по мере приближения, растёт от блока к блоку, а поверх
     // этого ещё пульсирует крупнее, пока идёт активный скролл (energy→1), и
     // возвращается к текущему размеру в покое (energy→0) — та же плавность,
-    // что уже управляет нагревом делений и подкруткой
-    const pulse = 1 + (CFG.pulseScale - 1) * energy;
+    // что уже управляет нагревом делений и подкруткой.
+    // обычный gate (рампа 0.7→1.0) тут недостаточно строгий: в последние ~10%
+    // подхода, пока .dial-sticky ещё не прилипла к самому верху (top>0), он уже
+    // близок к 1 и почти не глушит пульс — увеличенный круг вылезает за верхний
+    // край .dial-sticky и врезается в блок над ним. Для пульса нужен отдельный,
+    // гораздо более резкий гейт — включаем только у самого конца подхода
+    const pulseGate = smooth(clamp((approach - 0.97) / 0.03, 0, 1));
+    const pulse = 1 + (CFG.pulseScale - 1) * energy * pulseGate;
     dialScale = (CFG.scaleFar + (CFG.scaleNear - CFG.scaleFar) * near) * sizeAt(progressGrow) * pulse;
     svg.style.transform = 'scale(' + dialScale.toFixed(4) + ')';
     svg.style.opacity = fadeAt(progressGrow).toFixed(3);
