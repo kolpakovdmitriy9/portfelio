@@ -48,6 +48,7 @@ to   { transform: translate(-50%, -50%); }  /* контент задублиро
 }
 .marquee-inner {
 display: inline-block;
+font-family: 'ONY Track Moscow', sans-serif;
 font-size: 140px;
 line-height: 1;
 position: absolute;
@@ -246,13 +247,13 @@ height: clamp(180px, 45vw, 440px);
 .experience-stat.fading .experience-stat-number,
 .experience-stat.fading .experience-stat-label{opacity:0}
 .experience-stat-number,.experience-stat-label{transition:opacity .25s ease}
-.experience-bar-track{width:100%;max-width:900px;margin:0 auto 88px;height:8px;background:#eee;border-radius:4px;overflow:hidden;position:relative}
+.experience-bar-track{width:100%;max-width:900px;margin:0 auto 88px;height:8px;background:#eee;overflow:hidden;position:relative}
 .experience-bar-clip{position:absolute;top:0;left:0;height:100%;overflow:hidden;width:0;transition:width 1s cubic-bezier(.22,.61,.36,1)}
 .experience-bar-fill{position:absolute;top:0;left:0;height:100%;background:linear-gradient(90deg,#FF9800,#F9393B,#9C27B0,#2196F3,#17b26a)}
 .experience-gallery{width:100vw;position:relative;left:50%;transform:translateX(-50%);overflow:hidden;margin:0 0 64px;-webkit-mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent);mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent)}
 .experience-gallery-track{display:flex;gap:16px;width:max-content;animation:expGalleryScroll 32s linear infinite}
 @keyframes expGalleryScroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
-.experience-gallery-item{width:220px;height:280px;border-radius:12px;background:#e5e5e5;flex-shrink:0}
+.experience-gallery-item{width:220px;height:280px;background:#e5e5e5;flex-shrink:0}
 .experience-cta{background:#000;color:#fff;border:none;border-radius:50px;padding:24px 48px;font-size:20px;cursor:pointer;font-family:'ONY One',sans-serif;transition:background .2s ease;touch-action:manipulation}
 @media (hover:hover) and (pointer:fine){.experience-cta:hover{background:#222}}
 .experience-footnote{margin:32px 0 0;color:#a2a2a2;font-size:14px;line-height:1.6}
@@ -500,10 +501,10 @@ touch-action: none;
 <div class="hero-container">
 <div class="header-section">
 <div class="lottie-wrapper" id="lottieContainer"></div>
-<div class="text-slider" id="textSlider">Загрузка...</div>
 <div class="logo-wrapper">
 <img class="portfolio-logo" src="https://raw.githubusercontent.com/kolpakovdmitriy9/newbring.github.io/363a26cc3be7802444e16917935d498c46c70b68/lovelllas.hyperesources/portfelix.svg" alt="Портфеликс" />
 </div>
+<div class="text-slider" id="textSlider">Загрузка...</div>
 </div>
 <div class="marquee-container" id="marqueeContainer">
 <div class="marquee-inner" id="marqueeInner"></div>
