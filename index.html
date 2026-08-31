@@ -461,7 +461,7 @@ touch-action: none;
 <img class="default-image" src="https://raw.githubusercontent.com/kolpakovdmitriy9/newbring.github.io/refs/heads/master/lovelllas.hyperesources/tseh1.png" alt="Default"/>
 <img class="hover-image" src="https://raw.githubusercontent.com/kolpakovdmitriy9/newbring.github.io/refs/heads/master/lovelllas.hyperesources/tseh2.png" alt="Hover"/>
 </div>
-<div class="project-description">Сервис для планирования путешествий</div>
+<div class="project-description">Изготовление и установка навесов под ключ</div>
 </div>
 <div class="project-card">
 <div class="designer-header">
@@ -481,10 +481,10 @@ touch-action: none;
 </div>
 </div>
 <div class="project-text-content">
-<div class="project-title">Интерактивная пиксельная сетка</div>
+<div class="project-title">Приложение для онлайн-мероприятия</div>
 <div class="stat-block">
-<div class="stat-number">+50</div>
-<div class="stat-label">пользователей испытали эффект</div>
+<div class="stat-number">1 ТЫС</div>
+<div class="stat-label">ставок превратились в коктейли</div>
 <div class="stat-line-bg"></div>
 <div class="stat-line-fill"></div>
 </div>
@@ -502,7 +502,7 @@ touch-action: none;
 <div class="stat-label" style="margin-top:10px;">точек выдачи карт маршрутов</div>
 </div>
 <div class="stat-item stat-item-trigger">
-<div class="stat-number">10 тыс</div>
+<div class="stat-number">10 000</div>
 <div class="stat-label" style="margin-top:10px;">школьников из России и других стран приняли участие в конкурсе</div>
 </div>
 </div>
@@ -512,7 +512,7 @@ touch-action: none;
 </div>
 </div>
 </div>
-<div class="project-title third-title">Общегородской онлайн-конкурс маршрутов</div>
+<div class="project-title third-title">SLS — логистическая компания из Сербии</div>
 </div>
 <!-- ───────────── Блок «Круг с делениями»: вращение и смена текста по скроллу ───────────── -->
 <section class="dial-stage" id="dialStage">
@@ -577,7 +577,9 @@ touch-action: none;
   </div>
 </section>
 
-<div class="about-me-section">
+<!-- скрыт по просьбе — заменяется секцией «Опыт работы» ниже; код и логика (видео,
+     табы, прогресс-бары) оставлены как есть на случай, если понадобятся обратно -->
+<div class="about-me-section" style="display:none">
 <div class="about-left">
 <div class="about-video-circle">
 <video id="video-element" src="https://github.com/kolpakovdmitriy9/newbring.github.io/raw/refs/heads/master/lovelllas.hyperesources/video.mp4" muted playsinline preload="auto"></video>
@@ -712,9 +714,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // === MARQUEE ===
   const words = [
-    { text: "Дизайн.", className: "design" },
-    { text: "Интерфейсы.", className: "interfaces" },
-    { text: "Брендинг.", className: "branding" }
+    { text: "Айдентика.", className: "design" },
+    { text: "Сайты.", className: "interfaces" },
+    { text: "Приложения.", className: "branding" },
+    { text: "Графика.", className: "design" }
   ];
   const baseHTML = words.map(w =>
     `<span class="word ${w.className}" data-image="https://cdn.dribbble.com/userupload/21570629/file/original-0117c11987d7ef037c9c1f997ff0b3cf.gif">${w.text}</span>`
