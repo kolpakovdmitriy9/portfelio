@@ -49,6 +49,7 @@ to   { transform: translate(-50%, -50%); }  /* контент задублиро
 .marquee-inner {
 display: inline-block;
 font-family: 'ONY Track Moscow', sans-serif;
+text-transform: uppercase;
 font-size: 140px;
 line-height: 1;
 position: absolute;
@@ -244,16 +245,13 @@ height: clamp(180px, 45vw, 440px);
 .experience-stat-number{font-size:clamp(56px,8.33vw,120px);font-family:'ONY One',sans-serif;line-height:1;font-weight:400;color:#0b0b0b;white-space:nowrap}
 .experience-stat-label{font-size:clamp(16px,1.67vw,24px);line-height:1.35;color:#0b0b0b;max-width:min(390px,60vw)}
 .experience-stat-label .dim{color:#a2a2a2}
-.experience-stat.fading .experience-stat-number,
-.experience-stat.fading .experience-stat-label{opacity:0}
-.experience-stat-number,.experience-stat-label{transition:opacity .25s ease}
 .experience-bar-track{width:100%;height:clamp(80px,10vw,150px);margin:0 0 56px;background:#eee;overflow:hidden;position:relative;-webkit-mask-image:repeating-linear-gradient(90deg,#000 0 4px,transparent 4px 8px);mask-image:repeating-linear-gradient(90deg,#000 0 4px,transparent 4px 8px)}
 .experience-bar-clip{position:absolute;top:0;left:0;height:100%;overflow:hidden;width:0;transition:width 1s cubic-bezier(.22,.61,.36,1)}
-.experience-bar-fill{position:absolute;top:0;left:0;height:100%;width:100%;background:linear-gradient(90deg,#FF9800 0%,#FFC107 30%,#8BC34A 65%,#17b26a 100%)}
+.experience-bar-fill{position:absolute;top:0;left:0;height:100%;width:100%;background:#9b9b9b}
 .experience-gallery{width:100vw;position:relative;left:50%;transform:translateX(-50%);overflow:hidden;margin:0 0 64px;-webkit-mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent);mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent)}
 .experience-gallery-track{display:flex;gap:16px;width:max-content;animation:expGalleryScroll 32s linear infinite}
 @keyframes expGalleryScroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
-.experience-gallery-item{width:320px;height:512px;border-radius:24px;background:#e5e5e5;flex-shrink:0}
+.experience-gallery-item{width:320px;height:512px;background:#e5e5e5;flex-shrink:0}
 .experience-cta{background:#000;color:#fff;border:none;border-radius:50px;padding:24px 48px;font-size:20px;cursor:pointer;font-family:'ONY One',sans-serif;transition:background .2s ease;touch-action:manipulation}
 @media (hover:hover) and (pointer:fine){.experience-cta:hover{background:#222}}
 .experience-footnote{margin:32px 0 0;color:#a2a2a2;font-size:14px;line-height:1.6}
@@ -289,7 +287,7 @@ height: clamp(180px, 45vw, 440px);
 .exp-tab{border:none;background:transparent;border-radius:38px;padding:12px 22px;font-size:15px;cursor:pointer;color:#666;font-family:'ONY One',sans-serif;transition:background .2s ease,color .2s ease;touch-action:manipulation;white-space:nowrap}
 .exp-tab.active{background:#000;color:#fff}
 @media (max-width:640px){
-  .experience-gallery-item{width:200px;height:320px;border-radius:16px}
+  .experience-gallery-item{width:200px;height:320px}
   .exp-tab{padding:10px 14px;font-size:13px}
 }
 
@@ -425,7 +423,7 @@ touch-action: none;
   --dial-tracking:-.02em;      /* задаётся на каждом текстовом элементе: em наследуется уже в px */
   /* размеры сняты с макета при круге 952 и выражены в vmin, чтобы расти вместе с кольцом */
   --dial-icon:clamp(56px,8.6vmin,96px);
-  --dial-num:clamp(44px,8.06vmin,90px);
+  --dial-num:clamp(44px,20.06vmin,224px);
   --dial-h:clamp(22px,4.3vmin,48px);
   --dial-p:clamp(14px,2.15vmin,24px);
   --dial-gap:clamp(16px,2.87vmin,32px);
@@ -450,14 +448,24 @@ touch-action: none;
    обводочному глифу достаточно своих fill="none" stroke="currentColor" */
 .dial-icon svg{width:38%;height:38%}
 .dial-icon svg:not([fill]){fill:currentColor}
+/* первая иконка — точный ассет из макета (96×96, уже со своим кругом внутри) */
+.dial-icon--asset{border:none}
+.dial-icon--asset svg{width:100%;height:100%}
 /* число набрано Regular без трекинга — в макете межбуквенное задано только тексту */
 .dial-count{color:var(--dial-accent);font-size:var(--dial-num);font-weight:var(--dial-regular);line-height:1;font-variant-numeric:tabular-nums;white-space:nowrap}
 /* цифра — барабан: колонка 0…9 (+довесок до нужного значения) едет вверх и приземляется на цель.
    Анимация запускается один раз скриптом и идёт временем CSS-transition, а не скроллом —
    если слайд уйдёт из фокуса, барабан всё равно доедет до конца. */
-.digit-reel{display:inline-block;overflow:hidden;height:1em;line-height:1em;vertical-align:top}
-.digit-reel-strip{display:flex;flex-direction:column;transform:translateY(0);transition:transform 1.15s cubic-bezier(.16,.86,.24,1)}
-.digit-reel-strip span{display:block;height:1em;line-height:1em;text-align:center}
+:root{
+  --reel-dur: 1400ms;
+  --reel-spin-blur: 3px;
+  --reel-stagger: 90ms;
+  --reel-ease: cubic-bezier(0.16, 1, 0.3, 1);
+}
+.t-reel-col{display:inline-block;overflow:hidden;height:1em;line-height:1em;vertical-align:top}
+.t-reel-strip{display:flex;flex-direction:column;will-change:transform,filter;transform:translateY(0)}
+.t-reel-digit{display:block;height:1em;line-height:1em;text-align:center}
+@media (prefers-reduced-motion: reduce){.t-reel-strip{transition:none!important;filter:none!important}}
 .dial-sep{display:inline-block;white-space:pre}
 .dial-title{margin:0;color:#000;font-size:var(--dial-h);font-weight:var(--dial-regular);line-height:1;letter-spacing:var(--dial-tracking)}
 .dial-text{margin:0;color:#000;font-size:var(--dial-p);font-weight:var(--dial-book);line-height:1.2;letter-spacing:var(--dial-tracking)}
@@ -603,7 +611,7 @@ touch-action: none;
       <div class="dial-slides" id="dialSlides">
         <article class="dial-slide">
           <div class="dial-mark">
-            <span class="dial-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" clip-rule="evenodd" d="M5 7C5 4.23858 7.23858 2 10 2H14C16.7614 2 19 4.23858 19 7V15C19 18.866 15.866 22 12 22C8.13401 22 5 18.866 5 15V7ZM11 7C11 6.44772 11.4477 6 12 6C12.5523 6 13 6.44772 13 7V10C13 10.5523 12.5523 11 12 11C11.4477 11 11 10.5523 11 10V7Z"/></svg></span>
+            <span class="dial-icon dial-icon--asset"><svg viewBox="0 0 96 96" aria-hidden="true"><circle cx="48" cy="48" r="47.4286" fill="none" stroke="#F9393B" stroke-width="1.14286"/><path fill-rule="evenodd" clip-rule="evenodd" d="M34.5 38C34.5 32.4772 38.9772 28 44.5 28H52.5C58.0228 28 62.5 32.4772 62.5 38V54C62.5 61.732 56.232 68 48.5 68C40.768 68 34.5 61.732 34.5 54V38ZM46.5 38C46.5 36.8954 47.3954 36 48.5 36C49.6046 36 50.5 36.8954 50.5 38V44C50.5 45.1046 49.6046 46 48.5 46C47.3954 46 46.5 45.1046 46.5 44V38Z" fill="#F9393B"/></svg></span>
             <span class="dial-count">10 994</span>
           </div>
           <div class="dial-copy">
@@ -816,12 +824,40 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const subtitleEl  = document.getElementById('expSubtitle');
-    const statP       = document.getElementById('expStatPrimary');
-    const statS       = document.getElementById('expStatSecondary');
     const barTrack    = section.querySelector('.experience-bar-track');
     const barClip     = document.getElementById('expBarClip');
     const barFill     = document.getElementById('expBarFill');
     const expTabs     = document.querySelectorAll('.exp-tab');
+
+    // переключение двух колонок статы по табам — вместо простого фейда буквы
+    // "досыпаются" случайными символами и слева направо проявляется новый текст
+    // (в духе ScrambledText из react-bits, только на голом JS — сайт не на React)
+    const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const SCRAMBLE_CHARS = '!<>-_\\/[]{}—=+*#•';
+    function scrambleText(el, newText, duration){
+      if (!el) return;
+      if (reducedMotion){ el.textContent = newText; return; }
+      if (el._scrambleRAF) cancelAnimationFrame(el._scrambleRAF);
+      const oldText = el.textContent;
+      const len = Math.max(oldText.length, newText.length);
+      const dur = duration || 500;
+      const startAt = performance.now();
+      function frame(now){
+        const t = Math.min(1, (now - startAt) / dur);
+        let out = '';
+        for (let i = 0; i < len; i++){
+          // символы «досыпают» слева направо: у каждой позиции своё окно проявления
+          const charT = t * len - i;
+          if (charT >= 1) out += newText[i] || '';
+          else if (charT > 0) out += SCRAMBLE_CHARS[(Math.random() * SCRAMBLE_CHARS.length) | 0];
+          else out += oldText[i] || '';
+        }
+        el.textContent = out;
+        if (t < 1) el._scrambleRAF = requestAnimationFrame(frame);
+        else { el.textContent = newText; el._scrambleRAF = null; }
+      }
+      el._scrambleRAF = requestAnimationFrame(frame);
+    }
 
     function expUpdateBar(percent){
       if (!barTrack || !barClip || !barFill) return;
@@ -835,24 +871,37 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderExpTab(key, animate){
       const cfg = expTabConfigs[key];
       if (!cfg) return;
-      const apply = function(){
-        if (subtitleEl) subtitleEl.textContent = cfg.subtitle;
-        document.getElementById('expPrimaryNumber').textContent = cfg.percent + '%';
-        document.getElementById('expPrimaryLine1').textContent = cfg.primaryLine1;
-        document.getElementById('expPrimaryLine2').textContent = cfg.primaryLine2;
-        document.getElementById('expSecondaryNumber').textContent = cfg.secondaryNumber;
-        document.getElementById('expSecondaryLine1').textContent = cfg.secondaryLine1;
-        document.getElementById('expSecondaryLine2').textContent = cfg.secondaryLine2;
-        expUpdateBar(cfg.percent);
-      };
+      const primaryNumberEl   = document.getElementById('expPrimaryNumber');
+      const primaryLine1El    = document.getElementById('expPrimaryLine1');
+      const primaryLine2El    = document.getElementById('expPrimaryLine2');
+      const secondaryNumberEl = document.getElementById('expSecondaryNumber');
+      const secondaryLine1El  = document.getElementById('expSecondaryLine1');
+      const secondaryLine2El  = document.getElementById('expSecondaryLine2');
       if (!animate){
-        apply();
+        if (subtitleEl) subtitleEl.textContent = cfg.subtitle;
+        primaryNumberEl.textContent = cfg.percent + '%';
+        primaryLine1El.textContent = cfg.primaryLine1;
+        primaryLine2El.textContent = cfg.primaryLine2;
+        secondaryNumberEl.textContent = cfg.secondaryNumber;
+        secondaryLine1El.textContent = cfg.secondaryLine1;
+        secondaryLine2El.textContent = cfg.secondaryLine2;
+        expUpdateBar(cfg.percent);
       } else {
-        [subtitleEl, statP, statS].forEach(function(el){ if (el) el.classList.add('fading'); });
-        setTimeout(function(){
-          apply();
-          [subtitleEl, statP, statS].forEach(function(el){ if (el) el.classList.remove('fading'); });
-        }, 220);
+        if (subtitleEl){
+          subtitleEl.classList.add('fading');
+          setTimeout(function(){
+            subtitleEl.textContent = cfg.subtitle;
+            subtitleEl.classList.remove('fading');
+          }, 220);
+        }
+        const dur = 550;
+        scrambleText(primaryNumberEl, cfg.percent + '%', dur);
+        scrambleText(primaryLine1El, cfg.primaryLine1, dur);
+        scrambleText(primaryLine2El, cfg.primaryLine2, dur);
+        scrambleText(secondaryNumberEl, cfg.secondaryNumber, dur);
+        scrambleText(secondaryLine1El, cfg.secondaryLine1, dur);
+        scrambleText(secondaryLine2El, cfg.secondaryLine2, dur);
+        expUpdateBar(cfg.percent);
       }
       currentExpTab = key;
     }
@@ -1585,7 +1634,45 @@ switchTab('websites');
      Само вращение идёт своим ходом (CSS-transition), скролл её не двигает и не может
      остановить на полпути — но при уходе слайда из фокуса барабан сбрасывается на 0,
      чтобы при следующем появлении отыграть заново. */
-  function digitSpan(d){ const s = document.createElement('span'); s.textContent = d; return s; }
+  function digitSpan(d){ const s = document.createElement('span'); s.className = 't-reel-digit'; s.textContent = d; return s; }
+
+  // вертикальный блюр-«шлейф» на вращении даёт только SVG feGaussianBlur с
+  // отдельным stdDeviation по X/Y (0 по горизонтали) — CSS filter:blur() размазывает
+  // и вбок, поэтому под каждую колонку заводим свой <filter> и крутим его атрибут кадрами
+  let reelFilterDefs = null, reelFilterSeq = 0;
+  function nextReelFilter(){
+    if (!reelFilterDefs){
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('aria-hidden', 'true');
+      svg.style.cssText = 'position:absolute;width:0;height:0;overflow:hidden';
+      reelFilterDefs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+      svg.appendChild(reelFilterDefs);
+      document.body.appendChild(svg);
+    }
+    const id = 'reel-blur-' + (reelFilterSeq++);
+    const filter = document.createElementNS('http://www.w3.org/2000/svg', 'filter');
+    filter.setAttribute('id', id);
+    filter.setAttribute('x', '-50%'); filter.setAttribute('y', '-50%');
+    filter.setAttribute('width', '200%'); filter.setAttribute('height', '200%');
+    const fe = document.createElementNS('http://www.w3.org/2000/svg', 'feGaussianBlur');
+    fe.setAttribute('stdDeviation', '0 0');
+    filter.appendChild(fe);
+    reelFilterDefs.appendChild(filter);
+    return { id, fe };
+  }
+
+  const REEL_DUR_MS = 1400, REEL_STAGGER_MS = 90, REEL_SPIN_BLUR_PX = 3; // держать в паре с --reel-* в CSS
+  function animateReelBlur(fe, delayMs){
+    if (!fe) return;
+    const startAt = performance.now() + delayMs;
+    function frame(now){
+      const t = Math.max(0, Math.min(1, (now - startAt) / REEL_DUR_MS));
+      fe.setAttribute('stdDeviation', '0 ' + (REEL_SPIN_BLUR_PX * (1 - t)).toFixed(2));
+      if (t < 1) requestAnimationFrame(frame); else fe.setAttribute('stdDeviation', '0 0');
+    }
+    requestAnimationFrame(frame);
+  }
+
   function buildReel(text){
     const frag = document.createDocumentFragment();
     const reels = [];
@@ -1593,14 +1680,16 @@ switchTab('websites');
       if (ch >= '0' && ch <= '9'){
         const target = +ch;
         const strip = document.createElement('span');
-        strip.className = 'digit-reel-strip';
+        strip.className = 't-reel-strip';
         for (let d = 0; d <= 9; d++) strip.appendChild(digitSpan(d));
         for (let d = 0; d <= target; d++) strip.appendChild(digitSpan(d));
-        const reel = document.createElement('span');
-        reel.className = 'digit-reel';
-        reel.appendChild(strip);
-        frag.appendChild(reel);
-        reels.push({ strip, landing: -(10 + target) });
+        const rf = nextReelFilter();
+        strip.style.filter = 'url(#' + rf.id + ')';
+        const col = document.createElement('span');
+        col.className = 't-reel-col';
+        col.appendChild(strip);
+        frag.appendChild(col);
+        reels.push({ strip, fe: rf.fe, landing: -(10 + target) });
       } else {
         const sep = document.createElement('span');
         sep.className = 'dial-sep';
@@ -1617,7 +1706,12 @@ switchTab('websites');
     // и только потом мы задаём целевой transform — иначе transition не сыграет
     requestAnimationFrame(function(){
       requestAnimationFrame(function(){
-        el._reels.forEach(function(r){ r.strip.style.transform = 'translateY(' + r.landing + 'em)'; });
+        el._reels.forEach(function(r, i){
+          const delay = i * REEL_STAGGER_MS;
+          r.strip.style.transition = 'transform var(--reel-dur) var(--reel-ease) ' + delay + 'ms';
+          r.strip.style.transform = 'translateY(' + r.landing + 'em)';
+          animateReelBlur(r.fe, delay);
+        });
       });
     });
   }
@@ -1626,7 +1720,11 @@ switchTab('websites');
     el._rolled = false;
     // слайд в этот момент уже невидим (opacity ~0) — откатываем без transition,
     // рывок назад никто не увидит, зато следующий заход отыграет барабан с нуля
-    el._reels.forEach(function(r){ r.strip.style.transition = 'none'; r.strip.style.transform = 'translateY(0)'; });
+    el._reels.forEach(function(r){
+      r.strip.style.transition = 'none';
+      r.strip.style.transform = 'translateY(0)';
+      if (r.fe) r.fe.setAttribute('stdDeviation', '0 0');
+    });
     void el.offsetWidth;
     el._reels.forEach(function(r){ r.strip.style.transition = ''; });
   }
