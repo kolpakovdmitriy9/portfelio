@@ -229,6 +229,75 @@ height: clamp(180px, 45vw, 440px);
 .count{font-size:16px;opacity:.8;margin-top:4px;font-family:'ONY One',sans-serif}
 .amount-active{background:#E74F30 !important;color:#ffffff !important;font-size:20px !important;font-weight:400 !important;font-family:'ONY One', sans-serif !important}
 
+/* === ОПЫТ РАБОТЫ (заменяет старый about-me с видео и табами) === */
+.experience-section{max-width:1440px;margin:140px auto 0;padding:0 30px;width:100%;text-align:center;box-sizing:border-box}
+.experience-icons{display:flex;justify-content:center;align-items:center;gap:18px;margin-bottom:48px}
+.exp-icon{width:56px;height:56px;border-radius:50%;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;flex-shrink:0;padding:0;touch-action:manipulation}
+.exp-icon svg{width:24px;height:24px;pointer-events:none}
+.exp-icon--switcher{background:#111}
+.exp-icon--cart{background:#111;overflow:hidden}
+.exp-icon--heart{background:#F0429A;overflow:visible}
+.exp-icon--thumb{background:#17b26a;overflow:visible}
+.experience-title{font-size:clamp(40px,5.5vw,64px);font-weight:400;margin:0 0 16px;letter-spacing:-.02em;color:#000}
+.experience-subtitle{font-size:20px;color:#333;margin:0 0 64px;min-height:1.4em;transition:opacity .25s ease}
+.experience-subtitle.fading{opacity:0}
+.experience-stats{display:flex;justify-content:center;gap:clamp(40px,9vw,130px);flex-wrap:wrap;margin-bottom:56px}
+.experience-stat{display:flex;align-items:flex-start;gap:18px;text-align:left}
+.experience-stat-number{font-size:clamp(56px,9vw,90px);font-family:'ONY Track Moscow',sans-serif;line-height:1;font-weight:400;color:#000;white-space:nowrap}
+.experience-stat-label{font-size:16px;line-height:1.35;padding-top:16px;color:#000}
+.experience-stat-label .dim{color:#a2a2a2}
+.experience-stat.fading .experience-stat-number,
+.experience-stat.fading .experience-stat-label{opacity:0}
+.experience-stat-number,.experience-stat-label{transition:opacity .25s ease}
+.experience-bar-track{width:100%;max-width:900px;margin:0 auto 88px;height:8px;background:#eee;border-radius:4px;overflow:hidden;position:relative}
+.experience-bar-clip{position:absolute;top:0;left:0;height:100%;overflow:hidden;width:0;transition:width 1s cubic-bezier(.22,.61,.36,1)}
+.experience-bar-fill{position:absolute;top:0;left:0;height:100%;background:linear-gradient(90deg,#FF9800,#F9393B,#9C27B0,#2196F3,#17b26a)}
+.experience-gallery{width:100vw;position:relative;left:50%;transform:translateX(-50%);overflow:hidden;margin:0 0 64px;-webkit-mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent);mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent)}
+.experience-gallery-track{display:flex;gap:16px;width:max-content;animation:expGalleryScroll 32s linear infinite}
+@keyframes expGalleryScroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.experience-gallery-item{width:220px;height:280px;border-radius:12px;background:#e5e5e5;flex-shrink:0}
+.experience-cta{background:#000;color:#fff;border:none;border-radius:50px;padding:24px 48px;font-size:20px;cursor:pointer;font-family:'ONY One',sans-serif;transition:background .2s ease;touch-action:manipulation}
+@media (hover:hover) and (pointer:fine){.experience-cta:hover{background:#222}}
+.experience-footnote{margin:32px 0 0;color:#a2a2a2;font-size:14px;line-height:1.6}
+
+/* переключатель — клик двигает точку между тремя положениями */
+.exp-switch-track{width:28px;height:14px;border:1.5px solid #fff;border-radius:8px;position:relative}
+.exp-switch-dot{width:6px;height:6px;background:#fff;border-radius:50%;position:absolute;top:50%;left:3px;transform:translate(0,-50%);transition:left .25s ease}
+.exp-icon--switcher[data-state="1"] .exp-switch-dot{left:11px}
+.exp-icon--switcher[data-state="2"] .exp-switch-dot{left:19px}
+
+/* тележка — на ховере уезжает вправо и тут же въезжает обратно слева */
+@keyframes expCartDrive{
+  0%{transform:translateX(0)}
+  45%{transform:translateX(160%)}
+  50%{transform:translateX(-160%)}
+  100%{transform:translateX(0)}
+}
+@media (hover:hover) and (pointer:fine){
+  .exp-icon--cart:hover svg{animation:expCartDrive 1s ease-in-out}
+}
+
+/* сердце — на ховере рядом всплывает счётчик лайков */
+.exp-like-badge{position:absolute;top:-8px;right:-10px;background:#fff;color:#F0429A;border:1.5px solid #F0429A;border-radius:10px;font-size:11px;line-height:1;padding:3px 6px;font-family:'ONY One',sans-serif;opacity:0;transform:translateY(4px) scale(.8);transition:opacity .2s ease,transform .2s ease;pointer-events:none;white-space:nowrap}
+@media (hover:hover) and (pointer:fine){
+  .exp-icon--heart:hover .exp-like-badge{opacity:1;transform:translateY(0) scale(1)}
+}
+
+/* палец вверх — при клике во все стороны разлетаются копии и гаснут */
+.exp-thumb-burst{position:absolute;top:50%;left:50%;width:16px;height:16px;margin:-8px;pointer-events:none;opacity:1;transition:transform .6s cubic-bezier(.22,.61,.36,1),opacity .6s ease}
+.exp-thumb-burst svg{width:100%;height:100%}
+
+/* плавающий таб-бар с тремя категориями, виден пока секция «Опыт работы» на экране */
+.experience-floating-tabs{position:fixed;left:50%;bottom:28px;transform:translate(-50%,24px);display:flex;gap:6px;background:#fff;border:1px solid #e0e0e3;border-radius:50px;padding:6px;box-shadow:0 12px 40px rgba(0,0,0,.14);z-index:100;opacity:0;pointer-events:none;transition:opacity .3s ease,transform .3s ease}
+.experience-floating-tabs.visible{opacity:1;pointer-events:auto;transform:translate(-50%,0)}
+.exp-tab{border:none;background:transparent;border-radius:38px;padding:12px 22px;font-size:15px;cursor:pointer;color:#666;font-family:'ONY One',sans-serif;transition:background .2s ease,color .2s ease;touch-action:manipulation;white-space:nowrap}
+.exp-tab.active{background:#000;color:#fff}
+@media (max-width:640px){
+  .experience-stats{gap:32px}
+  .experience-gallery-item{width:160px;height:210px}
+  .exp-tab{padding:10px 14px;font-size:13px}
+}
+
 /* === ХОВЕРЫ ТОЛЬКО ДЛЯ УСТРОЙСТВ С МЫШЬЮ === */
 @media (hover:hover) and (pointer:fine){
 .word:hover{color:rgba(0,0,0,.2)}
@@ -621,8 +690,57 @@ touch-action: none;
 </div>
 <div id="placeholder-area"></div>
 </div>
+</div>
+</div>
+
+<!-- === ОПЫТ РАБОТЫ (новая секция вместо старого about-me) === -->
+<div class="experience-section" id="experienceSection">
+  <div class="experience-icons">
+    <button class="exp-icon exp-icon--switcher" type="button" data-state="0" aria-label="Переключатель" id="expSwitcher">
+      <span class="exp-switch-track"><span class="exp-switch-dot"></span></span>
+    </button>
+    <button class="exp-icon exp-icon--cart" type="button" aria-label="Корзина">
+      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="20" r="1"/><circle cx="18" cy="20" r="1"/><path d="M2.5 3h2l2.4 12.4a2 2 0 0 0 2 1.6h8.2a2 2 0 0 0 2-1.6L21 7H6"/></svg>
+    </button>
+    <button class="exp-icon exp-icon--heart" type="button" aria-label="Нравится">
+      <svg viewBox="0 0 24 24" fill="white" aria-hidden="true"><path d="M12 21s-7.5-4.6-10-9.3C.5 8.3 2 5 5.4 5c2 0 3.4 1.1 4.1 2.3C10.2 6.1 11.6 5 13.6 5 17 5 18.5 8.3 17 11.7 15.5 16.4 12 21 12 21z"/></svg>
+      <span class="exp-like-badge">+248</span>
+    </button>
+    <button class="exp-icon exp-icon--thumb" type="button" aria-label="Одобряю" id="expThumb">
+      <svg viewBox="0 0 24 24" fill="white" aria-hidden="true"><path d="M2 21h2a1 1 0 0 0 1-1v-9a1 1 0 0 0-1-1H2v11zM22 12.5c0-.8-.6-1.5-1.5-1.5H15l1-4.5c.2-.9-.1-1.8-.8-2.4a2 2 0 0 0-2.9.3L8 10v11h10.5c.7 0 1.3-.4 1.5-1l2-6.4c.1-.3.1-.7 0-1.1z"/></svg>
+    </button>
+  </div>
+
+  <h2 class="experience-title">ОПЫТ РАБОТЫ</h2>
+  <p class="experience-subtitle" id="expSubtitle">Mobile-First и скорость загрузки</p>
+
+  <div class="experience-stats">
+    <div class="experience-stat" id="expStatPrimary">
+      <div class="experience-stat-number" id="expPrimaryNumber">65%</div>
+      <div class="experience-stat-label"><span id="expPrimaryLine1">Лендинги, e-commerce</span><br><span class="dim" id="expPrimaryLine2">от идеи до фреймворков и адаптива</span></div>
+    </div>
+    <div class="experience-stat" id="expStatSecondary">
+      <div class="experience-stat-number" id="expSecondaryNumber">+12к</div>
+      <div class="experience-stat-label"><span id="expSecondaryLine1">проработанных экранов,</span><br><span class="dim" id="expSecondaryLine2">закрывающих задачи бизнеса и ускоряющих путь пользователя</span></div>
+    </div>
+  </div>
+
+  <div class="experience-bar-track"><div class="experience-bar-clip" id="expBarClip"><div class="experience-bar-fill" id="expBarFill"></div></div></div>
+
+  <div class="experience-gallery"><div class="experience-gallery-track" id="expGalleryTrack"></div></div>
+
+  <button class="experience-cta" type="button">Запросить презентацию</button>
+  <p class="experience-footnote">Больше работ доступно в закрытом портфолио.<br>Это связано с особенностями проектов.</p>
+</div>
+
+<div class="experience-floating-tabs" id="expFloatingTabs">
+  <button class="exp-tab active" type="button" data-tab="websites">Сайты</button>
+  <button class="exp-tab" type="button" data-tab="apps">Приложения</button>
+  <button class="exp-tab" type="button" data-tab="branding">Брендинг</button>
+</div>
 
 <!-- === НОВЫЙ ФИНАЛЬНЫЙ СЛАЙДЕР "ПРЕДЛОЖИТЬ ОФФЕР" === -->
+<!-- вынесен из скрытого about-me-section — сам про себя, слайдер должен остаться виден -->
 <div class="offer-slider-container">
   <div class="track" id="track">
     <div class="fill fill-l" id="fillL"></div>
@@ -642,8 +760,6 @@ touch-action: none;
   </div>
 </div>
 
-</div>
-</div>
 <div class="cursor-follower" id="follower">
 <img id="follower-img" src="" alt="" aria-hidden="true">
 </div>
@@ -652,6 +768,144 @@ touch-action: none;
 document.addEventListener('DOMContentLoaded', () => {
   // Устройство умеет наводить курсор (мышь/трекпад) — только там включаем ховер-логику на JS
   const canHover = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+
+  // === ОПЫТ РАБОТЫ ===
+  (function(){
+    const section = document.getElementById('experienceSection');
+    if (!section) return;
+
+    // цифры и проценты — те же данные, что в старом блоке табов (websites/apps/branding),
+    // плюс вторая стата и подзаголовок, которых там не было
+    const expTabConfigs = {
+      websites: {
+        percent: 65,
+        primaryLine1: 'Лендинги, e-commerce',
+        primaryLine2: 'от идеи до фреймворков и адаптива',
+        secondaryNumber: '+12к',
+        secondaryLine1: 'проработанных экранов,',
+        secondaryLine2: 'закрывающих задачи бизнеса и ускоряющих путь пользователя',
+        subtitle: 'Mobile-First и скорость загрузки'
+      },
+      apps: {
+        percent: 10,
+        primaryLine1: 'Приложения, сложные интерфейсы',
+        primaryLine2: 'от прототипа до продакшена',
+        secondaryNumber: '+40',
+        secondaryLine1: 'запущенных фичей,',
+        secondaryLine2: 'проверенных на реальных пользователях',
+        subtitle: 'Нативный UX и предсказуемая логика'
+      },
+      branding: {
+        percent: 25,
+        primaryLine1: 'Айдентика, гайдлайны',
+        primaryLine2: 'от логотипа до полного фирменного стиля',
+        secondaryNumber: '+25',
+        secondaryLine1: 'разработанных айдентик,',
+        secondaryLine2: 'которые узнают с первого взгляда',
+        subtitle: 'Смысл, а не просто красиво'
+      }
+    };
+
+    const subtitleEl  = document.getElementById('expSubtitle');
+    const statP       = document.getElementById('expStatPrimary');
+    const statS       = document.getElementById('expStatSecondary');
+    const barTrack    = section.querySelector('.experience-bar-track');
+    const barClip     = document.getElementById('expBarClip');
+    const barFill     = document.getElementById('expBarFill');
+    const expTabs     = document.querySelectorAll('.exp-tab');
+
+    function expUpdateBar(percent){
+      if (!barTrack || !barClip || !barFill) return;
+      // заливка всегда шириной с сам трек — иначе градиент растягивался бы под
+      // текущий процент и на каждой вкладке съезжал бы по цветам
+      barFill.style.width = barTrack.getBoundingClientRect().width + 'px';
+      barClip.style.width = percent + '%';
+    }
+
+    let currentExpTab = null;
+    function renderExpTab(key, animate){
+      const cfg = expTabConfigs[key];
+      if (!cfg) return;
+      const apply = function(){
+        if (subtitleEl) subtitleEl.textContent = cfg.subtitle;
+        document.getElementById('expPrimaryNumber').textContent = cfg.percent + '%';
+        document.getElementById('expPrimaryLine1').textContent = cfg.primaryLine1;
+        document.getElementById('expPrimaryLine2').textContent = cfg.primaryLine2;
+        document.getElementById('expSecondaryNumber').textContent = cfg.secondaryNumber;
+        document.getElementById('expSecondaryLine1').textContent = cfg.secondaryLine1;
+        document.getElementById('expSecondaryLine2').textContent = cfg.secondaryLine2;
+        expUpdateBar(cfg.percent);
+      };
+      if (!animate){
+        apply();
+      } else {
+        [subtitleEl, statP, statS].forEach(function(el){ if (el) el.classList.add('fading'); });
+        setTimeout(function(){
+          apply();
+          [subtitleEl, statP, statS].forEach(function(el){ if (el) el.classList.remove('fading'); });
+        }, 220);
+      }
+      currentExpTab = key;
+    }
+    function switchExpTab(key){
+      if (key === currentExpTab || !expTabConfigs[key]) return;
+      expTabs.forEach(function(t){ t.classList.toggle('active', t.dataset.tab === key); });
+      renderExpTab(key, true);
+    }
+    expTabs.forEach(function(btn){
+      btn.addEventListener('click', function(){ switchExpTab(btn.dataset.tab); });
+    });
+    renderExpTab('websites', false);
+    window.addEventListener('resize', function(){ expUpdateBar(expTabConfigs[currentExpTab].percent); });
+
+    // плавающий таб-бар внизу экрана — виден, пока секция «Опыт работы» в зоне видимости
+    const floatingTabs = document.getElementById('expFloatingTabs');
+    if (floatingTabs && 'IntersectionObserver' in window){
+      const expIO = new IntersectionObserver(function(entries){
+        entries.forEach(function(en){ floatingTabs.classList.toggle('visible', en.isIntersecting); });
+      }, { threshold: 0.15 });
+      expIO.observe(section);
+    }
+
+    // бесконечная лента-галерея — серые заглушки, дублируем контент для бесшовной прокрутки
+    const galleryTrack = document.getElementById('expGalleryTrack');
+    if (galleryTrack){
+      const items = Array.from({ length: 10 }, function(){ return '<div class="experience-gallery-item"></div>'; }).join('');
+      galleryTrack.innerHTML = items + items;
+    }
+
+    // переключатель — клик прокручивает точку по трём положениям
+    const expSwitcher = document.getElementById('expSwitcher');
+    if (expSwitcher){
+      expSwitcher.addEventListener('click', function(){
+        const next = (parseInt(expSwitcher.dataset.state || '0', 10) + 1) % 3;
+        expSwitcher.dataset.state = String(next);
+      });
+    }
+
+    // палец вверх — клик разлетается копиями иконки в разные стороны и гаснет
+    const expThumb = document.getElementById('expThumb');
+    if (expThumb){
+      expThumb.addEventListener('click', function(){
+        const svgHTML = expThumb.querySelector('svg').outerHTML;
+        const count = 6;
+        for (let i = 0; i < count; i++){
+          const clone = document.createElement('span');
+          clone.className = 'exp-thumb-burst';
+          clone.innerHTML = svgHTML;
+          expThumb.appendChild(clone);
+          const angle = (i / count) * Math.PI * 2 + (Math.random() * 0.6 - 0.3);
+          const dist = 44 + Math.random() * 26;
+          const dx = Math.cos(angle) * dist, dy = Math.sin(angle) * dist;
+          requestAnimationFrame(function(){
+            clone.style.transform = 'translate(' + dx.toFixed(1) + 'px,' + dy.toFixed(1) + 'px) scale(.6)';
+            clone.style.opacity = '0';
+          });
+          setTimeout(function(){ clone.remove(); }, 650);
+        }
+      });
+    }
+  })();
 
   // === HERO HEIGHT ===
   const hero = document.querySelector('.hero-container');
