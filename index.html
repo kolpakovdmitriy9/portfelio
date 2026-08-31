@@ -247,7 +247,7 @@ height: clamp(180px, 45vw, 440px);
 .experience-stat-label .dim{color:#a2a2a2}
 .experience-bar-track{width:100%;height:clamp(80px,10vw,150px);margin:0 0 56px;background:#eee;overflow:hidden;position:relative;-webkit-mask-image:repeating-linear-gradient(90deg,#000 0 4px,transparent 4px 8px);mask-image:repeating-linear-gradient(90deg,#000 0 4px,transparent 4px 8px)}
 .experience-bar-clip{position:absolute;top:0;left:0;height:100%;overflow:hidden;width:0;transition:width 1s cubic-bezier(.22,.61,.36,1)}
-.experience-bar-fill{position:absolute;top:0;left:0;height:100%;width:100%;background:#9b9b9b}
+.experience-bar-fill{position:absolute;top:0;left:0;height:100%;width:100%;background:linear-gradient(90deg,#FF9800 0%,#FFC107 30%,#8BC34A 65%,#17b26a 100%)}
 .experience-gallery{width:100vw;position:relative;left:50%;transform:translateX(-50%);overflow:hidden;margin:0 0 64px;-webkit-mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent);mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent)}
 .experience-gallery-track{display:flex;gap:16px;width:max-content;animation:expGalleryScroll 32s linear infinite}
 @keyframes expGalleryScroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
@@ -863,8 +863,14 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!barTrack || !barClip || !barFill) return;
       // заливка всегда шириной с сам трек — иначе градиент растягивался бы под
       // текущий процент и на каждой вкладке съезжал бы по цветам
-      barFill.style.width = barTrack.getBoundingClientRect().width + 'px';
-      barClip.style.width = percent + '%';
+      const trackWidth = barTrack.getBoundingClientRect().width;
+      barFill.style.width = trackWidth + 'px';
+      // маска трека рисует деления с шагом 8px (4px деление + 4px зазор) — если обрезать
+      // заливку произвольным процентом, край может прийтись на середину деления и оно
+      // выйдет наполовину закрашенным; подгоняем край клипа к ближайшей границе деления
+      const TICK_PITCH = 8;
+      const snappedPx = Math.round(trackWidth * percent / 100 / TICK_PITCH) * TICK_PITCH;
+      barClip.style.width = snappedPx + 'px';
     }
 
     let currentExpTab = null;
