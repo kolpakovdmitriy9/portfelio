@@ -215,21 +215,25 @@ height: clamp(180px, 45vw, 440px);
 #tab-description{position:absolute;bottom:0;left:0;margin:0;max-width:330px;display:flex;align-items:flex-end}
 #placeholder-area{width:330px;max-width:100%;height:100%;min-height:160px;background:#e0e0e3;flex:1}
 
-/* === СЛАЙДЕР "ПРЕДЛОЖИТЬ ОФФЕР" === */
-.offer-slider-container{width:100%;max-width:648px;margin:160px auto 80px;padding-left:30px;display:flex;justify-content:center}
+/* === "ГОТОВ К РАБОТЕ" — свитчер связаться/предложить оффер, три состояния === */
+.experience-offer{margin:90px auto 0;text-align:center}
+.experience-offer-title{font-size:clamp(40px,9.72vw,140px);font-family:'ONY Track Moscow',sans-serif;font-weight:400;margin:0 0 56px;letter-spacing:-.02em;color:#0b0b0b}
+.experience-offer-hint{margin:24px 0 0;color:#a2a2a2;font-size:14px}
+.offer-slider-container{width:100%;max-width:648px;margin:0 auto;padding:0 30px;display:flex;justify-content:center}
 #track{width:100%;height:76px;background:#E5E5E5;border-radius:38px;position:relative;overflow:hidden;display:flex;align-items:center;user-select:none;touch-action:none;padding:0 30px}
 .fill{position:absolute;top:0;height:100%;z-index:1;opacity:0;pointer-events:none}
-.fill-l{left:0;background:#F4A4A5}
-.fill-r{right:0;background:#A8D9A7}
+.fill-l{left:0;background:linear-gradient(90deg,#2AABEE,rgba(42,171,238,0))}
+.fill-r{right:0;background:linear-gradient(90deg,rgba(55,205,0,0),#37CD00)}
 .label{position:absolute;font-size:20px;font-weight:400;color:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:5;font-family:'ONY One',sans-serif}
-#txtL{left:30px;width:86px;height:32px;border-radius:16px;transition:background .2s ease,color .1s ease}
+#txtL{left:30px;transition:opacity .2s ease}
 #txtR{right:30px;transition:opacity .2s ease}
-#handle{width:147px;height:76px;background:#000;border-radius:38px;position:absolute;left:50%;transform:translateX(-50%);display:flex;justify-content:center;align-items:center;z-index:10;cursor:grab;touch-action:none}
-#handleTxt{color:#fff;font-size:20px;pointer-events:none;font-family:'ONY One',sans-serif;font-weight:400}
+.offer-telegram-hint{position:absolute;right:24px;top:50%;transform:translateY(-50%);width:24px;height:24px;opacity:0;pointer-events:none;z-index:5;transition:opacity .15s ease}
+#handle{width:76px;height:76px;background:#000;border-radius:50%;position:absolute;left:50%;transform:translateX(-50%);display:flex;justify-content:center;align-items:center;z-index:10;cursor:grab;touch-action:none}
+.handle-arrow{width:24px;height:24px;pointer-events:none;transition:transform .2s ease}
+.handle-arrow.pointing-left{transform:scaleX(-1)}
 .final-stats{position:absolute;width:100%;text-align:center;opacity:0;pointer-events:none;z-index:20;color:#fff;display:flex;flex-direction:column;transform:translateY(10px);transition:opacity .4s ease,transform .4s ease;transition-delay:.2s}
 .amount{font-size:20px;font-weight:400;padding:0 10px;font-family:'ONY One',sans-serif}
 .count{font-size:16px;opacity:.8;margin-top:4px;font-family:'ONY One',sans-serif}
-.amount-active{background:#E74F30 !important;color:#ffffff !important;font-size:20px !important;font-weight:400 !important;font-family:'ONY One', sans-serif !important}
 
 /* === ОПЫТ РАБОТЫ (заменяет старый about-me с видео и табами) === */
 .experience-section{max-width:1440px;margin:140px auto 0;padding:0 30px;width:100%;text-align:center;box-sizing:border-box}
@@ -240,7 +244,7 @@ height: clamp(180px, 45vw, 440px);
    Сам .experience-badge — белый круг 234px (это и есть белая обводка вокруг них — она
    нужна, чтобы кружки, перекрывая друг друга, не сливались по цвету на стыке); контент
    (лого/видео) — вложенный кружок поменьше (214px, т.е. отступ 10px от края) поверх. */
-.experience-badges{display:flex;justify-content:center;align-items:center;margin-bottom:56px}
+.experience-badges{display:flex;justify-content:center;align-items:center;margin-bottom:90px}
 /* по макету кружки перекрывают друг друга (630×234, отступ -36 при трёх кружках 234px) —
    отрицательный margin вместо gap (flex gap отрицательным не бывает) */
 .experience-badge{position:relative;width:clamp(72px,16.25vw,234px);height:clamp(72px,16.25vw,234px);border-radius:50%;flex-shrink:0;background:#fff}
@@ -255,7 +259,7 @@ height: clamp(180px, 45vw, 440px);
    толщина 3px (обводка бейджа 10px их не перекрывает: 5.5+3=8.5 < 10, кольцо лежит внутри
    белого поля, доступного как трек) */
 .experience-badge-progress{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;transform:rotate(-90deg)}
-.experience-stats{display:flex;justify-content:center;gap:32px;flex-wrap:nowrap;margin-bottom:56px}
+.experience-stats{display:flex;justify-content:center;gap:32px;flex-wrap:nowrap;margin-bottom:90px}
 .experience-stat{display:flex;align-items:center;gap:32px;text-align:left}
 /* фиксированная ширина под цифру/текст — область не должна прыгать при смене вкладки,
    какой бы длины ни было число или подпись (короткий текст просто не занимает весь бокс) */
@@ -267,7 +271,9 @@ height: clamp(180px, 45vw, 440px);
    а не сжимается пропорционально (шаг между делениями остаётся тем же, что на десктопе) */
 /* space-between вместо фиксированного gap — деления реально растягиваются на весь
    контейнер (последнее упирается в правый край), а не оставляют огрызок от округления */
-.experience-bar-track{width:100%;height:clamp(80px,10vw,150px);margin:0 0 56px;display:flex;align-items:stretch;justify-content:space-between}
+/* по редлайну бар 1366×200 при экране 1440 — на 14px уже, чем остальной контент секции
+   (37px от края экрана вместо обычных 30px паддинга), поэтому доп. inset через width/margin */
+.experience-bar-track{width:calc(100% - 14px);margin:0 auto 90px;height:clamp(80px,13.89vw,200px);display:flex;align-items:stretch;justify-content:space-between}
 .experience-bar-tick{flex:none;width:4px;height:100%;background:#eee;transition:background .3s ease}
 .experience-gallery{width:100vw;position:relative;left:50%;transform:translateX(-50%);overflow:hidden;margin:0 0 64px;-webkit-mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent);mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent)}
 .experience-gallery-track{display:flex;gap:16px;width:max-content;animation:expGalleryScroll 32s linear infinite}
@@ -335,7 +341,6 @@ height: clamp(180px, 45vw, 440px);
 #placeholder-area{height:auto;min-height:240px}
 .tab-item{font-size:36px}
 
-.offer-slider-container{padding-left:0}
 }
 
 @media (max-width:768px){
@@ -357,15 +362,15 @@ height: clamp(180px, 45vw, 440px);
 .tab-item{font-size:28px}
 .about-tabs{gap:20px}
 
-.offer-slider-container{margin:80px auto 40px}
+.experience-offer{margin-top:60px}
 #track{padding:0 20px}
-#handle{width:130px}
+#handle{width:64px;height:64px}
 }
 
 @media (max-width:480px){
 #track{padding:0 16px}
-#handle{width:118px}
-#handleTxt,#txtL,#txtR{font-size:16px}
+#handle{width:56px;height:56px}
+#txtL,#txtR{font-size:16px}
 .tab-item{font-size:22px}
 .about-tabs{gap:14px}
 }
@@ -713,7 +718,7 @@ touch-action: none;
     </div>
     <div class="experience-badge experience-badge--video">
       <div class="experience-badge-inner">
-        <video id="expVideoCircle" src="https://github.com/kolpakovdmitriy9/newbring.github.io/raw/refs/heads/master/lovelllas.hyperesources/video.mp4" autoplay loop muted playsinline preload="auto"></video>
+        <video id="expVideoCircle" src="https://github.com/kolpakovdmitriy9/newbring.github.io/raw/refs/heads/master/lovelllas.hyperesources/video.mp4" muted playsinline preload="auto"></video>
       </div>
       <svg class="experience-badge-progress" viewBox="0 0 234 234" aria-hidden="true">
         <circle cx="117" cy="117" r="110" fill="none" stroke="#cfcfcf" stroke-width="3"/>
@@ -739,33 +744,42 @@ touch-action: none;
 
   <button class="experience-cta" type="button">Запросить презентацию</button>
   <p class="experience-footnote">Больше работ доступно в закрытом портфолио.<br>Это связано с особенностями проектов.</p>
+
+  <!-- === "ГОТОВ К РАБОТЕ" — свитчер связаться/предложить оффер === -->
+  <div class="experience-offer">
+    <h2 class="experience-offer-title">ГОТОВ К РАБОТЕ</h2>
+    <div class="offer-slider-container">
+      <div class="track" id="track">
+        <div class="fill fill-l" id="fillL"></div>
+        <div class="fill fill-r" id="fillR"></div>
+
+        <div class="label label-l" id="txtL">Связаться</div>
+
+        <div class="label label-r" id="txtR">Сделать оффер</div>
+
+        <svg class="offer-telegram-hint" id="telegramHint" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+          <path fill-rule="evenodd" clip-rule="evenodd" d="M9.05564 19.7889C14.886 17.2487 18.7739 15.574 20.7192 14.7649C26.2734 12.4547 27.4275 12.0534 28.1798 12.0402C28.3452 12.0373 28.7151 12.0783 28.9548 12.2727C29.1571 12.4369 29.2128 12.6587 29.2394 12.8143C29.266 12.97 29.2992 13.3246 29.2728 13.6017C28.9719 16.7641 27.6695 24.4386 27.0069 27.9806C26.7266 29.4794 26.1746 29.9819 25.6401 30.0311C24.4787 30.138 23.5967 29.2636 22.4718 28.5262C20.7116 27.3723 19.7171 26.654 18.0085 25.528C16.0339 24.2268 17.3139 23.5116 18.4393 22.3428C18.7338 22.0369 23.8511 17.3823 23.9501 16.9601C23.9625 16.9072 23.974 16.7104 23.8571 16.6065C23.7401 16.5025 23.5675 16.5381 23.443 16.5663C23.2664 16.6064 20.4544 18.465 15.0069 22.1423C14.2087 22.6904 13.4857 22.9574 12.838 22.9434C12.1239 22.928 10.7502 22.5397 9.72904 22.2077C8.47654 21.8006 7.48108 21.5853 7.56776 20.8939C7.61291 20.5337 8.10887 20.1654 9.05564 19.7889Z" fill="white"/>
+        </svg>
+
+        <div class="handle" id="handle">
+          <svg class="handle-arrow" id="handleArrow" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M5 12h14M13 6l6 6-6 6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <div class="final-stats" id="finalView">
+            <span class="amount" id="finalAmount"></span>
+            <span class="count" id="finalCount"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="experience-offer-hint">Потяните ползунок вправо или влево</p>
+  </div>
 </div>
 
 <div class="experience-floating-tabs" id="expFloatingTabs">
   <button class="exp-tab active" type="button" data-tab="websites">Сайты</button>
   <button class="exp-tab" type="button" data-tab="apps">Приложения</button>
   <button class="exp-tab" type="button" data-tab="branding">Брендинг</button>
-</div>
-
-<!-- === НОВЫЙ ФИНАЛЬНЫЙ СЛАЙДЕР "ПРЕДЛОЖИТЬ ОФФЕР" === -->
-<!-- вынесен из скрытого about-me-section — сам про себя, слайдер должен остаться виден -->
-<div class="offer-slider-container">
-  <div class="track" id="track">
-    <div class="fill fill-l" id="fillL"></div>
-    <div class="fill fill-r" id="fillR"></div>
-
-    <div class="label label-l" id="txtL">Отказать</div>
-
-    <div class="label label-r" id="txtR">Предложить</div>
-
-    <div class="handle" id="handle">
-      <span class="handle-text" id="handleTxt">Оффер</span>
-      <div class="final-stats" id="finalView">
-        <span class="amount" id="finalAmount"></span>
-        <span class="count" id="finalCount"></span>
-      </div>
-    </div>
-  </div>
 </div>
 
 <div class="cursor-follower" id="follower">
@@ -1340,23 +1354,39 @@ document.addEventListener('DOMContentLoaded', () => {
     video.addEventListener('ended', () => { if (isPlaying) { video.currentTime = 0; video.play(); } });
   }
 
-  // === КОЛЬЦО ПРОГРЕССА У ВИДЕО-КРУЖКА В «ОПЫТ РАБОТЫ» ===
-  // тот же принцип, что и у about-video-progress выше — просто отдельный <video>,
-  // потому что тот завязан на клик/канплей-логику старой секции, а тут нужен just autoplay+loop
+  // === ВИДЕО-КРУЖОК И КОЛЬЦО ПРОГРЕССА В «ОПЫТ РАБОТЫ» ===
+  // та же механика canplay/click/ended, что и у about-video-progress выше (не нативные
+  // autoplay/loop) — только своя копия, у старой секции своя логика завязана на клик,
+  // а тут нужен независимый экземпляр под размер бейджа (r=110 вместо r=187)
   (function(){
     const expVideo = document.getElementById('expVideoCircle');
     const expProgress = document.getElementById('expVideoProgress');
     if (!expVideo || !expProgress) return;
-    const cycle = 5; // секунд на полный оборот кольца
+    const duration = 5;
     const circumference = 2 * Math.PI * 110;
-    let raf = null;
-    function frame(){
-      const t = (expVideo.currentTime || 0) % cycle;
-      expProgress.style.strokeDashoffset = circumference - (t / cycle) * circumference;
-      if (!expVideo.paused) raf = requestAnimationFrame(frame);
+    expProgress.style.strokeDasharray = String(circumference);
+    expProgress.style.strokeDashoffset = String(circumference);
+    let isPlaying = false;
+    function updateProgress(currentTime){
+      const cycleTime = currentTime % duration;
+      const offset = circumference - (cycleTime / duration) * circumference;
+      expProgress.style.strokeDashoffset = offset;
     }
-    expVideo.addEventListener('play', function(){ if (!raf) raf = requestAnimationFrame(frame); });
-    expVideo.addEventListener('pause', function(){ if (raf) cancelAnimationFrame(raf); raf = null; });
+    function startVideoAndProgress(){
+      if (isPlaying) return;
+      expVideo.play().then(function(){
+        isPlaying = true;
+        function syncProgress(){
+          if (expVideo.currentTime >= duration) expVideo.currentTime = 0;
+          updateProgress(expVideo.currentTime);
+          if (isPlaying) requestAnimationFrame(syncProgress);
+        }
+        syncProgress();
+      }).catch(function(){ /* автоплей заблокирован — запустится по клику */ });
+    }
+    expVideo.addEventListener('canplay', function(){ setTimeout(startVideoAndProgress, 300); });
+    expVideo.addEventListener('click', startVideoAndProgress);
+    expVideo.addEventListener('ended', function(){ if (isPlaying){ expVideo.currentTime = 0; expVideo.play(); } });
   })();
 
   // === ANIMATIONS ON SCROLL ===
@@ -1539,7 +1569,10 @@ switchTab('websites');
 
 
 
-  // === OFFER SLIDER ===
+  // === OFFER SLIDER («Готов к работе») ===
+  // вправо до конца — оффер с суммой (мейлто с шаблоном письма), влево до конца — телеграм.
+  // Стрелка в ручке разворачивается по направлению протяжки; при движении влево справа
+  // проявляется иконка телеграма как подсказка, куда ведёт жест.
   const track = document.getElementById('track');
   if (track) {
     const handle = document.getElementById('handle');
@@ -1547,7 +1580,8 @@ switchTab('websites');
     const fillR = document.getElementById('fillR');
     const txtL = document.getElementById('txtL');
     const txtR = document.getElementById('txtR');
-    const handleTxt = document.getElementById('handleTxt');
+    const handleArrow = document.getElementById('handleArrow');
+    const telegramHint = document.getElementById('telegramHint');
     const finalView = document.getElementById('finalView');
 
     let isDragging = false;
@@ -1562,7 +1596,12 @@ switchTab('websites');
       if (!statsData[i]) statsData[i] = Math.floor(Math.random() * 50) + 5;
     }
 
-    const formatK = (val) => (val / 1000) + 'К';
+    const formatRub = (val) => val.toLocaleString('ru-RU') + ' Р';
+
+    const resetLabels = () => {
+      txtL.innerText = "Связаться";
+      handleArrow.classList.remove('pointing-left');
+    };
 
     const move = (e) => {
       if (!isDragging || isLocked) return;
@@ -1575,26 +1614,28 @@ switchTab('websites');
         const progress = finalDelta / maxLimit;
         const rawAmount = 10000 + (290000 * progress);
         lastAmount = Math.round(rawAmount / 10000) * 10000;
-        txtL.innerText = formatK(lastAmount);
-        txtL.classList.add('amount-active');
+        txtL.innerText = formatRub(lastAmount);
         txtL.style.opacity = '1';
         txtR.style.opacity = Math.max(0, 1 - (progress / 0.6)).toString();
         fillR.style.width = (trackRect.width / 2 - finalDelta) + 'px';
         fillR.style.opacity = progress.toString();
         fillL.style.opacity = '0';
+        telegramHint.style.opacity = '0';
+        handleArrow.classList.remove('pointing-left');
       } else {
         const absDelta = Math.abs(deltaX);
         finalDelta = absDelta < 80
           ? deltaX
           : - (80 + 45 * Math.log10(1 + (absDelta - 80) / 15));
         const progressL = Math.abs(finalDelta) / (maxLimit * 0.7);
-        txtL.innerText = "Отказать";
-        txtL.classList.remove('amount-active');
-        txtL.style.opacity = Math.max(0, 1 - (progressL / 0.8)).toString();
+        txtL.innerText = "Связаться";
+        txtL.style.opacity = '1';
         txtR.style.opacity = '1';
         fillL.style.width = (trackRect.width / 2 + finalDelta) + 'px';
         fillL.style.opacity = Math.min(progressL, 1).toString();
         fillR.style.opacity = '0';
+        telegramHint.style.opacity = Math.min(progressL, 1).toString();
+        handleArrow.classList.add('pointing-left');
       }
       currentPos = finalDelta;
       handle.style.transform = `translateX(calc(-50% + ${currentPos}px))`;
@@ -1610,6 +1651,15 @@ switchTab('websites');
       handle.style.transition = 'none';
     };
 
+    const snapBack = () => {
+      currentPos = 0;
+      handle.style.transition = 'transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+      handle.style.transform = 'translateX(-50%)';
+      [fillL, fillR, telegramHint].forEach(f => f.style.opacity = '0');
+      [txtL, txtR].forEach(t => t.style.opacity = '1');
+      resetLabels();
+    };
+
     const end = () => {
       if (!isDragging || isLocked) return;
       isDragging = false;
@@ -1618,19 +1668,17 @@ switchTab('websites');
         statsData[lastAmount] = (statsData[lastAmount] || 0) + 1;
         localStorage.setItem('offerStatsData', JSON.stringify(statsData));
         expandHandle(lastAmount, statsData[lastAmount]);
+      } else if (currentPos < -100) {
+        isLocked = true;
+        window.open('https://t.me/kooodiii', '_blank');
+        setTimeout(() => { isLocked = false; snapBack(); }, 400);
       } else {
-        currentPos = 0;
-        handle.style.transition = 'transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
-        handle.style.transform = 'translateX(-50%)';
-        [fillL, fillR].forEach(f => f.style.opacity = '0');
-        [txtL, txtR].forEach(t => t.style.opacity = '1');
-        txtL.innerText = "Отказать";
-        txtL.classList.remove('amount-active');
+        snapBack();
       }
     };
 
     function expandHandle(amount, count) {
-      [txtL, txtR, fillL, fillR, handleTxt].forEach(el => el.style.opacity = "0");
+      [txtL, txtR, fillL, fillR, telegramHint, handleArrow].forEach(el => el.style.opacity = "0");
 
       track.style.background = '#000';
       track.style.padding = '0';
@@ -1641,7 +1689,7 @@ switchTab('websites');
       handle.style.background = 'transparent';
       handle.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
 
-      document.getElementById('finalAmount').innerText = `Оффер на ${formatK(amount)}`;
+      document.getElementById('finalAmount').innerText = `Оффер на ${formatRub(amount)}`;
       document.getElementById('finalCount').innerText = `${count} чел. выбрали эту сумму`;
       finalView.style.opacity = '1';
       finalView.style.transform = 'translateY(0)';
