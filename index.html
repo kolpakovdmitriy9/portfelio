@@ -233,18 +233,22 @@ height: clamp(180px, 45vw, 440px);
 
 /* === ОПЫТ РАБОТЫ (заменяет старый about-me с видео и табами) === */
 .experience-section{max-width:1440px;margin:140px auto 0;padding:0 30px;width:100%;text-align:center;box-sizing:border-box}
-.experience-icons{display:flex;justify-content:center;align-items:center;gap:16px;margin-bottom:48px}
-.exp-icon{width:72px;height:50px;border:none;background:none;display:block;cursor:pointer;position:relative;flex-shrink:0;padding:0;touch-action:manipulation}
-.exp-icon-svg{width:100%;height:100%;display:block;pointer-events:none}
-.exp-icon--heart,.exp-icon--thumb{overflow:visible}
 .experience-title{font-size:clamp(40px,9.72vw,140px);font-family:'ONY Track Moscow',sans-serif;font-weight:400;margin:0;letter-spacing:-.02em;color:#0b0b0b}
-.experience-subtitle{font-size:clamp(20px,2.22vw,32px);color:#0b0b0b;margin:0 0 clamp(48px,11.25vw,162px);min-height:1.4em;transition:opacity .25s ease}
+.experience-subtitle{font-size:clamp(20px,2.22vw,32px);color:#0b0b0b;margin:0 0 clamp(32px,6vw,64px);min-height:1.4em;transition:opacity .25s ease}
 .experience-subtitle.fading{opacity:0}
+/* три кружка над баром: логотипы клиентов (Рив Гош, Пятёрочка) + зацикленное видео */
+.experience-badges{display:flex;justify-content:center;align-items:center;gap:16px;margin-bottom:56px}
+.experience-badge{width:clamp(72px,9vw,130px);height:clamp(72px,9vw,130px);border-radius:50%;flex-shrink:0;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.experience-badge--rivgosh{background:#0b0b0b;color:#fff;font-family:'ONY One',sans-serif;font-weight:700;font-size:clamp(12px,1.4vw,18px);line-height:1.2;letter-spacing:.02em}
+.experience-badge--pyaterochka{background:#E30613}
+.experience-badge--pyaterochka svg{width:100%;height:100%;display:block}
+.experience-badge--video{background:#0b0b0b}
+.experience-badge--video video{width:100%;height:100%;object-fit:cover;display:block}
 .experience-stats{display:flex;justify-content:center;gap:32px;flex-wrap:nowrap;margin-bottom:56px}
 .experience-stat{display:flex;align-items:center;gap:32px;text-align:left}
 /* фиксированная ширина под цифру/текст — область не должна прыгать при смене вкладки,
    какой бы длины ни было число или подпись (короткий текст просто не занимает весь бокс) */
-.experience-stat-number{width:clamp(120px,18.06vw,260px);flex:none;font-size:clamp(56px,8.33vw,120px);font-family:'ONY One',sans-serif;line-height:1;font-weight:400;color:#0b0b0b;white-space:nowrap;overflow:hidden}
+.experience-stat-number{width:clamp(120px,18.06vw,260px);flex:none;font-size:clamp(56px,8.33vw,120px);font-family:'ONY One',sans-serif;font-weight:300;line-height:1;color:#0b0b0b;white-space:nowrap;overflow:hidden}
 .experience-stat-label{width:clamp(200px,25.69vw,370px);flex:none;font-size:clamp(16px,1.67vw,24px);line-height:1.35;color:#0b0b0b}
 .experience-stat-label .dim{color:#a2a2a2}
 .experience-bar-track{width:100%;height:clamp(80px,10vw,150px);margin:0 0 56px;background:#eee;overflow:hidden;position:relative;-webkit-mask-image:repeating-linear-gradient(90deg,#000 0 4px,transparent 4px 8px);mask-image:repeating-linear-gradient(90deg,#000 0 4px,transparent 4px 8px)}
@@ -258,30 +262,6 @@ height: clamp(180px, 45vw, 440px);
 @media (hover:hover) and (pointer:fine){.experience-cta:hover{background:#222}}
 .experience-footnote{margin:32px 0 0;color:#a2a2a2;font-size:14px;line-height:1.6}
 
-/* переключатель — клик двигает белый кружок между тремя положениями (JS меняет cx) */
-#expSwitchKnob{transition:cx .25s ease}
-
-/* тележка — на ховере уезжает вправо и тут же въезжает обратно слева;
-   клип-путь держит её в границах таблетки, чтобы не вылезала наружу */
-@keyframes expCartDrive{
-  0%{transform:translateX(0)}
-  45%{transform:translateX(160%)}
-  50%{transform:translateX(-160%)}
-  100%{transform:translateX(0)}
-}
-@media (hover:hover) and (pointer:fine){
-  .exp-icon--cart:hover .exp-icon-glyph{animation:expCartDrive 1s ease-in-out}
-}
-
-/* сердце — на ховере рядом всплывает счётчик лайков */
-.exp-like-badge{position:absolute;top:-8px;right:-10px;background:#fff;color:#F0429A;border:1.5px solid #F0429A;border-radius:10px;font-size:11px;line-height:1;padding:3px 6px;font-family:'ONY One',sans-serif;opacity:0;transform:translateY(4px) scale(.8);transition:opacity .2s ease,transform .2s ease;pointer-events:none;white-space:nowrap}
-@media (hover:hover) and (pointer:fine){
-  .exp-icon--heart:hover .exp-like-badge{opacity:1;transform:translateY(0) scale(1)}
-}
-
-/* палец вверх — при клике во все стороны разлетаются копии глифа и гаснут */
-.exp-thumb-burst{position:absolute;top:50%;left:50%;width:20px;height:14px;margin:-7px 0 0 -10px;pointer-events:none;opacity:1;transition:transform .6s cubic-bezier(.22,.61,.36,1),opacity .6s ease}
-.exp-thumb-burst svg{width:100%;height:100%;display:block}
 
 /* плавающий таб-бар с тремя категориями, виден пока секция «Опыт работы» на экране */
 .experience-floating-tabs{position:fixed;left:50%;bottom:28px;transform:translate(-50%,24px);display:flex;gap:6px;background:#fff;border:1px solid #e0e0e3;border-radius:50px;padding:6px;box-shadow:0 12px 40px rgba(0,0,0,.14);z-index:100;opacity:0;pointer-events:none;transition:opacity .3s ease,transform .3s ease}
@@ -701,37 +681,23 @@ touch-action: none;
 
 <!-- === ОПЫТ РАБОТЫ (новая секция вместо старого about-me) === -->
 <div class="experience-section" id="experienceSection">
-  <div class="experience-icons">
-    <button class="exp-icon exp-icon--thumb" type="button" aria-label="Одобряю" id="expThumb">
-      <svg class="exp-icon-svg" viewBox="0 0 72 50" aria-hidden="true">
-        <rect width="72" height="50" rx="24" fill="#0B0B0B"/>
-        <g class="exp-icon-glyph"><path d="M28.843 23.5V37H26.428C25.078 37 23.998 35.92 23.998 34.585V25.93C23.998 24.595 25.093 23.5 26.428 23.5H28.843ZM45.733 21.25H38.563V16C38.563 14.35 37.213 13 35.578 13H35.443C34.843 13 34.303 13.36 34.063 13.915L29.968 23.5V37H43.768C44.863 37 45.793 36.22 45.988 35.14L47.968 23.89C48.208 22.51 47.158 21.25 45.748 21.25H45.733Z" fill="white"/></g>
-      </svg>
-    </button>
-    <button class="exp-icon exp-icon--switcher" type="button" data-state="2" aria-label="Переключатель" id="expSwitcher">
-      <svg class="exp-icon-svg" viewBox="0 0 72 50" aria-hidden="true">
-        <rect width="72" height="50" rx="24" fill="#37CD00"/>
-        <circle id="expSwitchKnob" cx="47" cy="25" r="16" fill="white"/>
-      </svg>
-    </button>
-    <button class="exp-icon exp-icon--heart" type="button" aria-label="Нравится">
-      <svg class="exp-icon-svg" viewBox="0 0 72 50" aria-hidden="true">
-        <rect width="72" height="50" rx="24" fill="#FF005E"/>
-        <g class="exp-icon-glyph"><path d="M48.0751 15.4876C47.3973 14.7269 46.5705 14.1136 45.6459 13.6858C44.7213 13.2579 43.7186 13.0245 42.7001 13.0001C41.6825 12.9778 40.6708 13.1612 39.7257 13.5392C38.7807 13.9172 37.9216 14.4821 37.2001 15.2001L36.0001 16.3876L35.0626 15.4626C32.1501 12.5376 27.4001 12.2876 24.4876 14.9251C23.7296 15.6051 23.1183 16.4325 22.6911 17.3568C22.2638 18.2811 22.0295 19.2828 22.0026 20.3007C21.9757 21.3186 22.1567 22.3313 22.5345 23.2769C22.9124 24.2225 23.4791 25.081 24.2001 25.8001L34.5876 36.1876C34.7724 36.3743 34.9924 36.5225 35.2349 36.6237C35.4773 36.7248 35.7374 36.7769 36.0001 36.7769C36.2628 36.7769 36.5229 36.7248 36.7654 36.6237C37.0078 36.5225 37.2278 36.3743 37.4126 36.1876L47.5376 26.0626C50.4626 23.1501 50.7001 18.4001 48.0751 15.4876Z" fill="white"/></g>
-      </svg>
-      <span class="exp-like-badge">+248</span>
-    </button>
-    <button class="exp-icon exp-icon--cart" type="button" aria-label="Корзина">
-      <svg class="exp-icon-svg" viewBox="0 0 72 50" aria-hidden="true">
-        <defs><clipPath id="expCartClip"><rect width="72" height="50" rx="24"/></clipPath></defs>
-        <rect width="72" height="50" rx="24" fill="#0B0B0B"/>
-        <g class="exp-icon-glyph" clip-path="url(#expCartClip)"><path d="M32 36C32 36.3956 31.8827 36.7822 31.6629 37.1111C31.4432 37.44 31.1308 37.6964 30.7654 37.8478C30.3999 37.9991 29.9978 38.0387 29.6098 37.9616C29.2219 37.8844 28.8655 37.6939 28.5858 37.4142C28.3061 37.1345 28.1156 36.7781 28.0384 36.3902C27.9613 36.0022 28.0009 35.6001 28.1522 35.2346C28.3036 34.8692 28.56 34.5568 28.8889 34.3371C29.2178 34.1173 29.6044 34 30 34C30.5304 34 31.0391 34.2107 31.4142 34.5858C31.7893 34.9609 32 35.4696 32 36ZM43 34C42.6044 34 42.2178 34.1173 41.8889 34.3371C41.56 34.5568 41.3036 34.8692 41.1522 35.2346C41.0009 35.6001 40.9613 36.0022 41.0384 36.3902C41.1156 36.7781 41.3061 37.1345 41.5858 37.4142C41.8655 37.6939 42.2219 37.8844 42.6098 37.9616C42.9978 38.0387 43.3999 37.9991 43.7654 37.8478C44.1308 37.6964 44.4432 37.44 44.6629 37.1111C44.8827 36.7822 45 36.3956 45 36C45 35.4696 44.7893 34.9609 44.4142 34.5858C44.0391 34.2107 43.5304 34 43 34ZM48.5125 17.4C48.4187 17.2765 48.2978 17.1762 48.1591 17.1069C48.0204 17.0375 47.8676 17.001 47.7125 17H26.0375L25.025 13.45C24.9036 13.0329 24.6505 12.6663 24.3035 12.405C23.9566 12.1436 23.5344 12.0016 23.1 12H21C20.7348 12 20.4804 12.1054 20.2929 12.2929C20.1054 12.4804 20 12.7348 20 13C20 13.2652 20.1054 13.5196 20.2929 13.7071C20.4804 13.8946 20.7348 14 21 14H23.1L24.325 18.2625V18.2875L27.625 29.825C27.8062 30.4511 28.1856 31.0016 28.7062 31.3938C29.2269 31.7859 29.8607 31.9986 30.5125 32H42.4875C43.1393 31.9986 43.7731 31.7859 44.2938 31.3938C44.8144 31.0016 45.1938 30.4511 45.375 29.825L48.675 18.275C48.7173 18.1265 48.7246 17.9702 48.6965 17.8184C48.6683 17.6666 48.6053 17.5234 48.5125 17.4Z" fill="white"/></g>
-      </svg>
-    </button>
-  </div>
-
   <h2 class="experience-title">ОПЫТ РАБОТЫ</h2>
   <p class="experience-subtitle" id="expSubtitle">Mobile-First и скорость загрузки</p>
+
+  <div class="experience-badges">
+    <div class="experience-badge experience-badge--rivgosh" aria-label="Рив Гош"><span>РИВ</span><span>ГОШ</span></div>
+    <div class="experience-badge experience-badge--pyaterochka" aria-label="Пятёрочка">
+      <svg viewBox="0 0 100 100" aria-hidden="true">
+        <text x="38" y="72" font-family="'ONY One',sans-serif" font-weight="700" font-size="62" text-anchor="middle" fill="#fff">5</text>
+        <path d="M62 22C74 22 82 30 82 42C70 42 62 34 62 22Z" fill="#7AC943"/>
+      </svg>
+    </div>
+    <div class="experience-badge experience-badge--video">
+      <video id="expVideoCircle" src="https://github.com/kolpakovdmitriy9/newbring.github.io/raw/refs/heads/master/lovelllas.hyperesources/video.mp4" autoplay loop muted playsinline preload="auto"></video>
+    </div>
+  </div>
+
+  <div class="experience-bar-track"><div class="experience-bar-clip" id="expBarClip"><div class="experience-bar-fill" id="expBarFill"></div></div></div>
 
   <div class="experience-stats">
     <div class="experience-stat" id="expStatPrimary">
@@ -743,8 +709,6 @@ touch-action: none;
       <div class="experience-stat-label"><span id="expSecondaryLine1">проработанных экранов,</span><br><span class="dim" id="expSecondaryLine2">закрывающих задачи бизнеса и ускоряющих путь пользователя</span></div>
     </div>
   </div>
-
-  <div class="experience-bar-track"><div class="experience-bar-clip" id="expBarClip"><div class="experience-bar-fill" id="expBarFill"></div></div></div>
 
   <div class="experience-gallery"><div class="experience-gallery-track" id="expGalleryTrack"></div></div>
 
@@ -964,47 +928,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (galleryTrack){
       const items = Array.from({ length: 10 }, function(){ return '<div class="experience-gallery-item"></div>'; }).join('');
       galleryTrack.innerHTML = items + items;
-    }
-
-    // переключатель — клик двигает белый кружок между тремя положениями (меняем cx у circle)
-    const expSwitcher = document.getElementById('expSwitcher');
-    const expSwitchKnob = document.getElementById('expSwitchKnob');
-    const expSwitchPositions = [25, 36, 47]; // левое / среднее / правое (правое — как в исходном SVG)
-    if (expSwitcher && expSwitchKnob){
-      expSwitcher.addEventListener('click', function(){
-        const next = (parseInt(expSwitcher.dataset.state || '2', 10) + 1) % 3;
-        expSwitcher.dataset.state = String(next);
-        expSwitchKnob.setAttribute('cx', expSwitchPositions[next]);
-      });
-    }
-
-    // палец вверх — клик разлетается копиями глифа в разные стороны и гаснет
-    const expThumb = document.getElementById('expThumb');
-    if (expThumb){
-      const thumbGlyph = expThumb.querySelector('.exp-icon-glyph');
-      // клонируем только глиф (не фон-таблетку) и красим в тёмный — на белой странице
-      // белая заливка исходной иконки была бы не видна
-      const cloneSvgTemplate = thumbGlyph
-        ? '<svg viewBox="22 11 28 28" xmlns="http://www.w3.org/2000/svg">' + thumbGlyph.innerHTML.replace(/fill="white"/g, 'fill="#0B0B0B"') + '</svg>'
-        : '';
-      const count = 6;
-      expThumb.addEventListener('click', function(){
-        if (!cloneSvgTemplate) return;
-        for (let i = 0; i < count; i++){
-          const clone = document.createElement('span');
-          clone.className = 'exp-thumb-burst';
-          clone.innerHTML = cloneSvgTemplate;
-          expThumb.appendChild(clone);
-          const angle = (i / count) * Math.PI * 2 + (Math.random() * 0.6 - 0.3);
-          const dist = 44 + Math.random() * 26;
-          const dx = Math.cos(angle) * dist, dy = Math.sin(angle) * dist;
-          requestAnimationFrame(function(){
-            clone.style.transform = 'translate(' + dx.toFixed(1) + 'px,' + dy.toFixed(1) + 'px) scale(.6)';
-            clone.style.opacity = '0';
-          });
-          setTimeout(function(){ clone.remove(); }, 650);
-        }
-      });
     }
   })();
 
