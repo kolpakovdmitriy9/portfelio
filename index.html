@@ -236,18 +236,24 @@ height: clamp(180px, 45vw, 440px);
 .experience-title{font-size:clamp(40px,9.72vw,140px);font-family:'ONY Track Moscow',sans-serif;font-weight:400;margin:0;letter-spacing:-.02em;color:#0b0b0b}
 .experience-subtitle{font-size:clamp(20px,2.22vw,32px);color:#0b0b0b;margin:0 0 clamp(32px,6vw,64px);min-height:1.4em;transition:opacity .25s ease}
 .experience-subtitle.fading{opacity:0}
-/* три кружка над баром: логотипы клиентов (Рив Гош, Пятёрочка) + зацикленное видео */
+/* три кружка над баром: логотипы клиентов (Рив Гош, Пятёрочка) + зацикленное видео.
+   Сам .experience-badge — белый круг 234px (это и есть белая обводка вокруг них — она
+   нужна, чтобы кружки, перекрывая друг друга, не сливались по цвету на стыке); контент
+   (лого/видео) — вложенный кружок поменьше (214px, т.е. отступ 10px от края) поверх. */
 .experience-badges{display:flex;justify-content:center;align-items:center;margin-bottom:56px}
 /* по макету кружки перекрывают друг друга (630×234, отступ -36 при трёх кружках 234px) —
    отрицательный margin вместо gap (flex gap отрицательным не бывает) */
-.experience-badge{position:relative;width:clamp(72px,16.25vw,234px);height:clamp(72px,16.25vw,234px);border-radius:50%;flex-shrink:0;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.experience-badge{position:relative;width:clamp(72px,16.25vw,234px);height:clamp(72px,16.25vw,234px);border-radius:50%;flex-shrink:0;background:#fff}
 .experience-badge:not(:first-child){margin-left:clamp(-36px,-2.5vw,-12px)}
-.experience-badge--rivgosh{background:#0b0b0b;color:#fff;font-family:'ONY One',sans-serif;font-weight:700;font-size:clamp(12px,1.4vw,18px);line-height:1.2;letter-spacing:.02em}
-.experience-badge--pyaterochka{background:#E30613}
+.experience-badge-inner{position:absolute;inset:10px;border-radius:50%;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.experience-badge--rivgosh .experience-badge-inner{background:#0b0b0b;color:#fff;font-family:'ONY One',sans-serif;font-weight:700;font-size:clamp(12px,1.4vw,18px);line-height:1.2;letter-spacing:.02em}
+.experience-badge--pyaterochka .experience-badge-inner{background:#E30613}
 .experience-badge--pyaterochka svg{width:100%;height:100%;display:block}
-.experience-badge--video{background:#0b0b0b}
+.experience-badge--video .experience-badge-inner{background:#0b0b0b}
 .experience-badge--video video{width:100%;height:100%;object-fit:cover;display:block}
-/* кольцо прогресса просмотра поверх видео — было в старой about-me-секции, вернул сюда */
+/* кольцо прогресса просмотра — отдельно от белой обводки, отступ от края бейджа 5.5px,
+   толщина 3px (обводка бейджа 10px их не перекрывает: 5.5+3=8.5 < 10, кольцо лежит внутри
+   белого поля, доступного как трек) */
 .experience-badge-progress{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;transform:rotate(-90deg)}
 .experience-stats{display:flex;justify-content:center;gap:32px;flex-wrap:nowrap;margin-bottom:56px}
 .experience-stat{display:flex;align-items:center;gap:32px;text-align:left}
@@ -260,7 +266,7 @@ height: clamp(180px, 45vw, 440px);
    так количество считается явно под ширину экрана и на адаптивах просто уменьшается,
    а не сжимается пропорционально (шаг между делениями остаётся тем же, что на десктопе) */
 .experience-bar-track{width:100%;height:clamp(80px,10vw,150px);margin:0 0 56px;display:flex;align-items:stretch;gap:6px}
-.experience-bar-tick{flex:none;width:6px;height:100%;background:#eee;transition:background .3s ease}
+.experience-bar-tick{flex:none;width:4px;height:100%;background:#eee;transition:background .3s ease}
 .experience-gallery{width:100vw;position:relative;left:50%;transform:translateX(-50%);overflow:hidden;margin:0 0 64px;-webkit-mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent);mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent)}
 .experience-gallery-track{display:flex;gap:16px;width:max-content;animation:expGalleryScroll 32s linear infinite}
 @keyframes expGalleryScroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
@@ -692,17 +698,24 @@ touch-action: none;
   <p class="experience-subtitle" id="expSubtitle">Mobile-First и скорость загрузки</p>
 
   <div class="experience-badges">
-    <div class="experience-badge experience-badge--rivgosh" aria-label="Рив Гош"><span>РИВ</span><span>ГОШ</span></div>
+    <div class="experience-badge experience-badge--rivgosh" aria-label="Рив Гош">
+      <div class="experience-badge-inner"><span>РИВ</span><span>ГОШ</span></div>
+    </div>
     <div class="experience-badge experience-badge--pyaterochka" aria-label="Пятёрочка">
-      <svg viewBox="0 0 100 100" aria-hidden="true">
-        <text x="38" y="72" font-family="'ONY One',sans-serif" font-weight="700" font-size="62" text-anchor="middle" fill="#fff">5</text>
-        <path d="M62 22C74 22 82 30 82 42C70 42 62 34 62 22Z" fill="#7AC943"/>
-      </svg>
+      <div class="experience-badge-inner">
+        <svg viewBox="0 0 100 100" aria-hidden="true">
+          <text x="38" y="72" font-family="'ONY One',sans-serif" font-weight="700" font-size="62" text-anchor="middle" fill="#fff">5</text>
+          <path d="M62 22C74 22 82 30 82 42C70 42 62 34 62 22Z" fill="#7AC943"/>
+        </svg>
+      </div>
     </div>
     <div class="experience-badge experience-badge--video">
-      <video id="expVideoCircle" src="https://github.com/kolpakovdmitriy9/newbring.github.io/raw/refs/heads/master/lovelllas.hyperesources/video.mp4" autoplay loop muted playsinline preload="auto"></video>
-      <svg class="experience-badge-progress" viewBox="0 0 240 240" aria-hidden="true">
-        <circle id="expVideoProgress" cx="120" cy="120" r="115" fill="none" stroke="white" stroke-width="10" stroke-linecap="round" stroke-dasharray="722.57" stroke-dashoffset="722.57"/>
+      <div class="experience-badge-inner">
+        <video id="expVideoCircle" src="https://github.com/kolpakovdmitriy9/newbring.github.io/raw/refs/heads/master/lovelllas.hyperesources/video.mp4" autoplay loop muted playsinline preload="auto"></video>
+      </div>
+      <svg class="experience-badge-progress" viewBox="0 0 234 234" aria-hidden="true">
+        <circle cx="117" cy="117" r="110" fill="none" stroke="#cfcfcf" stroke-width="3"/>
+        <circle id="expVideoProgress" cx="117" cy="117" r="110" fill="none" stroke="#0b0b0b" stroke-width="3" stroke-linecap="round" stroke-dasharray="691.15" stroke-dashoffset="691.15"/>
       </svg>
     </div>
   </div>
@@ -857,7 +870,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // деления — реальные элементы фиксированного шага (не CSS-маска): количество
     // считается явно из ширины трека, на адаптивах их просто меньше, а не мельче
-    const TICK_W = 6, TICK_GAP = 6, TICK_PITCH = TICK_W + TICK_GAP;
+    const TICK_W = 4, TICK_GAP = 6, TICK_PITCH = TICK_W + TICK_GAP;
     const BAR_GRADIENT_STOPS = [
       { t: 0,    c: [255, 152, 0] },  // FF9800
       { t: 0.30, c: [255, 193, 7] },  // FFC107
@@ -1002,18 +1015,21 @@ document.addEventListener('DOMContentLoaded', () => {
         const subT   = ease(clamp01((t - 0.15) / 0.5));
         const badgeT = ease(clamp01((t - 0.4) / 0.6));
         if (titleEl){
+          const scale = 0.85 + 0.15 * titleT;
           titleEl.style.opacity = titleT;
-          titleEl.style.transform = 'translateY(' + ((1 - titleT) * 40) + 'px)';
+          titleEl.style.transform = 'translateY(' + ((1 - titleT) * 40) + 'px) scale(' + scale.toFixed(3) + ')';
         }
         if (subtitleEl){
+          const scale = 0.85 + 0.15 * subT;
           subtitleEl.style.opacity = subT;
-          subtitleEl.style.transform = 'translateY(' + ((1 - subT) * 32) + 'px)';
+          subtitleEl.style.transform = 'translateY(' + ((1 - subT) * 32) + 'px) scale(' + scale.toFixed(3) + ')';
         }
         const mid = (badgeEls.length - 1) / 2;
         badgeEls.forEach(function(el, i){
           const spread = (i - mid) * 90; // изначально разъехавшиеся в стороны от центра
+          const scale = 0.7 + 0.3 * badgeT;
           el.style.opacity = badgeT;
-          el.style.transform = 'translateX(' + ((1 - badgeT) * spread) + 'px)';
+          el.style.transform = 'translateX(' + ((1 - badgeT) * spread) + 'px) scale(' + scale.toFixed(3) + ')';
         });
       }
       function onScroll(){
@@ -1330,7 +1346,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const expProgress = document.getElementById('expVideoProgress');
     if (!expVideo || !expProgress) return;
     const cycle = 5; // секунд на полный оборот кольца
-    const circumference = 2 * Math.PI * 115;
+    const circumference = 2 * Math.PI * 110;
     let raf = null;
     function frame(){
       const t = (expVideo.currentTime || 0) % cycle;
