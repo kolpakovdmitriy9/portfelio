@@ -242,8 +242,10 @@ height: clamp(180px, 45vw, 440px);
 .experience-subtitle.fading{opacity:0}
 .experience-stats{display:flex;justify-content:center;gap:32px;flex-wrap:nowrap;margin-bottom:56px}
 .experience-stat{display:flex;align-items:center;gap:32px;text-align:left}
-.experience-stat-number{font-size:clamp(56px,8.33vw,120px);font-family:'ONY One',sans-serif;line-height:1;font-weight:400;color:#0b0b0b;white-space:nowrap}
-.experience-stat-label{font-size:clamp(16px,1.67vw,24px);line-height:1.35;color:#0b0b0b;max-width:min(390px,60vw)}
+/* фиксированная ширина под цифру/текст — область не должна прыгать при смене вкладки,
+   какой бы длины ни было число или подпись (короткий текст просто не занимает весь бокс) */
+.experience-stat-number{width:clamp(120px,18.06vw,260px);flex:none;font-size:clamp(56px,8.33vw,120px);font-family:'ONY One',sans-serif;line-height:1;font-weight:400;color:#0b0b0b;white-space:nowrap;overflow:hidden}
+.experience-stat-label{width:clamp(200px,25.69vw,370px);flex:none;font-size:clamp(16px,1.67vw,24px);line-height:1.35;color:#0b0b0b}
 .experience-stat-label .dim{color:#a2a2a2}
 .experience-bar-track{width:100%;height:clamp(80px,10vw,150px);margin:0 0 56px;background:#eee;overflow:hidden;position:relative;-webkit-mask-image:repeating-linear-gradient(90deg,#000 0 4px,transparent 4px 8px);mask-image:repeating-linear-gradient(90deg,#000 0 4px,transparent 4px 8px)}
 .experience-bar-clip{position:absolute;top:0;left:0;height:100%;overflow:hidden;width:0;transition:width 1s cubic-bezier(.22,.61,.36,1)}
@@ -452,7 +454,7 @@ touch-action: none;
 .dial-icon--asset{border:none}
 .dial-icon--asset svg{width:100%;height:100%}
 /* число набрано Regular без трекинга — в макете межбуквенное задано только тексту */
-.dial-count{color:var(--dial-accent);font-size:var(--dial-num);font-weight:var(--dial-regular);line-height:1;font-variant-numeric:tabular-nums;white-space:nowrap}
+.dial-count{color:var(--dial-accent);font-family:'ONY Track Moscow',sans-serif;font-size:var(--dial-num);font-weight:var(--dial-regular);line-height:1;font-variant-numeric:tabular-nums;white-space:nowrap}
 /* цифра — барабан: колонка 0…9 (+довесок до нужного значения) едет вверх и приземляется на цель.
    Анимация запускается один раз скриптом и идёт временем CSS-transition, а не скроллом —
    если слайд уйдёт из фокуса, барабан всё равно доедет до конца. */
@@ -829,34 +831,63 @@ document.addEventListener('DOMContentLoaded', () => {
     const barFill     = document.getElementById('expBarFill');
     const expTabs     = document.querySelectorAll('.exp-tab');
 
-    // переключение двух колонок статы по табам — вместо простого фейда буквы
-    // "досыпаются" случайными символами и слева направо проявляется новый текст
-    // (в духе ScrambledText из react-bits, только на голом JS — сайт не на React)
+    // переключение двух колонок статы по табам — желейное растворение через SVG-фильтр:
+    // сильный blur + feColorMatrix, поднимающая контраст альфа-канала, схлопывает
+    // размытые буквы в "капли" вместо плоского blur (который просто дал бы туман).
+    // Все шесть текстовых узлов гасятся/проявляются одним общим фильтром синхронно.
     const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const SCRAMBLE_CHARS = '!<>-_\\/[]{}—=+*#•';
-    function scrambleText(el, newText, duration){
-      if (!el) return;
-      if (reducedMotion){ el.textContent = newText; return; }
-      if (el._scrambleRAF) cancelAnimationFrame(el._scrambleRAF);
-      const oldText = el.textContent;
-      const len = Math.max(oldText.length, newText.length);
-      const dur = duration || 500;
-      const startAt = performance.now();
-      function frame(now){
-        const t = Math.min(1, (now - startAt) / dur);
-        let out = '';
-        for (let i = 0; i < len; i++){
-          // символы «досыпают» слева направо: у каждой позиции своё окно проявления
-          const charT = t * len - i;
-          if (charT >= 1) out += newText[i] || '';
-          else if (charT > 0) out += SCRAMBLE_CHARS[(Math.random() * SCRAMBLE_CHARS.length) | 0];
-          else out += oldText[i] || '';
-        }
-        el.textContent = out;
-        if (t < 1) el._scrambleRAF = requestAnimationFrame(frame);
-        else { el.textContent = newText; el._scrambleRAF = null; }
+    let gooBlurEl = null;
+    function ensureGooFilter(){
+      if (gooBlurEl) return gooBlurEl;
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('aria-hidden', 'true');
+      svg.style.cssText = 'position:absolute;width:0;height:0;overflow:hidden';
+      const filter = document.createElementNS('http://www.w3.org/2000/svg', 'filter');
+      filter.setAttribute('id', 'expTextGoo');
+      filter.setAttribute('x', '-40%'); filter.setAttribute('y', '-40%');
+      filter.setAttribute('width', '180%'); filter.setAttribute('height', '180%');
+      const blur = document.createElementNS('http://www.w3.org/2000/svg', 'feGaussianBlur');
+      blur.setAttribute('stdDeviation', '0');
+      blur.setAttribute('result', 'blur');
+      const matrix = document.createElementNS('http://www.w3.org/2000/svg', 'feColorMatrix');
+      matrix.setAttribute('in', 'blur');
+      matrix.setAttribute('values', '1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -7');
+      filter.appendChild(blur);
+      filter.appendChild(matrix);
+      svg.appendChild(filter);
+      document.body.appendChild(svg);
+      gooBlurEl = blur;
+      return gooBlurEl;
+    }
+    const GOO_MAX_BLUR = 16, GOO_OUT_MS = 260, GOO_IN_MS = 260;
+    let gooRAF = null;
+    function gooSwapText(els, newTexts){
+      els = els.filter(Boolean);
+      if (reducedMotion){
+        els.forEach(function(el, i){ el.textContent = newTexts[i]; });
+        return;
       }
-      el._scrambleRAF = requestAnimationFrame(frame);
+      const blur = ensureGooFilter();
+      if (gooRAF) cancelAnimationFrame(gooRAF);
+      els.forEach(function(el){ el.style.filter = 'url(#expTextGoo)'; });
+      const startOut = performance.now();
+      function outFrame(now){
+        const t = Math.min(1, (now - startOut) / GOO_OUT_MS);
+        blur.setAttribute('stdDeviation', (t * GOO_MAX_BLUR).toFixed(2));
+        if (t < 1){ gooRAF = requestAnimationFrame(outFrame); return; }
+        els.forEach(function(el, i){ el.textContent = newTexts[i]; });
+        const startIn = performance.now();
+        function inFrame(now2){
+          const t2 = Math.min(1, (now2 - startIn) / GOO_IN_MS);
+          blur.setAttribute('stdDeviation', ((1 - t2) * GOO_MAX_BLUR).toFixed(2));
+          if (t2 < 1){ gooRAF = requestAnimationFrame(inFrame); return; }
+          blur.setAttribute('stdDeviation', '0');
+          els.forEach(function(el){ el.style.filter = ''; });
+          gooRAF = null;
+        }
+        gooRAF = requestAnimationFrame(inFrame);
+      }
+      gooRAF = requestAnimationFrame(outFrame);
     }
 
     function expUpdateBar(percent){
@@ -900,13 +931,10 @@ document.addEventListener('DOMContentLoaded', () => {
             subtitleEl.classList.remove('fading');
           }, 220);
         }
-        const dur = 550;
-        scrambleText(primaryNumberEl, cfg.percent + '%', dur);
-        scrambleText(primaryLine1El, cfg.primaryLine1, dur);
-        scrambleText(primaryLine2El, cfg.primaryLine2, dur);
-        scrambleText(secondaryNumberEl, cfg.secondaryNumber, dur);
-        scrambleText(secondaryLine1El, cfg.secondaryLine1, dur);
-        scrambleText(secondaryLine2El, cfg.secondaryLine2, dur);
+        gooSwapText(
+          [primaryNumberEl, primaryLine1El, primaryLine2El, secondaryNumberEl, secondaryLine1El, secondaryLine2El],
+          [cfg.percent + '%', cfg.primaryLine1, cfg.primaryLine2, cfg.secondaryNumber, cfg.secondaryLine1, cfg.secondaryLine2]
+        );
         expUpdateBar(cfg.percent);
       }
       currentExpTab = key;
