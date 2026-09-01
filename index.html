@@ -237,13 +237,18 @@ height: clamp(180px, 45vw, 440px);
 .experience-subtitle{font-size:clamp(20px,2.22vw,32px);color:#0b0b0b;margin:0 0 clamp(32px,6vw,64px);min-height:1.4em;transition:opacity .25s ease}
 .experience-subtitle.fading{opacity:0}
 /* три кружка над баром: логотипы клиентов (Рив Гош, Пятёрочка) + зацикленное видео */
-.experience-badges{display:flex;justify-content:center;align-items:center;gap:16px;margin-bottom:56px}
-.experience-badge{width:clamp(72px,9vw,130px);height:clamp(72px,9vw,130px);border-radius:50%;flex-shrink:0;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.experience-badges{display:flex;justify-content:center;align-items:center;margin-bottom:56px}
+/* по макету кружки перекрывают друг друга (630×234, отступ -36 при трёх кружках 234px) —
+   отрицательный margin вместо gap (flex gap отрицательным не бывает) */
+.experience-badge{position:relative;width:clamp(72px,16.25vw,234px);height:clamp(72px,16.25vw,234px);border-radius:50%;flex-shrink:0;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.experience-badge:not(:first-child){margin-left:clamp(-36px,-2.5vw,-12px)}
 .experience-badge--rivgosh{background:#0b0b0b;color:#fff;font-family:'ONY One',sans-serif;font-weight:700;font-size:clamp(12px,1.4vw,18px);line-height:1.2;letter-spacing:.02em}
 .experience-badge--pyaterochka{background:#E30613}
 .experience-badge--pyaterochka svg{width:100%;height:100%;display:block}
 .experience-badge--video{background:#0b0b0b}
 .experience-badge--video video{width:100%;height:100%;object-fit:cover;display:block}
+/* кольцо прогресса просмотра поверх видео — было в старой about-me-секции, вернул сюда */
+.experience-badge-progress{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;transform:rotate(-90deg)}
 .experience-stats{display:flex;justify-content:center;gap:32px;flex-wrap:nowrap;margin-bottom:56px}
 .experience-stat{display:flex;align-items:center;gap:32px;text-align:left}
 /* фиксированная ширина под цифру/текст — область не должна прыгать при смене вкладки,
@@ -251,9 +256,11 @@ height: clamp(180px, 45vw, 440px);
 .experience-stat-number{width:clamp(120px,18.06vw,260px);flex:none;font-size:clamp(56px,8.33vw,120px);font-family:'ONY One',sans-serif;font-weight:300;line-height:1;color:#0b0b0b;white-space:nowrap;overflow:hidden}
 .experience-stat-label{width:clamp(200px,25.69vw,370px);flex:none;font-size:clamp(16px,1.67vw,24px);line-height:1.35;color:#0b0b0b}
 .experience-stat-label .dim{color:#a2a2a2}
-.experience-bar-track{width:100%;height:clamp(80px,10vw,150px);margin:0 0 56px;background:#eee;overflow:hidden;position:relative;-webkit-mask-image:repeating-linear-gradient(90deg,#000 0 4px,transparent 4px 8px);mask-image:repeating-linear-gradient(90deg,#000 0 4px,transparent 4px 8px)}
-.experience-bar-clip{position:absolute;top:0;left:0;height:100%;overflow:hidden;width:0;transition:width 1s cubic-bezier(.22,.61,.36,1)}
-.experience-bar-fill{position:absolute;top:0;left:0;height:100%;width:100%;background:linear-gradient(90deg,#FF9800 0%,#FFC107 30%,#8BC34A 65%,#17b26a 100%)}
+/* деления — реальные DOM-элементы фиксированного шага (6px деление + 6px зазор), не CSS-маска:
+   так количество считается явно под ширину экрана и на адаптивах просто уменьшается,
+   а не сжимается пропорционально (шаг между делениями остаётся тем же, что на десктопе) */
+.experience-bar-track{width:100%;height:clamp(80px,10vw,150px);margin:0 0 56px;display:flex;align-items:stretch;gap:6px}
+.experience-bar-tick{flex:none;width:6px;height:100%;background:#eee;transition:background .3s ease}
 .experience-gallery{width:100vw;position:relative;left:50%;transform:translateX(-50%);overflow:hidden;margin:0 0 64px;-webkit-mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent);mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent)}
 .experience-gallery-track{display:flex;gap:16px;width:max-content;animation:expGalleryScroll 32s linear infinite}
 @keyframes expGalleryScroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
@@ -694,10 +701,13 @@ touch-action: none;
     </div>
     <div class="experience-badge experience-badge--video">
       <video id="expVideoCircle" src="https://github.com/kolpakovdmitriy9/newbring.github.io/raw/refs/heads/master/lovelllas.hyperesources/video.mp4" autoplay loop muted playsinline preload="auto"></video>
+      <svg class="experience-badge-progress" viewBox="0 0 240 240" aria-hidden="true">
+        <circle id="expVideoProgress" cx="120" cy="120" r="115" fill="none" stroke="white" stroke-width="10" stroke-linecap="round" stroke-dasharray="722.57" stroke-dashoffset="722.57"/>
+      </svg>
     </div>
   </div>
 
-  <div class="experience-bar-track"><div class="experience-bar-clip" id="expBarClip"><div class="experience-bar-fill" id="expBarFill"></div></div></div>
+  <div class="experience-bar-track" id="expBarTrack"></div>
 
   <div class="experience-stats">
     <div class="experience-stat" id="expStatPrimary">
@@ -790,82 +800,118 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const subtitleEl  = document.getElementById('expSubtitle');
-    const barTrack    = section.querySelector('.experience-bar-track');
-    const barClip     = document.getElementById('expBarClip');
-    const barFill     = document.getElementById('expBarFill');
+    const barTrack    = document.getElementById('expBarTrack');
     const expTabs     = document.querySelectorAll('.exp-tab');
 
-    // переключение двух колонок статы по табам — желейное растворение через SVG-фильтр:
-    // сильный blur + feColorMatrix, поднимающая контраст альфа-канала, схлопывает
-    // размытые буквы в "капли" вместо плоского blur (который просто дал бы туман).
-    // Все шесть текстовых узлов гасятся/проявляются одним общим фильтром синхронно.
+    // переключение двух колонок статы по табам — построчный "рулон": старая строка
+    // уезжает вверх и гаснет, новая заезжает на её место сверху вниз (как табло) —
+    // применяется к каждой строке (и числу) отдельно, со сдвигом по времени
     const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
-    let gooBlurEl = null;
-    function ensureGooFilter(){
-      if (gooBlurEl) return gooBlurEl;
-      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-      svg.setAttribute('aria-hidden', 'true');
-      svg.style.cssText = 'position:absolute;width:0;height:0;overflow:hidden';
-      const filter = document.createElementNS('http://www.w3.org/2000/svg', 'filter');
-      filter.setAttribute('id', 'expTextGoo');
-      filter.setAttribute('x', '-40%'); filter.setAttribute('y', '-40%');
-      filter.setAttribute('width', '180%'); filter.setAttribute('height', '180%');
-      const blur = document.createElementNS('http://www.w3.org/2000/svg', 'feGaussianBlur');
-      blur.setAttribute('stdDeviation', '0');
-      blur.setAttribute('result', 'blur');
-      const matrix = document.createElementNS('http://www.w3.org/2000/svg', 'feColorMatrix');
-      matrix.setAttribute('in', 'blur');
-      matrix.setAttribute('values', '1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -7');
-      filter.appendChild(blur);
-      filter.appendChild(matrix);
-      svg.appendChild(filter);
-      document.body.appendChild(svg);
-      gooBlurEl = blur;
-      return gooBlurEl;
-    }
-    const GOO_MAX_BLUR = 16, GOO_OUT_MS = 260, GOO_IN_MS = 260;
-    let gooRAF = null;
-    function gooSwapText(els, newTexts){
-      els = els.filter(Boolean);
-      if (reducedMotion){
-        els.forEach(function(el, i){ el.textContent = newTexts[i]; });
-        return;
-      }
-      const blur = ensureGooFilter();
-      if (gooRAF) cancelAnimationFrame(gooRAF);
-      els.forEach(function(el){ el.style.filter = 'url(#expTextGoo)'; });
-      const startOut = performance.now();
-      function outFrame(now){
-        const t = Math.min(1, (now - startOut) / GOO_OUT_MS);
-        blur.setAttribute('stdDeviation', (t * GOO_MAX_BLUR).toFixed(2));
-        if (t < 1){ gooRAF = requestAnimationFrame(outFrame); return; }
-        els.forEach(function(el, i){ el.textContent = newTexts[i]; });
-        const startIn = performance.now();
-        function inFrame(now2){
-          const t2 = Math.min(1, (now2 - startIn) / GOO_IN_MS);
-          blur.setAttribute('stdDeviation', ((1 - t2) * GOO_MAX_BLUR).toFixed(2));
-          if (t2 < 1){ gooRAF = requestAnimationFrame(inFrame); return; }
-          blur.setAttribute('stdDeviation', '0');
-          els.forEach(function(el){ el.style.filter = ''; });
-          gooRAF = null;
+    const FLIP_MS = 380;
+    function flipLine(el, newText, delayMs){
+      if (!el) return;
+      function run(){
+        if (el._flipCleanup) el._flipCleanup();
+        if (reducedMotion){ el.textContent = newText; return; }
+        const oldText = el.textContent;
+        if (oldText === newText) return;
+        const rect = el.getBoundingClientRect();
+        const prevDisplay = el.style.display, prevPos = el.style.position,
+              prevOverflow = el.style.overflow, prevHeight = el.style.height,
+              prevWidth = el.style.width, prevVAlign = el.style.verticalAlign;
+        el.style.display = 'inline-block';
+        el.style.verticalAlign = 'top';
+        el.style.position = 'relative';
+        el.style.overflow = 'hidden';
+        el.style.height = rect.height + 'px';
+        el.style.width = rect.width + 'px';
+        el.textContent = '';
+        const outgoing = document.createElement('div');
+        outgoing.textContent = oldText;
+        outgoing.style.cssText = 'position:absolute;top:0;left:0;width:100%;transform:translateY(0);opacity:1;transition:transform ' + FLIP_MS + 'ms cubic-bezier(.4,0,.2,1),opacity ' + FLIP_MS + 'ms ease;';
+        const incoming = document.createElement('div');
+        incoming.textContent = newText;
+        incoming.style.cssText = 'position:absolute;top:0;left:0;width:100%;transform:translateY(-100%);opacity:0;transition:transform ' + FLIP_MS + 'ms cubic-bezier(.4,0,.2,1),opacity ' + FLIP_MS + 'ms ease;';
+        el.appendChild(outgoing);
+        el.appendChild(incoming);
+        requestAnimationFrame(function(){
+          requestAnimationFrame(function(){
+            outgoing.style.transform = 'translateY(-100%)';
+            outgoing.style.opacity = '0';
+            incoming.style.transform = 'translateY(0)';
+            incoming.style.opacity = '1';
+          });
+        });
+        function cleanup(){
+          el.textContent = newText;
+          el.style.display = prevDisplay; el.style.position = prevPos;
+          el.style.overflow = prevOverflow; el.style.height = prevHeight;
+          el.style.width = prevWidth; el.style.verticalAlign = prevVAlign;
+          el._flipCleanup = null;
         }
-        gooRAF = requestAnimationFrame(inFrame);
+        const timer = setTimeout(cleanup, FLIP_MS + 40);
+        el._flipCleanup = function(){ clearTimeout(timer); cleanup(); };
       }
-      gooRAF = requestAnimationFrame(outFrame);
+      if (delayMs) setTimeout(run, delayMs); else run();
     }
 
+    // деления — реальные элементы фиксированного шага (не CSS-маска): количество
+    // считается явно из ширины трека, на адаптивах их просто меньше, а не мельче
+    const TICK_W = 6, TICK_GAP = 6, TICK_PITCH = TICK_W + TICK_GAP;
+    const BAR_GRADIENT_STOPS = [
+      { t: 0,    c: [255, 152, 0] },  // FF9800
+      { t: 0.30, c: [255, 193, 7] },  // FFC107
+      { t: 0.65, c: [139, 195, 74] }, // 8BC34A
+      { t: 1,    c: [23, 178, 106] }  // 17b26a
+    ];
+    function barGradientColorAt(t){
+      for (let i = 0; i < BAR_GRADIENT_STOPS.length - 1; i++){
+        const a = BAR_GRADIENT_STOPS[i], b = BAR_GRADIENT_STOPS[i + 1];
+        if (t <= b.t){
+          const lt = (t - a.t) / (b.t - a.t || 1);
+          const c = a.c.map(function(v, ci){ return Math.round(v + (b.c[ci] - v) * lt); });
+          return 'rgb(' + c.join(',') + ')';
+        }
+      }
+      const last = BAR_GRADIENT_STOPS[BAR_GRADIENT_STOPS.length - 1].c;
+      return 'rgb(' + last.join(',') + ')';
+    }
+    let barTicks = [];
+    function buildBarTicks(){
+      if (!barTrack) return;
+      const width = barTrack.getBoundingClientRect().width;
+      const count = Math.max(1, Math.floor((width + TICK_GAP) / TICK_PITCH));
+      if (count === barTicks.length) return;
+      barTrack.innerHTML = '';
+      barTicks = [];
+      for (let i = 0; i < count; i++){
+        const tick = document.createElement('div');
+        tick.className = 'experience-bar-tick';
+        barTrack.appendChild(tick);
+        barTicks.push(tick);
+      }
+    }
+    function paintBarTicks(percent, stagger){
+      buildBarTicks();
+      const total = barTicks.length;
+      const activeCount = Math.round(total * percent / 100);
+      barTicks.forEach(function(tick, i){
+        tick.style.transitionDelay = (stagger && !reducedMotion) ? (i * 5) + 'ms' : '';
+        tick.style.background = i < activeCount ? barGradientColorAt(activeCount > 1 ? i / (activeCount - 1) : 0) : '#eee';
+      });
+    }
+    // первая закраска откладывается до попадания бара во вьюпорт (см. IntersectionObserver
+    // ниже) — до этого момента деления просто серые, а не мгновенно выставлены на процент
+    let expBarPercent = 0, barIntroPlayed = false;
     function expUpdateBar(percent){
-      if (!barTrack || !barClip || !barFill) return;
-      // заливка всегда шириной с сам трек — иначе градиент растягивался бы под
-      // текущий процент и на каждой вкладке съезжал бы по цветам
-      const trackWidth = barTrack.getBoundingClientRect().width;
-      barFill.style.width = trackWidth + 'px';
-      // маска трека рисует деления с шагом 8px (4px деление + 4px зазор) — если обрезать
-      // заливку произвольным процентом, край может прийтись на середину деления и оно
-      // выйдет наполовину закрашенным; подгоняем край клипа к ближайшей границе деления
-      const TICK_PITCH = 8;
-      const snappedPx = Math.round(trackWidth * percent / 100 / TICK_PITCH) * TICK_PITCH;
-      barClip.style.width = snappedPx + 'px';
+      expBarPercent = percent;
+      if (!barTrack) return;
+      if (!barIntroPlayed){
+        buildBarTicks();
+        barTicks.forEach(function(tick){ tick.style.background = '#eee'; });
+        return;
+      }
+      paintBarTicks(percent, false);
     }
 
     let currentExpTab = null;
@@ -895,10 +941,14 @@ document.addEventListener('DOMContentLoaded', () => {
             subtitleEl.classList.remove('fading');
           }, 220);
         }
-        gooSwapText(
-          [primaryNumberEl, primaryLine1El, primaryLine2El, secondaryNumberEl, secondaryLine1El, secondaryLine2El],
-          [cfg.percent + '%', cfg.primaryLine1, cfg.primaryLine2, cfg.secondaryNumber, cfg.secondaryLine1, cfg.secondaryLine2]
-        );
+        // построчно: сперва числа, потом первая строка подписи, потом вторая —
+        // в обеих колонках синхронно, с небольшим сдвигом между строками
+        flipLine(primaryNumberEl, cfg.percent + '%', 0);
+        flipLine(secondaryNumberEl, cfg.secondaryNumber, 0);
+        flipLine(primaryLine1El, cfg.primaryLine1, 70);
+        flipLine(secondaryLine1El, cfg.secondaryLine1, 70);
+        flipLine(primaryLine2El, cfg.primaryLine2, 140);
+        flipLine(secondaryLine2El, cfg.secondaryLine2, 140);
         expUpdateBar(cfg.percent);
       }
       currentExpTab = key;
@@ -913,6 +963,66 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     renderExpTab('websites', false);
     window.addEventListener('resize', function(){ expUpdateBar(expTabConfigs[currentExpTab].percent); });
+
+    // первое заполнение бара играем только когда он реально попал во вьюпорт
+    if (barTrack && 'IntersectionObserver' in window){
+      const barIO = new IntersectionObserver(function(entries){
+        entries.forEach(function(en){
+          if (en.isIntersecting && !barIntroPlayed){
+            barIntroPlayed = true;
+            paintBarTicks(expBarPercent, true);
+            barIO.disconnect();
+          }
+        });
+      }, { threshold: 0.3 });
+      barIO.observe(barTrack);
+    } else {
+      barIntroPlayed = true;
+      paintBarTicks(expBarPercent, false);
+    }
+
+    // въезд заголовка/подзаголовка/кружков синхронизирован со скроллом выхода из сцены
+    // круга — window.__expReveal (0…1) публикует dial-скрипт из своего же кадра рендера,
+    // начиная с того момента, когда круг начинает расти на выходе из третьего слайда
+    (function(){
+      const clamp01 = function(v){ return v < 0 ? 0 : v > 1 ? 1 : v; };
+      const ease = function(x){ return x * x * (3 - 2 * x); };
+      const titleEl = document.querySelector('.experience-title');
+      const badgeEls = Array.from(document.querySelectorAll('.experience-badge'));
+      if (!titleEl && !subtitleEl && !badgeEls.length) return;
+      if (reducedMotion){
+        // без анимации всё сразу на месте — тянуть скролл-цикл незачем
+        return;
+      }
+      let ticking = false;
+      function apply(){
+        ticking = false;
+        const t = window.__expReveal || 0;
+        const titleT = ease(clamp01((t - 0) / 0.4));
+        const subT   = ease(clamp01((t - 0.15) / 0.5));
+        const badgeT = ease(clamp01((t - 0.4) / 0.6));
+        if (titleEl){
+          titleEl.style.opacity = titleT;
+          titleEl.style.transform = 'translateY(' + ((1 - titleT) * 40) + 'px)';
+        }
+        if (subtitleEl){
+          subtitleEl.style.opacity = subT;
+          subtitleEl.style.transform = 'translateY(' + ((1 - subT) * 32) + 'px)';
+        }
+        const mid = (badgeEls.length - 1) / 2;
+        badgeEls.forEach(function(el, i){
+          const spread = (i - mid) * 90; // изначально разъехавшиеся в стороны от центра
+          el.style.opacity = badgeT;
+          el.style.transform = 'translateX(' + ((1 - badgeT) * spread) + 'px)';
+        });
+      }
+      function onScroll(){
+        if (!ticking){ ticking = true; requestAnimationFrame(apply); }
+      }
+      addEventListener('scroll', onScroll, { passive: true });
+      addEventListener('resize', onScroll);
+      apply();
+    })();
 
     // плавающий таб-бар внизу экрана — виден, пока секция «Опыт работы» в зоне видимости
     const floatingTabs = document.getElementById('expFloatingTabs');
@@ -1211,6 +1321,25 @@ document.addEventListener('DOMContentLoaded', () => {
     video.addEventListener('click', startVideoAndProgress);
     video.addEventListener('ended', () => { if (isPlaying) { video.currentTime = 0; video.play(); } });
   }
+
+  // === КОЛЬЦО ПРОГРЕССА У ВИДЕО-КРУЖКА В «ОПЫТ РАБОТЫ» ===
+  // тот же принцип, что и у about-video-progress выше — просто отдельный <video>,
+  // потому что тот завязан на клик/канплей-логику старой секции, а тут нужен just autoplay+loop
+  (function(){
+    const expVideo = document.getElementById('expVideoCircle');
+    const expProgress = document.getElementById('expVideoProgress');
+    if (!expVideo || !expProgress) return;
+    const cycle = 5; // секунд на полный оборот кольца
+    const circumference = 2 * Math.PI * 115;
+    let raf = null;
+    function frame(){
+      const t = (expVideo.currentTime || 0) % cycle;
+      expProgress.style.strokeDashoffset = circumference - (t / cycle) * circumference;
+      if (!expVideo.paused) raf = requestAnimationFrame(frame);
+    }
+    expVideo.addEventListener('play', function(){ if (!raf) raf = requestAnimationFrame(frame); });
+    expVideo.addEventListener('pause', function(){ if (raf) cancelAnimationFrame(raf); raf = null; });
+  })();
 
   // === ANIMATIONS ON SCROLL ===
   function observeStatBlocks() {
@@ -1877,6 +2006,13 @@ switchTab('websites');
     return 1 - smooth(clamp((p - CFG.fadeGrowFrom) / (CFG.fadeGrowTo - CFG.fadeGrowFrom), 0, 1));
   }
 
+  /* публикуем наружу тот же несжатый прогресс выхода из сцены (от начала роста круга
+     и почти до его полного исчезновения) — секция «Опыт работы» въезжает синхронно
+     с этим числом, а не по собственному independent-триггеру */
+  function publishExpReveal(p){
+    window.__expReveal = clamp((p - CFG.sizeGrowFrom) / (1.05 - CFG.sizeGrowFrom), 0, 1);
+  }
+
   function polar(angleDeg, r){
     const a = (angleDeg - 90) * DEG;          // 0° = 12 часов
     return { x: CX + Math.cos(a) * r, y: CY + Math.sin(a) * r };
@@ -2043,6 +2179,7 @@ switchTab('websites');
     dialScale = (CFG.scaleFar + (CFG.scaleNear - CFG.scaleFar) * near) * sizeAt(progressGrow) * pulse;
     svg.style.transform = 'scale(' + dialScale.toFixed(4) + ')';
     svg.style.opacity = fadeAt(progressGrow).toFixed(3);
+    publishExpReveal(progressGrow);
 
     const prev = rot;
     rot += (rotTarget - rot) * (reduced ? 1 : CFG.inertia);
@@ -2112,6 +2249,7 @@ switchTab('websites');
   dialScale = (CFG.scaleFar + (CFG.scaleNear - CFG.scaleFar) * near0) * sizeAt(progressGrow);
   svg.style.transform = 'scale(' + dialScale.toFixed(4) + ')';
   svg.style.opacity = fadeAt(progressGrow).toFixed(3);
+  publishExpReveal(progressGrow);
   const raw0 = progress * CFG.rotationTotal - CFG.preSpin * (1 - near0);
   // страница может открыться уже внутри сцены — сразу доводим стрелку на 12 часов
   rot = rotTarget = gate > 0.99 ? Math.round(raw0 / STEP) * STEP : raw0;
