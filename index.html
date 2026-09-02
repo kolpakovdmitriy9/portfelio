@@ -218,19 +218,24 @@ height: clamp(180px, 45vw, 440px);
 /* === "ГОТОВ К РАБОТЕ" — свитчер связаться/предложить оффер, три состояния === */
 .experience-offer{margin:90px auto 0;text-align:center}
 .experience-offer-title{font-size:clamp(40px,9.72vw,140px);font-family:'ONY Track Moscow',sans-serif;font-weight:400;margin:0 0 56px;letter-spacing:-.02em;color:#0b0b0b}
-.experience-offer-hint{margin:24px 0 0;color:#a2a2a2;font-size:14px}
+.experience-offer-hint{margin:24px 0 0;color:#a2a2a2;font-size:20px;font-family:'ONY One',sans-serif}
 .offer-slider-container{width:100%;max-width:648px;margin:0 auto;padding:0 30px;display:flex;justify-content:center}
 #track{width:100%;height:76px;background:#E5E5E5;border-radius:38px;position:relative;overflow:hidden;display:flex;align-items:center;user-select:none;touch-action:none;padding:0 30px}
 .fill{position:absolute;top:0;height:100%;z-index:1;opacity:0;pointer-events:none}
-.fill-l{left:0;background:linear-gradient(90deg,#2AABEE,rgba(42,171,238,0))}
-.fill-r{right:0;background:linear-gradient(90deg,rgba(55,205,0,0),#37CD00)}
+/* заливка «позади» ручки: зелёная растёт от ЛЕВОГО края трека (там появляется цена) до
+   ручки, правее ручки трек остаётся серым; синяя растёт от ручки до ПРАВОГО края (там
+   иконка телеграма), левее ручки остаётся серым — то есть якорь у каждой заливки на
+   противоположной от её направления перетаскивания стороне */
+.fill-l{right:0;background:linear-gradient(90deg,rgba(42,171,238,0),#2AABEE)}
+.fill-r{left:0;background:linear-gradient(90deg,#37CD00,rgba(55,205,0,0))}
 .label{position:absolute;font-size:20px;font-weight:400;color:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:5;font-family:'ONY One',sans-serif}
 #txtL{left:30px;transition:opacity .2s ease}
 #txtR{right:30px;transition:opacity .2s ease}
 .offer-telegram-hint{position:absolute;right:24px;top:50%;transform:translateY(-50%);width:24px;height:24px;opacity:0;pointer-events:none;z-index:5;transition:opacity .15s ease}
-#handle{width:76px;height:76px;background:#000;border-radius:50%;position:absolute;left:50%;transform:translateX(-50%);display:flex;justify-content:center;align-items:center;z-index:10;cursor:grab;touch-action:none}
-.handle-arrow{width:24px;height:24px;pointer-events:none;transition:transform .2s ease}
-.handle-arrow.pointing-left{transform:scaleX(-1)}
+/* капсула, а не круг: ширина 86 больше высоты 76, скругление = половине высоты */
+#handle{width:86px;height:76px;background:#000;border-radius:38px;position:absolute;left:50%;transform:translateX(-50%);display:flex;justify-content:center;align-items:center;z-index:10;cursor:grab;touch-action:none}
+.handle-arrow{width:24px;height:24px;pointer-events:none;transition:transform .3s ease}
+.handle-arrow.pointing-left{transform:rotate(180deg)}
 .final-stats{position:absolute;width:100%;text-align:center;opacity:0;pointer-events:none;z-index:20;color:#fff;display:flex;flex-direction:column;transform:translateY(10px);transition:opacity .4s ease,transform .4s ease;transition-delay:.2s}
 .amount{font-size:20px;font-weight:400;padding:0 10px;font-family:'ONY One',sans-serif}
 .count{font-size:16px;opacity:.8;margin-top:4px;font-family:'ONY One',sans-serif}
@@ -361,12 +366,12 @@ height: clamp(180px, 45vw, 440px);
 
 .experience-offer{margin-top:60px}
 #track{padding:0 20px}
-#handle{width:64px;height:64px}
+#handle{width:72px;height:64px;border-radius:32px}
 }
 
 @media (max-width:480px){
 #track{padding:0 16px}
-#handle{width:56px;height:56px}
+#handle{width:63px;height:56px;border-radius:28px}
 #txtL,#txtR{font-size:16px}
 .tab-item{font-size:22px}
 .about-tabs{gap:14px}
@@ -752,7 +757,7 @@ touch-action: none;
         <div class="label label-r" id="txtR">Сделать оффер</div>
 
         <svg class="offer-telegram-hint" id="telegramHint" viewBox="0 0 40 40" fill="none" aria-hidden="true">
-          <path fill-rule="evenodd" clip-rule="evenodd" d="M9.05564 19.7889C14.886 17.2487 18.7739 15.574 20.7192 14.7649C26.2734 12.4547 27.4275 12.0534 28.1798 12.0402C28.3452 12.0373 28.7151 12.0783 28.9548 12.2727C29.1571 12.4369 29.2128 12.6587 29.2394 12.8143C29.266 12.97 29.2992 13.3246 29.2728 13.6017C28.9719 16.7641 27.6695 24.4386 27.0069 27.9806C26.7266 29.4794 26.1746 29.9819 25.6401 30.0311C24.4787 30.138 23.5967 29.2636 22.4718 28.5262C20.7116 27.3723 19.7171 26.654 18.0085 25.528C16.0339 24.2268 17.3139 23.5116 18.4393 22.3428C18.7338 22.0369 23.8511 17.3823 23.9501 16.9601C23.9625 16.9072 23.974 16.7104 23.8571 16.6065C23.7401 16.5025 23.5675 16.5381 23.443 16.5663C23.2664 16.6064 20.4544 18.465 15.0069 22.1423C14.2087 22.6904 13.4857 22.9574 12.838 22.9434C12.1239 22.928 10.7502 22.5397 9.72904 22.2077C8.47654 21.8006 7.48108 21.5853 7.56776 20.8939C7.61291 20.5337 8.10887 20.1654 9.05564 19.7889Z" fill="white"/>
+          <path fill-rule="evenodd" clip-rule="evenodd" d="M9.05271 19.7889C14.8831 17.2487 18.771 15.574 20.7163 14.7649C26.2705 12.4547 27.4246 12.0534 28.1768 12.0402C28.3423 12.0373 28.7122 12.0783 28.9518 12.2727C29.1542 12.4369 29.2098 12.6587 29.2365 12.8143C29.2631 12.97 29.2963 13.3246 29.2699 13.6017C28.9689 16.7641 27.6666 24.4386 27.004 27.9807C26.7237 29.4794 26.1716 29.9819 25.6372 30.0311C24.4758 30.138 23.5938 29.2636 22.4689 28.5262C20.7086 27.3723 19.7142 26.654 18.0056 25.528C16.0309 24.2268 17.311 23.5116 18.4363 22.3428C18.7309 22.0369 23.8482 17.3823 23.9472 16.9601C23.9596 16.9072 23.9711 16.7104 23.8542 16.6065C23.7372 16.5025 23.5646 16.5381 23.4401 16.5663C23.2635 16.6064 20.4515 18.4651 15.004 22.1423C14.2058 22.6904 13.4828 22.9574 12.835 22.9434C12.1209 22.928 10.7473 22.5397 9.72611 22.2077C8.47361 21.8006 7.47815 21.5853 7.56483 20.8939C7.60998 20.5337 8.10594 20.1654 9.05271 19.7889Z" fill="white"/>
         </svg>
 
         <div class="handle" id="handle">
@@ -1642,6 +1647,8 @@ switchTab('websites');
       let finalDelta = 0;
 
       if (deltaX > 0) {
+        // тянем вправо: зелёная заливка растёт от ЛЕВОГО края (там появляется цена) до
+        // ручки, без пружины — доходит до maxLimit линейно, как и было
         finalDelta = Math.min(deltaX, maxLimit);
         const progress = finalDelta / maxLimit;
         const rawAmount = 10000 + (290000 * progress);
@@ -1649,21 +1656,22 @@ switchTab('websites');
         txtL.innerText = formatRub(lastAmount);
         txtL.style.opacity = '1';
         txtR.style.opacity = Math.max(0, 1 - (progress / 0.6)).toString();
-        fillR.style.width = (trackRect.width / 2 - finalDelta) + 'px';
+        fillR.style.width = (trackRect.width / 2 + finalDelta) + 'px';
         fillR.style.opacity = progress.toString();
         fillL.style.opacity = '0';
         telegramHint.style.opacity = '0';
         handleArrow.classList.remove('pointing-left');
       } else {
-        const absDelta = Math.abs(deltaX);
-        finalDelta = absDelta < 80
-          ? deltaX
-          : - (80 + 45 * Math.log10(1 + (absDelta - 80) / 15));
-        const progressL = Math.abs(finalDelta) / (maxLimit * 0.7);
+        // тянем влево: без пружины/затухания — ручка доходит до края так же свободно,
+        // как и вправо; синяя заливка растёт от ручки до ПРАВОГО края (там иконка
+        // телеграма), а надпись "Сделать оффер" гаснет симметрично тому, как гаснет
+        // "Связаться" при перетаскивании вправо
+        finalDelta = Math.max(deltaX, -maxLimit);
+        const progressL = Math.abs(finalDelta) / maxLimit;
         txtL.innerText = "Связаться";
         txtL.style.opacity = '1';
-        txtR.style.opacity = '1';
-        fillL.style.width = (trackRect.width / 2 + finalDelta) + 'px';
+        txtR.style.opacity = Math.max(0, 1 - (progressL / 0.6)).toString();
+        fillL.style.width = (trackRect.width / 2 - finalDelta) + 'px';
         fillL.style.opacity = Math.min(progressL, 1).toString();
         fillR.style.opacity = '0';
         telegramHint.style.opacity = Math.min(progressL, 1).toString();
