@@ -255,10 +255,10 @@ height: clamp(180px, 45vw, 440px);
 .experience-badge--pyaterochka svg{width:100%;height:100%;display:block}
 .experience-badge--video .experience-badge-inner{background:#0b0b0b}
 .experience-badge--video video{width:100%;height:100%;object-fit:cover;display:block}
-/* кольцо прогресса просмотра — отдельно от белой обводки, отступ от края бейджа 5.5px,
-   толщина 3px (обводка бейджа 10px их не перекрывает: 5.5+3=8.5 < 10, кольцо лежит внутри
-   белого поля, доступного как трек) */
-.experience-badge-progress{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;transform:rotate(-90deg)}
+/* кольцо прогресса просмотра лежит НА видео (тот же inset:10px, что и сам кружок
+   видео), с собственным внутренним отступом 5.5px от края видео — не поверх белой
+   обводки бейджа, а строго внутри кадра видео, с полем вокруг */
+.experience-badge-progress{position:absolute;inset:10px;width:calc(100% - 20px);height:calc(100% - 20px);pointer-events:none;transform:rotate(-90deg)}
 .experience-stats{display:flex;justify-content:center;gap:32px;flex-wrap:nowrap;margin-bottom:90px}
 .experience-stat{display:flex;align-items:center;gap:32px;text-align:left}
 /* фиксированная ширина под цифру/текст — область не должна прыгать при смене вкладки,
@@ -275,13 +275,10 @@ height: clamp(180px, 45vw, 440px);
    (37px от края экрана вместо обычных 30px паддинга), поэтому доп. inset через width/margin */
 .experience-bar-track{width:calc(100% - 14px);margin:0 auto 90px;height:clamp(80px,13.89vw,200px);display:flex;align-items:stretch;justify-content:space-between}
 .experience-bar-tick{flex:none;width:4px;height:100%;background:#eee;transition:background .3s ease}
-.experience-gallery{width:100vw;position:relative;left:50%;transform:translateX(-50%);overflow:hidden;margin:0 0 64px;-webkit-mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent);mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent)}
+.experience-gallery{width:100vw;position:relative;left:50%;transform:translateX(-50%);overflow:hidden;-webkit-mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent);mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent)}
 .experience-gallery-track{display:flex;gap:16px;width:max-content;animation:expGalleryScroll 32s linear infinite}
 @keyframes expGalleryScroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 .experience-gallery-item{width:320px;height:512px;background:#e5e5e5;flex-shrink:0}
-.experience-cta{background:#000;color:#fff;border:none;border-radius:50px;padding:24px 48px;font-size:20px;cursor:pointer;font-family:'ONY One',sans-serif;transition:background .2s ease;touch-action:manipulation}
-@media (hover:hover) and (pointer:fine){.experience-cta:hover{background:#222}}
-.experience-footnote{margin:32px 0 0;color:#a2a2a2;font-size:14px;line-height:1.6}
 
 
 /* плавающий таб-бар с тремя категориями, виден пока секция «Опыт работы» на экране */
@@ -701,7 +698,7 @@ touch-action: none;
 
 <!-- === ОПЫТ РАБОТЫ (новая секция вместо старого about-me) === -->
 <div class="experience-section" id="experienceSection">
-  <h2 class="experience-title">ОПЫТ РАБОТЫ</h2>
+  <h2 class="experience-title">МОЙ ОПЫТ</h2>
   <p class="experience-subtitle" id="expSubtitle">Mobile-First и скорость загрузки</p>
 
   <div class="experience-badges">
@@ -720,9 +717,9 @@ touch-action: none;
       <div class="experience-badge-inner">
         <video id="expVideoCircle" src="https://github.com/kolpakovdmitriy9/newbring.github.io/raw/refs/heads/master/lovelllas.hyperesources/video.mp4" muted playsinline preload="auto"></video>
       </div>
-      <svg class="experience-badge-progress" viewBox="0 0 234 234" aria-hidden="true">
-        <circle cx="117" cy="117" r="110" fill="none" stroke="#cfcfcf" stroke-width="3"/>
-        <circle id="expVideoProgress" cx="117" cy="117" r="110" fill="none" stroke="#0b0b0b" stroke-width="3" stroke-linecap="round" stroke-dasharray="691.15" stroke-dashoffset="691.15"/>
+      <svg class="experience-badge-progress" viewBox="0 0 214 214" aria-hidden="true">
+        <circle cx="107" cy="107" r="100" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="3"/>
+        <circle id="expVideoProgress" cx="107" cy="107" r="100" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-dasharray="628.32" stroke-dashoffset="628.32"/>
       </svg>
     </div>
   </div>
@@ -741,9 +738,6 @@ touch-action: none;
   </div>
 
   <div class="experience-gallery"><div class="experience-gallery-track" id="expGalleryTrack"></div></div>
-
-  <button class="experience-cta" type="button">Запросить презентацию</button>
-  <p class="experience-footnote">Больше работ доступно в закрытом портфолио.<br>Это связано с особенностями проектов.</p>
 
   <!-- === "ГОТОВ К РАБОТЕ" — свитчер связаться/предложить оффер === -->
   <div class="experience-offer">
@@ -920,19 +914,38 @@ document.addEventListener('DOMContentLoaded', () => {
         barTicks.push(tick);
       }
     }
+    // деления красятся не мгновенной цветной маской под палочками, а каждая по отдельности,
+    // одна за другой (как в исходной html-механике: setTimeout по нарастающей на палочку) —
+    // поэтому перед раскраской активные деления сперва сбрасываются в серый, а затем
+    // включаются с накопительной задержкой transition-delay
     function paintBarTicks(percent, stagger){
       buildBarTicks();
       const total = barTicks.length;
       const activeCount = Math.round(total * percent / 100);
+      if (!stagger || reducedMotion){
+        barTicks.forEach(function(tick, i){
+          tick.style.transitionDelay = '';
+          tick.style.background = i < activeCount ? barGradientColorAt(activeCount > 1 ? i / (activeCount - 1) : 0) : '#eee';
+        });
+        return;
+      }
+      barTicks.forEach(function(tick){
+        tick.style.transitionDelay = '';
+        tick.style.background = '#eee';
+      });
+      // форсируем reflow, чтобы сброс в серый браузер зафиксировал ДО того как следующим
+      // кадром выставится transition-delay + целевой цвет — иначе оба изменения схлопнутся
+      void barTrack.offsetWidth;
       barTicks.forEach(function(tick, i){
-        tick.style.transitionDelay = (stagger && !reducedMotion) ? (i * 5) + 'ms' : '';
-        tick.style.background = i < activeCount ? barGradientColorAt(activeCount > 1 ? i / (activeCount - 1) : 0) : '#eee';
+        if (i >= activeCount) return;
+        tick.style.transitionDelay = (i * 12) + 'ms';
+        tick.style.background = barGradientColorAt(activeCount > 1 ? i / (activeCount - 1) : 0);
       });
     }
     // первая закраска откладывается до попадания бара во вьюпорт (см. IntersectionObserver
     // ниже) — до этого момента деления просто серые, а не мгновенно выставлены на процент
     let expBarPercent = 0, barIntroPlayed = false;
-    function expUpdateBar(percent){
+    function expUpdateBar(percent, stagger){
       expBarPercent = percent;
       if (!barTrack) return;
       if (!barIntroPlayed){
@@ -940,7 +953,7 @@ document.addEventListener('DOMContentLoaded', () => {
         barTicks.forEach(function(tick){ tick.style.background = '#eee'; });
         return;
       }
-      paintBarTicks(percent, false);
+      paintBarTicks(percent, !!stagger);
     }
 
     let currentExpTab = null;
@@ -978,7 +991,7 @@ document.addEventListener('DOMContentLoaded', () => {
         flipLine(secondaryLine1El, cfg.secondaryLine1, 70);
         flipLine(primaryLine2El, cfg.primaryLine2, 140);
         flipLine(secondaryLine2El, cfg.secondaryLine2, 140);
-        expUpdateBar(cfg.percent);
+        expUpdateBar(cfg.percent, true);
       }
       currentExpTab = key;
     }
@@ -1056,13 +1069,27 @@ document.addEventListener('DOMContentLoaded', () => {
       apply();
     })();
 
-    // плавающий таб-бар внизу экрана — виден, пока секция «Опыт работы» в зоне видимости
+    // плавающий таб-бар внизу экрана — виден, пока секция «Опыт работы» в зоне видимости,
+    // но прячется, пока на экране блок «Готов к работе» (перекрывал бы свайпер офера)
     const floatingTabs = document.getElementById('expFloatingTabs');
+    const offerEl = document.querySelector('.experience-offer');
     if (floatingTabs && 'IntersectionObserver' in window){
+      let sectionInView = false, offerInView = false;
+      function syncFloatingTabs(){
+        floatingTabs.classList.toggle('visible', sectionInView && !offerInView);
+      }
       const expIO = new IntersectionObserver(function(entries){
-        entries.forEach(function(en){ floatingTabs.classList.toggle('visible', en.isIntersecting); });
+        entries.forEach(function(en){ sectionInView = en.isIntersecting; });
+        syncFloatingTabs();
       }, { threshold: 0.15 });
       expIO.observe(section);
+      if (offerEl){
+        const offerIO = new IntersectionObserver(function(entries){
+          entries.forEach(function(en){ offerInView = en.isIntersecting; });
+          syncFloatingTabs();
+        }, { threshold: 0.15 });
+        offerIO.observe(offerEl);
+      }
     }
 
     // бесконечная лента-галерея — серые заглушки, дублируем контент для бесшовной прокрутки
@@ -1363,7 +1390,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const expProgress = document.getElementById('expVideoProgress');
     if (!expVideo || !expProgress) return;
     const duration = 5;
-    const circumference = 2 * Math.PI * 110;
+    const circumference = 2 * Math.PI * 100;
     expProgress.style.strokeDasharray = String(circumference);
     expProgress.style.strokeDashoffset = String(circumference);
     let isPlaying = false;
