@@ -916,30 +916,35 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     // деления красятся не мгновенной цветной маской под палочками, а каждая по отдельности,
     // одна за другой (как в исходной html-механике: setTimeout по нарастающей на палочку) —
-    // поэтому перед раскраской активные деления сперва сбрасываются в серый, а затем
-    // включаются с накопительной задержкой transition-delay
+    // при каждой перекраске (не только при первом появлении) расчёт идёт заново с первой
+    // палочки: сброс в серый БЕЗ анимации (transition:none), а не плавным перетеканием
+    // старого цвета в серый, иначе уже подсвеченные палочки просто "доезжали" бы до новой
+    // цели, а не пересчитывались с нуля
     function paintBarTicks(percent, stagger){
       buildBarTicks();
       const total = barTicks.length;
       const activeCount = Math.round(total * percent / 100);
       if (!stagger || reducedMotion){
         barTicks.forEach(function(tick, i){
+          tick.style.transition = '';
           tick.style.transitionDelay = '';
           tick.style.background = i < activeCount ? barGradientColorAt(activeCount > 1 ? i / (activeCount - 1) : 0) : '#eee';
         });
         return;
       }
       barTicks.forEach(function(tick){
-        tick.style.transitionDelay = '';
+        tick.style.transition = 'none';
+        tick.style.transitionDelay = '0ms';
         tick.style.background = '#eee';
       });
-      // форсируем reflow, чтобы сброс в серый браузер зафиксировал ДО того как следующим
-      // кадром выставится transition-delay + целевой цвет — иначе оба изменения схлопнутся
+      // форсируем reflow — сброс в серый должен быть зафиксирован браузером ДО того как
+      // следующим шагом вернём transition и выставим целевой цвет с задержкой, иначе оба
+      // изменения схлопнутся в один кадр и анимации сброса/раскраски перекроют друг друга
       void barTrack.offsetWidth;
       barTicks.forEach(function(tick, i){
-        if (i >= activeCount) return;
-        tick.style.transitionDelay = (i * 12) + 'ms';
-        tick.style.background = barGradientColorAt(activeCount > 1 ? i / (activeCount - 1) : 0);
+        tick.style.transition = '';
+        tick.style.transitionDelay = (i < activeCount ? i * 12 : 0) + 'ms';
+        tick.style.background = i < activeCount ? barGradientColorAt(activeCount > 1 ? i / (activeCount - 1) : 0) : '#eee';
       });
     }
     // первая закраска откладывается до попадания бара во вьюпорт (см. IntersectionObserver
