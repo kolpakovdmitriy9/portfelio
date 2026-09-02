@@ -231,11 +231,14 @@ height: clamp(180px, 45vw, 440px);
 .label{position:absolute;font-size:20px;font-weight:400;color:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:5;font-family:'ONY One',sans-serif}
 #txtL{left:30px;transition:opacity .2s ease}
 #txtR{right:30px;transition:opacity .2s ease}
-.offer-telegram-hint{position:absolute;right:24px;top:50%;transform:translateY(-50%);width:24px;height:24px;opacity:0;pointer-events:none;z-index:5;transition:opacity .15s ease}
+/* 40×40, отступ справа 30px (как у #txtR) — по высоте трека (76px) центрирование
+   само даёт те же 18px сверху/снизу, что и в редлайне */
+.offer-telegram-hint{position:absolute;right:30px;top:50%;transform:translateY(-50%);width:40px;height:40px;opacity:0;pointer-events:none;z-index:5;transition:opacity .15s ease}
 /* капсула, а не круг: ширина 86 больше высоты 76, скругление = половине высоты */
 #handle{width:86px;height:76px;background:#000;border-radius:38px;position:absolute;left:50%;transform:translateX(-50%);display:flex;justify-content:center;align-items:center;z-index:10;cursor:grab;touch-action:none}
-.handle-arrow{width:24px;height:24px;pointer-events:none;transition:transform .3s ease}
-.handle-arrow.pointing-left{transform:rotate(180deg)}
+/* -180deg (не +180deg) — переворот идёт против часовой, «через верх», а не через низ */
+.handle-arrow{width:24px;height:24px;pointer-events:none;transform:rotate(0deg);transition:transform .3s ease}
+.handle-arrow.pointing-left{transform:rotate(-180deg)}
 .final-stats{position:absolute;width:100%;text-align:center;opacity:0;pointer-events:none;z-index:20;color:#fff;display:flex;flex-direction:column;transform:translateY(10px);transition:opacity .4s ease,transform .4s ease;transition-delay:.2s}
 .amount{font-size:20px;font-weight:400;padding:0 10px;font-family:'ONY One',sans-serif}
 .count{font-size:16px;opacity:.8;margin-top:4px;font-family:'ONY One',sans-serif}
@@ -887,10 +890,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // считается явно из ширины трека, на адаптивах их просто меньше, а не мельче
     const TICK_W = 4, TICK_GAP = 6, TICK_PITCH = TICK_W + TICK_GAP;
     const BAR_GRADIENT_STOPS = [
-      { t: 0,    c: [255, 152, 0] },  // FF9800
-      { t: 0.30, c: [255, 193, 7] },  // FFC107
-      { t: 0.65, c: [139, 195, 74] }, // 8BC34A
-      { t: 1,    c: [23, 178, 106] }  // 17b26a
+      { t: 0, c: [255, 185, 104] }, // FFB968
+      { t: 1, c: [0, 255, 0] }      // 00FF00
     ];
     function barGradientColorAt(t){
       for (let i = 0; i < BAR_GRADIENT_STOPS.length - 1; i++){
@@ -929,11 +930,15 @@ document.addEventListener('DOMContentLoaded', () => {
       buildBarTicks();
       const total = barTicks.length;
       const activeCount = Math.round(total * percent / 100);
+      // цвет деления берётся по его позиции в ПОЛНОМ ряду (i / total), а не в пределах
+      // закрашенного отрезка (i / activeCount) — градиент статичный на весь контейнер,
+      // не сжимается/растягивается под текущий процент: на 10% почти всё оранжевое,
+      // зелень появляется только ближе к 90-100%
       if (!stagger || reducedMotion){
         barTicks.forEach(function(tick, i){
           tick.style.transition = '';
           tick.style.transitionDelay = '';
-          tick.style.background = i < activeCount ? barGradientColorAt(activeCount > 1 ? i / (activeCount - 1) : 0) : '#eee';
+          tick.style.background = i < activeCount ? barGradientColorAt(total > 1 ? i / (total - 1) : 0) : '#eee';
         });
         return;
       }
@@ -949,7 +954,7 @@ document.addEventListener('DOMContentLoaded', () => {
       barTicks.forEach(function(tick, i){
         tick.style.transition = '';
         tick.style.transitionDelay = (i < activeCount ? i * 12 : 0) + 'ms';
-        tick.style.background = i < activeCount ? barGradientColorAt(activeCount > 1 ? i / (activeCount - 1) : 0) : '#eee';
+        tick.style.background = i < activeCount ? barGradientColorAt(total > 1 ? i / (total - 1) : 0) : '#eee';
       });
     }
     // первая закраска откладывается до попадания бара во вьюпорт (см. IntersectionObserver
@@ -1104,9 +1109,43 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // бесконечная лента-галерея — серые заглушки, дублируем контент для бесшовной прокрутки
     const galleryTrack = document.getElementById('expGalleryTrack');
+    const galleryEl = document.querySelector('.experience-gallery');
     if (galleryTrack){
       const items = Array.from({ length: 10 }, function(){ return '<div class="experience-gallery-item"></div>'; }).join('');
       galleryTrack.innerHTML = items + items;
+    }
+    // наведение курсора на ленту — плавно тормозим до полной остановки (а не мгновенно
+    // ставим на паузу — CSS animation-play-state не умеет плавно), убрали курсор — плавно
+    // разгоняем обратно; поэтому сама бесконечная прокрутка ведётся через rAF, а не через
+    // CSS @keyframes (там нет доступа к "текущей скорости", чтобы её погасить/разогнать)
+    if (galleryTrack && galleryEl && canHover && !reducedMotion){
+      const GALLERY_DURATION = 32; // секунд — как было в CSS-анимации (32s linear infinite)
+      let half = 0, targetSpeed = 0, speed = 0, pos = 0, hovering = false, lastTs = null;
+      function measureGallery(){
+        half = galleryTrack.scrollWidth / 2;
+        targetSpeed = half / GALLERY_DURATION;
+      }
+      measureGallery();
+      window.addEventListener('resize', measureGallery);
+      galleryTrack.style.animation = 'none';
+      function galleryTick(ts){
+        if (lastTs === null) lastTs = ts;
+        const dt = Math.min(0.1, (ts - lastTs) / 1000);
+        lastTs = ts;
+        const wanted = hovering ? 0 : targetSpeed;
+        // экспоненциальное сближение скорости с целевой — не зависит от fps, даёт плавный
+        // тормоз/разгон вместо мгновенного щелчка
+        speed += (wanted - speed) * Math.min(1, dt * 3.5);
+        if (half > 0){
+          pos -= speed * dt;
+          if (pos <= -half) pos += half;
+          galleryTrack.style.transform = 'translateX(' + pos + 'px)';
+        }
+        requestAnimationFrame(galleryTick);
+      }
+      requestAnimationFrame(galleryTick);
+      galleryEl.addEventListener('mouseenter', function(){ hovering = true; });
+      galleryEl.addEventListener('mouseleave', function(){ hovering = false; });
     }
   })();
 
@@ -1669,7 +1708,7 @@ switchTab('websites');
         finalDelta = Math.max(deltaX, -maxLimit);
         const progressL = Math.abs(finalDelta) / maxLimit;
         txtL.innerText = "Связаться";
-        txtL.style.opacity = '1';
+        txtL.style.opacity = Math.max(0, 1 - (progressL / 0.6)).toString();
         txtR.style.opacity = Math.max(0, 1 - (progressL / 0.6)).toString();
         fillL.style.width = (trackRect.width / 2 - finalDelta) + 'px';
         fillL.style.opacity = Math.min(progressL, 1).toString();
