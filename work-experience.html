@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Опыт работы</title>
+<style>
+  :root {
+    --bg: #0D0D0D;
+    --surface: rgba(23, 23, 23, .8);
+    --surface-soft: rgba(23, 23, 23, .5);
+    --line: rgba(255, 255, 255, .1);
+    --text: #fff;
+    --muted: #a3a3a3;
+    --dim: #737373;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 16px;
+    background: var(--bg);
+    color: var(--text);
+    font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  }
+  section {
+    width: 100%;
+    background: var(--bg);
+    padding: 80px 24px;
+    border-radius: 24px;
+    border: 1px solid var(--line);
+  }
+  .head {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    margin-bottom: 48px;
+    gap: 8px;
+  }
+  .eyebrow {
+    font: 12px ui-monospace, SFMono-Regular, Menlo, monospace;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--muted);
+  }
+  h2 {
+    margin: 8px 0 0;
+    font-size: 36px;
+    font-weight: 700;
+    letter-spacing: -.02em;
+  }
+  .lead { margin: 8px 0 0; font-size: 14px; color: var(--muted); }
+
+  .pills {
+    position: relative;
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 6px;
+    background: rgba(23, 23, 23, .8);
+    border: 1px solid rgba(255, 255, 255, .05);
+    border-radius: 16px;
+    margin-bottom: 32px;
+  }
+  .pill {
+    position: relative;
+    z-index: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    border: 0;
+    border-radius: 12px;
+    background: none;
+    color: var(--muted);
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: color .3s;
+  }
+  .pill:hover { color: #fff; }
+  .pill.active { color: #000; font-weight: 600; }
+  .pill-bg {
+    position: absolute;
+    top: 0; left: 0;
+    height: 100%;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 10px 15px rgba(0,0,0,.3);
+    transition: transform .4s cubic-bezier(.2,.8,.2,1), width .4s cubic-bezier(.2,.8,.2,1);
+    z-index: -1;
+  }
+  .pill .count {
+    font-size: 12px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: rgba(255,255,255,.1);
+    color: #d4d4d4;
+  }
+  .pill.active .count { background: rgba(0,0,0,.1); color: #000; }
+
+  .content {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 24px;
+    animation: fadeUp .3s ease;
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(15px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .info {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 24px;
+    background: var(--surface-soft);
+    border: 1px solid rgba(255,255,255,.05);
+    border-radius: 16px;
+  }
+  .info .tag { font: 12px ui-monospace, monospace; text-transform: uppercase; color: var(--dim); }
+  .info h3 { margin: 8px 0 0; font-size: 24px; font-weight: 600; }
+  .info p { margin: 12px 0 0; font-size: 14px; color: var(--muted); }
+  .info footer {
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid var(--line);
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .info footer span:last-child { color: #fff; font-family: ui-monospace, monospace; }
+
+  .cases {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+  .case {
+    position: relative;
+    height: 256px;
+    overflow: hidden;
+    background: rgba(23,23,23,.8);
+    border: 1px solid rgba(255,255,255,.05);
+    border-radius: 16px;
+  }
+  .case::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: linear-gradient(to top, rgba(0,0,0,.8), transparent, transparent);
+  }
+  .case-text {
+    position: absolute;
+    left: 16px;
+    bottom: 16px;
+    z-index: 2;
+  }
+  .case-text .tag { font: 12px ui-monospace, monospace; color: var(--muted); }
+  .case-text h4 { margin: 4px 0 0; font-size: 14px; font-weight: 500; }
+
+  @media (min-width: 768px) {
+    .head { flex-direction: row; align-items: flex-end; }
+    .head .lead { margin: 0; }
+    .content { grid-template-columns: 1fr 2fr; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .content, .pill-bg, .pill { animation: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<section>
+  <div class="head">
+    <div>
+      <span class="eyebrow">Expertise &amp; Execution</span>
+      <h2>ОПЫТ РАБОТЫ</h2>
+    </div>
+    <p class="lead">Mobile-First и бескомпромиссная скорость загрузки</p>
+  </div>
+
+  <div class="pills" id="pills" role="tablist">
+    <span class="pill-bg" id="pillBg"></span>
+  </div>
+
+  <div class="content" id="content"></div>
+</section>
+
+<script>
+  const categories = [
+    { id: 'sites', label: 'Сайты', count: '14', desc: 'E-commerce, корпоративные порталы, лендинги' },
+    { id: 'apps', label: 'Приложения', count: '08', desc: 'iOS/Android, дизайн-системы, финтех и логистика' },
+    { id: 'branding', label: 'Брендинг', count: '06', desc: 'Идентичность, гайдлайны, логотипы и носители' },
+  ];
+
+  const pills = document.getElementById('pills');
+  const pillBg = document.getElementById('pillBg');
+  const content = document.getElementById('content');
+  let activeTab = 'sites';
+
+  function moveBg(button) {
+    pillBg.style.width = button.offsetWidth + 'px';
+    pillBg.style.transform = `translateX(${button.offsetLeft}px)`;
+  }
+
+  function render() {
+    const cat = categories.find(c => c.id === activeTab);
+
+    pills.querySelectorAll('.pill').forEach(b => b.remove());
+    categories.forEach(c => {
+      const b = document.createElement('button');
+      b.className = 'pill' + (c.id === activeTab ? ' active' : '');
+      b.type = 'button';
+      b.setAttribute('role', 'tab');
+      b.setAttribute('aria-selected', c.id === activeTab);
+      b.innerHTML = `<span>${c.label}</span><span class="count">${c.count}</span>`;
+      b.addEventListener('click', () => {
+        activeTab = c.id;
+        render();
+      });
+      pills.appendChild(b);
+      if (c.id === activeTab) requestAnimationFrame(() => moveBg(b));
+    });
+
+    content.innerHTML = `
+      <div class="info">
+        <div>
+          <span class="tag">Направление</span>
+          <h3>${cat.label}</h3>
+          <p>${cat.desc}</p>
+        </div>
+        <footer>
+          <span>Полный цикл разработки</span>
+          <span>Figma / Code</span>
+        </footer>
+      </div>
+      <div class="cases">
+        <div class="case">
+          <div class="case-text"><span class="tag">кейс №1</span><h4>Проработка интерфейсов</h4></div>
+        </div>
+        <div class="case">
+          <div class="case-text"><span class="tag">кейс №2</span><h4>Адаптивная сетка и UX</h4></div>
+        </div>
+      </div>`;
+    content.classList.remove('content');
+    void content.offsetWidth;
+    content.classList.add('content');
+  }
+
+  window.addEventListener('resize', () => {
+    const active = pills.querySelector('.pill.active');
+    if (active) moveBg(active);
+  });
+
+  render();
+</script>
+</body>
+</html>
