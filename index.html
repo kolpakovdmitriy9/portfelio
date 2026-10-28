@@ -294,14 +294,6 @@ height: clamp(180px, 45vw, 440px);
    4/7/36.8/0 #000 8%, активный таб — просто чёрный текст (100%), неактивный — 30%
    чёрного, никакой отдельной тёмной плашки под активным табом больше нет */
 .experience-floating-tabs{position:fixed;left:50%;bottom:28px;transform:translate(-50%,24px);display:flex;align-items:center;gap:clamp(8px,3vw,30px);background:rgba(255,255,255,.1);backdrop-filter:blur(24px) saturate(160%);-webkit-backdrop-filter:blur(24px) saturate(160%);border-radius:clamp(24px,5vw,48px);padding:clamp(16px,3.89vw,56px);box-shadow:4px 7px 36.8px rgba(0,0,0,.08),inset 0 1px 0 rgba(255,255,255,.5);z-index:100;opacity:0;pointer-events:none;transition:opacity .3s ease,transform .3s ease;max-width:calc(100vw - 24px)}
-/* «магнит»: кольцо-прицел вместо курсора в «Опыте работы», бейджи и табы притягиваются */
-.exp-cursor{position:fixed;left:0;top:0;width:44px;height:44px;margin:-22px 0 0 -22px;border:1.5px solid #0b0b0b;border-radius:50%;pointer-events:none;z-index:2147483646;opacity:0;transition:opacity .2s ease,width .2s ease,height .2s ease,margin .2s ease,background .2s ease,border-color .2s ease;mix-blend-mode:difference;border-color:#fff}
-.exp-cursor::after{content:"";position:absolute;left:50%;top:50%;width:4px;height:4px;margin:-2px 0 0 -2px;border-radius:50%;background:#fff}
-.exp-cursor.on{opacity:1}
-.exp-cursor.lock{width:64px;height:64px;margin:-32px 0 0 -32px;background:rgba(255,255,255,.18)}
-body.exp-magnet-on .experience-section,body.exp-magnet-on .experience-floating-tabs,body.exp-magnet-on .exp-tab{cursor:none}
-.experience-badge,.exp-tab{will-change:translate}
-.experience-bar-tick{transform-origin:50% 100%}
 .experience-floating-tabs.visible{opacity:1;pointer-events:auto;transform:translate(-50%,0)}
 /* размеры по редлайну: 48px/36 line-height на 1440 (клэмп держит их пропорцию —
    line-height задан unitless 0.75, чтобы масштабировался вместе со шрифтом);
@@ -799,8 +791,6 @@ touch-action: none;
   <button class="exp-tab" type="button" data-tab="branding">Брендинг</button>
 </div>
 
-<div class="exp-cursor" id="expCursor" aria-hidden="true"></div>
-
 <div class="cursor-follower" id="follower">
 <img id="follower-img" src="" alt="" aria-hidden="true">
 </div>
@@ -1153,95 +1143,6 @@ document.addEventListener('DOMContentLoaded', () => {
       galleryEl.addEventListener('mouseenter', function(){ hovering = true; });
       galleryEl.addEventListener('mouseleave', function(){ hovering = false; });
     }
-  })();
-
-  // === «МАГНИТ» в блоке «Опыт работы»: кольцо-курсор, пружинное притяжение бейджей и
-  // табов к курсору, бар подсвечивает деления под курсором. Пружины — свой интегратор
-  // (на сайте нет Framer Motion), та же модель: stiffness/damping, как у useSpring ===
-  (function(){
-    if (!canHover || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    const section = document.getElementById('experienceSection');
-    const tabsBar = document.getElementById('expFloatingTabs');
-    const cursor  = document.getElementById('expCursor');
-    const barTrack = document.getElementById('expBarTrack');
-    if (!section || !cursor) return;
-    const STIFF = 170, DAMP = 18, RADIUS = 170, PULL = 0.28, MAX = 22;
-    const magnets = Array.from(document.querySelectorAll('.experience-badge, .exp-tab')).map(function(el){
-      return { el: el, x: 0, y: 0, vx: 0, vy: 0, tx: 0, ty: 0 };
-    });
-    const ring = { x: 0, y: 0, vx: 0, vy: 0 };
-    let mx = -999, my = -999, inside = false, raf = 0, last = 0, locked = null;
-
-    function spring(o, kx, ky, dt){
-      o.vx += ((kx - o.x) * STIFF - o.vx * DAMP) * dt; o.x += o.vx * dt;
-      o.vy += ((ky - o.y) * STIFF - o.vy * DAMP) * dt; o.y += o.vy * dt;
-    }
-    function frame(ts){
-      const dt = Math.min(0.032, (ts - (last || ts)) / 1000); last = ts;
-      // кольцо тянется к курсору пружиной; над магнитом — к центру магнита
-      const rx = locked ? locked.cx : mx, ry = locked ? locked.cy : my;
-      const k = locked ? 0.35 : 1;
-      ring.vx += ((rx - ring.x) * 420 - ring.vx * 30) * dt; ring.x += ring.vx * dt;
-      ring.vy += ((ry - ring.y) * 420 - ring.vy * 30) * dt; ring.y += ring.vy * dt;
-      cursor.style.transform = 'translate(' + (locked ? ring.x * k + mx * (1 - k) : ring.x) + 'px,' + (locked ? ring.y * k + my * (1 - k) : ring.y) + 'px)';
-      let near = null, nearD = 1e9, settled = !inside && Math.abs(ring.vx) + Math.abs(ring.vy) < 0.5;
-      magnets.forEach(function(m){
-        const r = m.el.getBoundingClientRect();
-        // центр без учёта собственного смещения: вычитаем текущий translate
-        const cx = r.left + r.width / 2 - m.x, cy = r.top + r.height / 2 - m.y;
-        const dx = mx - cx, dy = my - cy, d = Math.hypot(dx, dy);
-        const reach = RADIUS + Math.max(r.width, r.height) / 2;
-        let tx = 0, ty = 0;
-        if (inside && d < reach){
-          const f = (1 - d / reach) * PULL;
-          tx = Math.max(-MAX, Math.min(MAX, dx * f)); ty = Math.max(-MAX, Math.min(MAX, dy * f));
-        }
-        spring(m, tx, ty, dt);
-        m.el.style.translate = (Math.abs(m.x) + Math.abs(m.y) < 0.02) ? '' : m.x.toFixed(2) + 'px ' + m.y.toFixed(2) + 'px';
-        if (Math.abs(m.x) + Math.abs(m.y) + Math.abs(m.vx) + Math.abs(m.vy) > 0.05) settled = false;
-        if (inside && d < nearD && d < r.width / 2 + 24){ near = { cx: cx + m.x, cy: cy + m.y }; nearD = d; }
-      });
-      locked = near;
-      cursor.classList.toggle('lock', !!near);
-      paintBarHover();
-      if (settled && !inside){ raf = 0; return; }
-      raf = requestAnimationFrame(frame);
-    }
-    // бар: деления вокруг курсора вырастают и ярчают по гауссиане от расстояния по X
-    let barTicksEls = [];
-    function paintBarHover(){
-      if (!barTrack) return;
-      const ticks = barTrack.children;
-      const br = barTrack.getBoundingClientRect();
-      const over = inside && my >= br.top - 20 && my <= br.bottom + 20;
-      for (let i = 0; i < ticks.length; i++){
-        const t = ticks[i];
-        if (!over){ if (t._hot){ t.style.transform = ''; t.style.filter = ''; t._hot = false; } continue; }
-        const tr = t.getBoundingClientRect();
-        const d = Math.abs(mx - (tr.left + tr.width / 2));
-        const g = Math.exp(-(d * d) / (2 * 60 * 60));
-        if (g < 0.02){ if (t._hot){ t.style.transform = ''; t.style.filter = ''; t._hot = false; } continue; }
-        t._hot = true;
-        t.style.transform = 'scaleY(' + (1 + g * 0.18).toFixed(3) + ') scaleX(' + (1 + g * 0.8).toFixed(3) + ')';
-        t.style.filter = 'brightness(' + (1 - g * 0.18).toFixed(3) + ') saturate(' + (1 + g * 1.4).toFixed(2) + ')';
-      }
-    }
-    function kick(){ if (!raf){ last = 0; raf = requestAnimationFrame(frame); } }
-    function overRegion(e){
-      const sr = section.getBoundingClientRect();
-      const inSec = e.clientX >= sr.left && e.clientX <= sr.right && e.clientY >= sr.top && e.clientY <= sr.bottom;
-      const tb = tabsBar && tabsBar.classList.contains('visible') && e.target.closest && e.target.closest('#expFloatingTabs');
-      return inSec || !!tb;
-    }
-    window.addEventListener('pointermove', function(e){
-      if (e.pointerType !== 'mouse') return;
-      mx = e.clientX; my = e.clientY;
-      const was = inside; inside = overRegion(e);
-      if (inside && !was){ ring.x = mx; ring.y = my; ring.vx = ring.vy = 0; cursor.classList.add('on'); document.body.classList.add('exp-magnet-on'); }
-      if (!inside && was){ cursor.classList.remove('on', 'lock'); document.body.classList.remove('exp-magnet-on'); locked = null; }
-      if (inside || was) kick();
-    }, { passive: true });
-    document.addEventListener('mouseleave', function(){ inside = false; cursor.classList.remove('on', 'lock'); document.body.classList.remove('exp-magnet-on'); locked = null; kick(); });
   })();
 
   // === HERO HEIGHT ===
