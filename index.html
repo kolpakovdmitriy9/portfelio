@@ -294,6 +294,22 @@ height: clamp(180px, 45vw, 440px);
    4/7/36.8/0 #000 8%, активный таб — просто чёрный текст (100%), неактивный — 30%
    чёрного, никакой отдельной тёмной плашки под активным табом больше нет */
 .experience-floating-tabs{position:fixed;left:50%;bottom:28px;transform:translate(-50%,24px);display:flex;align-items:center;gap:clamp(8px,3vw,30px);background:rgba(255,255,255,.1);backdrop-filter:blur(24px) saturate(160%);-webkit-backdrop-filter:blur(24px) saturate(160%);border-radius:clamp(24px,5vw,48px);padding:clamp(16px,3.89vw,56px);box-shadow:4px 7px 36.8px rgba(0,0,0,.08),inset 0 1px 0 rgba(255,255,255,.5);z-index:100;opacity:0;pointer-events:none;transition:opacity .3s ease,transform .3s ease;max-width:calc(100vw - 24px)}
+/* «радар»: неоновый луч вращается над бейджами при наведении на блок; луч проходит по
+   логотипу — тот подсвечивается, а поверх бара печатается пиксельный лог скана */
+.experience-badges{position:relative}
+.exp-radar{position:absolute;left:50%;top:50%;width:min(92vw,760px);aspect-ratio:1;margin:calc(min(92vw,760px) / -2) 0 0 calc(min(92vw,760px) / -2);border-radius:50%;pointer-events:none;opacity:0;transition:opacity .5s ease;z-index:5;
+  background:conic-gradient(from var(--exp-radar-a,0deg),rgba(13,255,0,0) 0deg,rgba(13,255,0,0) 280deg,rgba(13,255,0,.08) 320deg,rgba(13,255,0,.55) 360deg);
+  -webkit-mask-image:radial-gradient(circle,#000 0,#000 62%,transparent 71%);mask-image:radial-gradient(circle,#000 0,#000 62%,transparent 71%)}
+.exp-radar::before{content:"";position:absolute;inset:0;border-radius:50%;background:repeating-radial-gradient(circle,transparent 0 78px,rgba(13,255,0,.22) 79px 80px)}
+.exp-radar.on{opacity:1}
+.experience-badge.scanned{box-shadow:0 0 0 4px #0DFF00,0 0 34px 8px rgba(13,255,0,.65);transition:box-shadow .15s ease}
+.experience-badge{transition:box-shadow .9s ease}
+.experience-bar-wrap{position:relative}
+.exp-radar-log{position:absolute;left:37px;top:12px;max-width:calc(100% - 74px);padding:10px 14px;background:rgba(5,12,5,.86);border:1px solid #0DFF00;color:#0DFF00;font:700 clamp(11px,1.2vw,15px)/1.5 'Courier New',monospace;letter-spacing:.06em;text-transform:uppercase;white-space:pre;text-align:left;pointer-events:none;opacity:0;transform:translateY(6px);transition:opacity .25s ease,transform .25s ease;text-shadow:0 0 6px rgba(13,255,0,.8);z-index:3}
+.exp-radar-log.on{opacity:1;transform:none}
+.exp-radar-log::after{content:"█";animation:expBlink .7s steps(1) infinite}
+@keyframes expBlink{50%{opacity:0}}
+@media (prefers-reduced-motion:reduce){.exp-radar{display:none}.exp-radar-log::after{animation:none}}
 .experience-floating-tabs.visible{opacity:1;pointer-events:auto;transform:translate(-50%,0)}
 /* размеры по редлайну: 48px/36 line-height на 1440 (клэмп держит их пропорцию —
    line-height задан unitless 0.75, чтобы масштабировался вместе со шрифтом);
@@ -716,11 +732,12 @@ touch-action: none;
   <h2 class="experience-title">МОЙ ОПЫТ</h2>
   <p class="experience-subtitle" id="expSubtitle">Mobile-First и скорость загрузки</p>
 
-  <div class="experience-badges">
-    <div class="experience-badge experience-badge--rivgosh" aria-label="Рив Гош">
+  <div class="experience-badges" id="expBadges">
+    <div class="exp-radar" id="expRadar" aria-hidden="true"></div>
+    <div class="experience-badge experience-badge--rivgosh" data-scan="rivgosh" aria-label="Рив Гош">
       <div class="experience-badge-inner"><span>РИВ</span><span>ГОШ</span></div>
     </div>
-    <div class="experience-badge experience-badge--pyaterochka" aria-label="Пятёрочка">
+    <div class="experience-badge experience-badge--pyaterochka" data-scan="pyaterochka" aria-label="Пятёрочка">
       <div class="experience-badge-inner">
         <svg viewBox="0 0 100 100" aria-hidden="true">
           <text x="38" y="72" font-family="'ONY One',sans-serif" font-weight="700" font-size="62" text-anchor="middle" fill="#fff">5</text>
@@ -739,7 +756,10 @@ touch-action: none;
     </div>
   </div>
 
-  <div class="experience-bar-track" id="expBarTrack"></div>
+  <div class="experience-bar-wrap">
+    <div class="experience-bar-track" id="expBarTrack"></div>
+    <div class="exp-radar-log" id="expRadarLog" aria-hidden="true"></div>
+  </div>
 
   <div class="experience-stats">
     <div class="experience-stat" id="expStatPrimary">
@@ -1143,6 +1163,67 @@ document.addEventListener('DOMContentLoaded', () => {
       galleryEl.addEventListener('mouseenter', function(){ hovering = true; });
       galleryEl.addEventListener('mouseleave', function(){ hovering = false; });
     }
+  })();
+
+  // === «РАДАР» в блоке «Опыт работы»: луч вращается, пока курсор над блоком; проходит по
+  // логотипу — подсветка + пиксельный лог скана поверх бара. Тексты лога — в SCAN_LOGS ===
+  (function(){
+    const section = document.getElementById('experienceSection');
+    const badgesEl = document.getElementById('expBadges');
+    const radar = document.getElementById('expRadar');
+    const logEl = document.getElementById('expRadarLog');
+    if (!section || !badgesEl || !radar || !logEl) return;
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const SCAN_LOGS = {
+      rivgosh:      ['> SCAN: РИВ ГОШ', '  TYPE ...... E-COMMERCE', '  SECTOR .... RETAIL', '  STATUS .... OK'],
+      pyaterochka:  ['> SCAN: ПЯТЁРОЧКА', '  TYPE ...... E-COMMERCE', '  SECTOR .... RETAIL', '  STATUS .... OK']
+    };
+    const targets = Array.from(badgesEl.querySelectorAll('[data-scan]'));
+    const PERIOD = 4200; // мс на оборот
+    let active = false, raf = 0, t0 = 0, prevA = 0, typeTimer = null, hideTimer = null;
+
+    function angleOf(el, cx, cy){
+      const r = el.getBoundingClientRect();
+      let a = Math.atan2(r.left + r.width / 2 - cx, -(r.top + r.height / 2 - cy)) * 180 / Math.PI;
+      return (a + 360) % 360;
+    }
+    function typeLog(lines){
+      clearInterval(typeTimer); clearTimeout(hideTimer);
+      const text = lines.join('\n');
+      let n = 0;
+      logEl.classList.add('on');
+      typeTimer = setInterval(function(){
+        n += 2; logEl.textContent = text.slice(0, n);
+        if (n >= text.length){ clearInterval(typeTimer); hideTimer = setTimeout(function(){ logEl.classList.remove('on'); }, 2600); }
+      }, 28);
+    }
+    function frame(ts){
+      if (!t0) t0 = ts;
+      const a = ((ts - t0) / PERIOD * 360) % 360;
+      radar.style.setProperty('--exp-radar-a', a + 'deg');
+      const rr = radar.getBoundingClientRect(), cx = rr.left + rr.width / 2, cy = rr.top + rr.height / 2;
+      // ведущая кромка луча — это a+360 (конец конического градиента) = текущий угол a
+      targets.forEach(function(el){
+        const ta = angleOf(el, cx, cy);
+        const crossed = prevA <= a ? (ta > prevA && ta <= a) : (ta > prevA || ta <= a);
+        if (crossed){
+          el.classList.add('scanned');
+          setTimeout(function(){ el.classList.remove('scanned'); }, 1100);
+          typeLog(SCAN_LOGS[el.dataset.scan]);
+        }
+      });
+      prevA = a;
+      if (active) raf = requestAnimationFrame(frame); else raf = 0;
+    }
+    section.addEventListener('pointerenter', function(e){
+      if (e.pointerType !== 'mouse') return;
+      active = true; radar.classList.add('on');
+      if (!raf){ t0 = 0; prevA = 0; raf = requestAnimationFrame(frame); }
+    });
+    section.addEventListener('pointerleave', function(){
+      active = false; radar.classList.remove('on'); logEl.classList.remove('on');
+      clearInterval(typeTimer); clearTimeout(hideTimer);
+    });
   })();
 
   // === HERO HEIGHT ===
