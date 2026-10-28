@@ -301,6 +301,8 @@ height: clamp(180px, 45vw, 440px);
    экран без горизонтального выхода за viewport */
 .exp-tab{border:none;background:transparent;padding:0;font-size:clamp(17px,3.33vw,48px);font-weight:400;letter-spacing:normal;text-transform:uppercase;line-height:.75;cursor:pointer;color:rgba(0,0,0,.3);font-family:'ONY Track Moscow',sans-serif;transition:color .2s ease;touch-action:manipulation;white-space:nowrap}
 .exp-tab.active{color:#000}
+/* «машина и человечек» — вид сверху, рисуется на fixed-canvas поверх страницы */
+.exp-world{position:fixed;left:0;top:0;width:100vw;height:100vh;pointer-events:none;z-index:2147483000}
 @media (max-width:640px){
   .experience-gallery-item{width:200px;height:320px}
 }
@@ -791,6 +793,8 @@ touch-action: none;
   <button class="exp-tab" type="button" data-tab="branding">Брендинг</button>
 </div>
 
+<canvas class="exp-world" id="expWorld" aria-hidden="true"></canvas>
+
 <div class="cursor-follower" id="follower">
 <img id="follower-img" src="" alt="" aria-hidden="true">
 </div>
@@ -1143,6 +1147,244 @@ document.addEventListener('DOMContentLoaded', () => {
       galleryEl.addEventListener('mouseenter', function(){ hovering = true; });
       galleryEl.addEventListener('mouseleave', function(){ hovering = false; });
     }
+  })();
+
+  // === «МАШИНА И ЧЕЛОВЕЧЕК» (вид сверху): при появлении заголовка «Опыт» справа вылетает
+  // машина, едет к букве «Ы», дрифтом разворачивается на 90°, из неё выходит человечек.
+  // Стрелки — ходить/ехать, F — сесть/выйти. Мир в координатах страницы, canvas — fixed ===
+  (function(){
+    if (!canHover || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const cv = document.getElementById('expWorld');
+    const title = document.querySelector('.experience-title');
+    if (!cv || !title) return;
+    const ctx = cv.getContext('2d');
+    let VW = 0, VH = 0, dpr = 1;
+    function resize(){
+      dpr = Math.min(2, window.devicePixelRatio || 1);
+      VW = innerWidth; VH = innerHeight;
+      cv.width = Math.round(VW * dpr); cv.height = Math.round(VH * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    resize(); window.addEventListener('resize', resize);
+
+    const CAR_L = 96, CAR_W = 48;
+    const car = { x: 0, y: 0, a: Math.PI, vx: 0, vy: 0, door: 0 };
+    const man = { x: 0, y: 0, a: 0, phase: 0, moving: false };
+    let mode = 'idle'; // idle | intro | exit | walk | drive
+    let t = 0, last = 0, raf = 0, introT = 0, plan = null, hintAlpha = 0, everMoved = false, fHint = 0;
+    const keys = {};
+    let marks = [], smoke = [];
+
+    function ease(x){ return x < 0 ? 0 : x > 1 ? 1 : x * x * (3 - 2 * x); }
+    function pageW(){ return Math.max(document.documentElement.scrollWidth, innerWidth); }
+    function pageH(){ return Math.max(document.documentElement.scrollHeight, innerHeight); }
+    // центр буквы «Ы» в координатах страницы
+    function yLetter(){
+      const tn = title.firstChild; const txt = tn && tn.textContent || '';
+      let i = txt.indexOf('Ы'); if (i < 0) i = Math.floor(txt.length / 2);
+      const rg = document.createRange(); rg.setStart(tn, i); rg.setEnd(tn, i + 1);
+      const r = rg.getBoundingClientRect();
+      return { x: r.left + r.width / 2 + scrollX, y: r.top + r.height / 2 + scrollY, w: r.width };
+    }
+    function startIntro(){
+      const L = yLetter();
+      plan = { ty: L.y, tx: L.x + 260 };
+      car.x = pageW() + 140; car.y = plan.ty; car.a = Math.PI; car.vx = -1250; car.vy = 0; car.door = 0;
+      mode = 'intro'; introT = 0; last = 0;
+      if (!raf) raf = requestAnimationFrame(frame);
+    }
+    if ('IntersectionObserver' in window){
+      const io = new IntersectionObserver(function(en){
+        if (en[0].isIntersecting && mode === 'idle' && !everMoved){ io.disconnect(); setTimeout(startIntro, 350); }
+      }, { threshold: 0.8 });
+      io.observe(title);
+    }
+
+    function skid(x, y){ marks.push({ x: x, y: y, t: 0 }); }
+    function carPhysics(dt, steer, throttle, grip){
+      const fx = Math.cos(car.a), fy = Math.sin(car.a);
+      const sp = Math.hypot(car.vx, car.vy);
+      const fwd = car.vx * fx + car.vy * fy;
+      if (throttle) { car.vx += fx * throttle * 520 * dt; car.vy += fy * throttle * 520 * dt; }
+      // боковое сцепление: скорость стремится в сторону носа машины (grip мал — дрифт)
+      const lat = -car.vx * fy + car.vy * fx;
+      car.vx -= (-fy) * lat * Math.min(1, grip * dt); car.vy -= fx * lat * Math.min(1, grip * dt);
+      const drag = Math.exp(-(throttle ? 0.35 : 1.1) * dt); car.vx *= drag; car.vy *= drag;
+      car.a += steer * dt * Math.min(1, Math.abs(fwd) / 140) * (fwd >= 0 ? 1 : -1);
+      car.x += car.vx * dt; car.y += car.vy * dt;
+      if (Math.abs(lat) > 120 && sp > 200){
+        const rx = car.x - fx * CAR_L * 0.32, ry = car.y - fy * CAR_L * 0.32;
+        skid(rx - fy * CAR_W * 0.38, ry + fx * CAR_W * 0.38); skid(rx + fy * CAR_W * 0.38, ry - fx * CAR_W * 0.38);
+        if (Math.random() < .6) smoke.push({ x: rx, y: ry, vx: (Math.random() - .5) * 40, vy: (Math.random() - .5) * 40, r: 6, t: 0 });
+      }
+    }
+    function updateIntro(dt){
+      introT += dt;
+      if (car.x > plan.tx && !plan.drift){
+        car.x += car.vx * dt;                 // разгон слева от края, ровно к «Ы»
+        if (car.x <= plan.tx){ plan.drift = 0.0001; }
+        return;
+      }
+      if (plan.drift){
+        plan.drift += dt;
+        const d = plan.drift, D = 0.42;
+        if (d < D){
+          // резкий поворот на 90° влево (по экрану — вниз): нос идёт вниз, скорость ещё влево — занос
+          car.a = Math.PI - (Math.PI / 2) * ease(d / D) - 0.1 * Math.sin(Math.PI * d / D);
+          carPhysics(dt, 0, 0, 3.4);
+          car.a = Math.PI - (Math.PI / 2) * ease(d / D) - 0.1 * Math.sin(Math.PI * d / D);
+        } else {
+          car.a += (Math.PI / 2 - car.a) * Math.min(1, dt * 10);
+          carPhysics(dt, 0, 0, 5);
+          car.vx *= Math.exp(-4 * dt); car.vy *= Math.exp(-4 * dt);
+          if (Math.hypot(car.vx, car.vy) < 8){ car.vx = car.vy = 0; mode = 'exit'; plan.exit = 0; }
+        }
+      }
+    }
+    function updateExit(dt){
+      plan.exit += dt;
+      car.door = ease(plan.exit / 0.45);
+      // выйти: человечек выезжает из правой (по ходу) двери — для машины носом вниз это сторона -x
+      const side = rightVec();
+      const k = ease((plan.exit - 0.35) / 0.5);
+      man.x = car.x + side.x * (CAR_W / 2 + 6 + 26 * k); man.y = car.y + side.y * (CAR_W / 2 + 6 + 26 * k) - 6 * (1 - k);
+      man.a = Math.atan2(side.y, side.x);
+      if (plan.exit > 0.95){ mode = 'walk'; hintAlpha = 1; }
+    }
+    function rightVec(){ return { x: -Math.sin(car.a), y: Math.cos(car.a) }; }
+    function nearCar(){ return Math.hypot(man.x - car.x, man.y - car.y) < CAR_L * 0.75; }
+
+    function update(dt){
+      t += dt;
+      if (mode === 'intro') updateIntro(dt);
+      else if (mode === 'exit') updateExit(dt);
+      else if (mode === 'walk'){
+        let dx = (keys.ArrowRight ? 1 : 0) - (keys.ArrowLeft ? 1 : 0), dy = (keys.ArrowDown ? 1 : 0) - (keys.ArrowUp ? 1 : 0);
+        man.moving = !!(dx || dy);
+        if (man.moving){
+          const l = Math.hypot(dx, dy); dx /= l; dy /= l;
+          man.x += dx * 190 * dt; man.y += dy * 190 * dt; man.phase += dt * 11;
+          const ta = Math.atan2(dy, dx); let da = ta - man.a; da = Math.atan2(Math.sin(da), Math.cos(da)); man.a += da * Math.min(1, dt * 14);
+          everMoved = true; hintAlpha = Math.max(0, hintAlpha - dt * 3);
+        }
+        man.x = Math.max(12, Math.min(pageW() - 12, man.x)); man.y = Math.max(12, Math.min(pageH() - 12, man.y));
+        // машина стоит, тормозит
+        car.vx *= Math.exp(-3 * dt); car.vy *= Math.exp(-3 * dt); car.x += car.vx * dt; car.y += car.vy * dt;
+        fHint = nearCar() && everMoved ? Math.min(1, fHint + dt * 5) : Math.max(0, fHint - dt * 5);
+      } else if (mode === 'drive'){
+        const steer = ((keys.ArrowRight ? 1 : 0) - (keys.ArrowLeft ? 1 : 0)) * 2.6;
+        const thr = (keys.ArrowUp ? 1 : 0) - (keys.ArrowDown ? 0.8 : 0);
+        const braking = keys.ArrowDown && (car.vx * Math.cos(car.a) + car.vy * Math.sin(car.a)) > 40;
+        carPhysics(dt, steer, braking ? -0.0 : thr, keys.ArrowDown && !braking ? 5 : (steer && Math.hypot(car.vx, car.vy) > 260 ? 2.2 : 5));
+        if (braking){ car.vx *= Math.exp(-3.2 * dt); car.vy *= Math.exp(-3.2 * dt); }
+        car.x = Math.max(30, Math.min(pageW() - 30, car.x)); car.y = Math.max(30, Math.min(pageH() - 30, car.y));
+        man.x = car.x; man.y = car.y; fHint = Math.max(0, fHint - dt * 5);
+      }
+      marks.forEach(function(m){ m.t += dt; }); marks = marks.filter(function(m){ return m.t < 4; });
+      smoke.forEach(function(m){ m.t += dt; m.x += m.vx * dt; m.y += m.vy * dt; m.r += dt * 26; }); smoke = smoke.filter(function(m){ return m.t < 0.9; });
+      // камера: держим игрока в кадре
+      if (mode === 'walk' || mode === 'drive'){
+        const sy = (mode === 'drive' ? car.y : man.y) - scrollY, sx = (mode === 'drive' ? car.x : man.x) - scrollX;
+        let by = 0; if (sy > VH - 130) by = sy - (VH - 130); else if (sy < 130) by = sy - 130;
+        if (by) scrollTo(scrollX, scrollY + by * Math.min(1, dt * 8) * 1.2);
+        void sx;
+      }
+    }
+
+    function drawCar(){
+      ctx.save(); ctx.translate(car.x, car.y); ctx.rotate(car.a);
+      ctx.fillStyle = 'rgba(0,0,0,.22)'; ctx.beginPath(); ctx.roundRect(-CAR_L / 2 + 5, -CAR_W / 2 + 7, CAR_L, CAR_W, 12); ctx.fill();
+      // колёса
+      ctx.fillStyle = '#151515';
+      [[-CAR_L * .3, -1], [-CAR_L * .3, 1], [CAR_L * .3, -1], [CAR_L * .3, 1]].forEach(function(w){ ctx.beginPath(); ctx.roundRect(w[0] - 9, w[1] * (CAR_W / 2) - 5 + (w[1] > 0 ? -1 : -3), 18, 9, 3); ctx.fill(); });
+      // кузов
+      const g = ctx.createLinearGradient(0, -CAR_W / 2, 0, CAR_W / 2);
+      g.addColorStop(0, '#f0303c'); g.addColorStop(1, '#b30613');
+      ctx.fillStyle = g; ctx.beginPath(); ctx.roundRect(-CAR_L / 2, -CAR_W / 2, CAR_L, CAR_W, 12); ctx.fill();
+      // стёкла и крыша
+      ctx.fillStyle = '#1b2733'; ctx.beginPath(); ctx.roundRect(CAR_L * .08, -CAR_W / 2 + 6, CAR_L * .22, CAR_W - 12, 4); ctx.fill();
+      ctx.beginPath(); ctx.roundRect(-CAR_L * .38, -CAR_W / 2 + 6, CAR_L * .16, CAR_W - 12, 4); ctx.fill();
+      ctx.fillStyle = '#d42231'; ctx.beginPath(); ctx.roundRect(-CAR_L * .2, -CAR_W / 2 + 5, CAR_L * .28, CAR_W - 10, 5); ctx.fill();
+      // фары
+      ctx.fillStyle = '#fff3b0'; ctx.fillRect(CAR_L / 2 - 5, -CAR_W / 2 + 5, 4, 9); ctx.fillRect(CAR_L / 2 - 5, CAR_W / 2 - 14, 4, 9);
+      ctx.fillStyle = '#ff2a2a'; ctx.fillRect(-CAR_L / 2 + 1, -CAR_W / 2 + 5, 3, 9); ctx.fillRect(-CAR_L / 2 + 1, CAR_W / 2 - 14, 3, 9);
+      // дверь (правая по ходу = +y в локальных): открывается наружу
+      ctx.strokeStyle = '#7e0410'; ctx.lineWidth = 3;
+      const da = car.door * 1.15;
+      if (car.door > 0.02){
+        ctx.beginPath(); ctx.moveTo(CAR_L * .06, CAR_W / 2); ctx.lineTo(CAR_L * .06 - Math.cos(da) * 28, CAR_W / 2 + Math.sin(da) * 28); ctx.stroke();
+      }
+      ctx.restore();
+    }
+    function drawMan(){
+      ctx.save(); ctx.translate(man.x, man.y); ctx.rotate(man.a);
+      ctx.fillStyle = 'rgba(0,0,0,.22)'; ctx.beginPath(); ctx.ellipse(2, 4, 14, 20, 0, 0, 7); ctx.fill();
+      const sw = Math.sin(man.phase) * (man.moving ? 1 : 0);
+      // ноги/ступни (вид сверху: два ботинка попеременно)
+      ctx.fillStyle = '#222';
+      ctx.beginPath(); ctx.ellipse(sw * 9, -7, 8, 4.5, 0, 0, 7); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(-sw * 9, 7, 8, 4.5, 0, 0, 7); ctx.fill();
+      // руки
+      ctx.fillStyle = '#ff6a2a';
+      ctx.beginPath(); ctx.ellipse(-sw * 7, -14, 6.5, 3.8, 0, 0, 7); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(sw * 7, 14, 6.5, 3.8, 0, 0, 7); ctx.fill();
+      // плечи/куртка
+      ctx.fillStyle = '#ff6a2a'; ctx.beginPath(); ctx.ellipse(0, 0, 8.5, 15, 0, 0, 7); ctx.fill();
+      // голова с волосами (нос — вперёд)
+      ctx.fillStyle = '#f2c9a0'; ctx.beginPath(); ctx.arc(1, 0, 8, 0, 7); ctx.fill();
+      ctx.fillStyle = '#2a211c'; ctx.beginPath(); ctx.arc(-1.5, 0, 7.6, Math.PI * 0.5, Math.PI * 1.5); ctx.fill();
+      ctx.restore();
+    }
+    function keycap(x, y, label, alpha){
+      ctx.save(); ctx.globalAlpha = alpha;
+      ctx.fillStyle = '#fff'; ctx.strokeStyle = '#0b0b0b'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.roundRect(x - 15, y - 15, 30, 30, 7); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = '#0b0b0b'; ctx.font = '700 15px "Courier New",monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(label, x, y + 1); ctx.restore();
+    }
+    function draw(){
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, VW, VH);
+      ctx.save(); ctx.translate(-scrollX, -scrollY);
+      marks.forEach(function(m){ ctx.globalAlpha = Math.max(0, 0.5 - m.t * 0.12); ctx.fillStyle = '#111'; ctx.beginPath(); ctx.arc(m.x, m.y, 3.2, 0, 7); ctx.fill(); });
+      ctx.globalAlpha = 1;
+      if (mode !== 'idle') drawCar();
+      smoke.forEach(function(m){ ctx.globalAlpha = Math.max(0, .35 * (1 - m.t / .9)); ctx.fillStyle = '#c9c9c9'; ctx.beginPath(); ctx.arc(m.x, m.y, m.r, 0, 7); ctx.fill(); });
+      ctx.globalAlpha = 1;
+      if (mode === 'walk' || mode === 'exit') drawMan();
+      if (mode === 'walk'){
+        if (hintAlpha > 0.02){ // подсказка стрелками рядом с человечком — пока не пошёл
+          const hx = man.x + 62, hy = man.y;
+          keycap(hx, hy - 34, '↑', hintAlpha); keycap(hx - 34, hy, '←', hintAlpha); keycap(hx, hy, '↓', hintAlpha); keycap(hx + 34, hy, '→', hintAlpha);
+        }
+        if (fHint > 0.02) keycap(man.x, man.y - 46, 'F', fHint);
+      }
+      if (mode === 'drive' && fHint < 0.02 && t % 1 > -1 && everDrive < 3.2){ keycap(car.x, car.y - 62, 'F', Math.max(0, 1 - everDrive / 3.2)); }
+      ctx.restore();
+    }
+    let everDrive = 99;
+    function frame(ts){
+      const dt = Math.min(0.033, (ts - (last || ts)) / 1000); last = ts;
+      if (mode === 'drive') everDrive += dt;
+      update(dt); draw();
+      raf = requestAnimationFrame(frame);
+    }
+    function editable(e){ const el = e.target; return el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable); }
+    window.addEventListener('keydown', function(e){
+      if (mode === 'idle' || editable(e) || e.ctrlKey || e.metaKey || e.altKey) return;
+      if (e.code.indexOf('Arrow') === 0){ keys[e.code] = true; e.preventDefault(); }
+      else if (e.code === 'KeyF' && !e.repeat){
+        if (mode === 'walk' && nearCar()){
+          mode = 'drive'; everMoved = true; everDrive = 0; hintAlpha = 0; keys.ArrowUp = keys.ArrowDown = keys.ArrowLeft = keys.ArrowRight = false;
+        } else if (mode === 'drive'){
+          mode = 'walk'; const side = rightVec();
+          man.x = car.x + side.x * (CAR_W / 2 + 30); man.y = car.y + side.y * (CAR_W / 2 + 30); man.a = Math.atan2(side.y, side.x);
+          car.door = 1; setTimeout(function(){ if (mode === 'walk') car.door = 0; }, 700);
+        }
+      }
+    });
+    window.addEventListener('keyup', function(e){ if (e.code.indexOf('Arrow') === 0) keys[e.code] = false; });
+    window.addEventListener('blur', function(){ for (const k in keys) keys[k] = false; });
+    window.__expWorld = { start: startIntro, state: function(){ return { mode: mode, car: car, man: man, plan: plan }; } };
   })();
 
   // === HERO HEIGHT ===
