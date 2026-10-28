@@ -294,6 +294,25 @@ height: clamp(180px, 45vw, 440px);
    4/7/36.8/0 #000 8%, активный таб — просто чёрный текст (100%), неактивный — 30%
    чёрного, никакой отдельной тёмной плашки под активным табом больше нет */
 .experience-floating-tabs{position:fixed;left:50%;bottom:28px;transform:translate(-50%,24px);display:flex;align-items:center;gap:clamp(8px,3vw,30px);background:rgba(255,255,255,.1);backdrop-filter:blur(24px) saturate(160%);-webkit-backdrop-filter:blur(24px) saturate(160%);border-radius:clamp(24px,5vw,48px);padding:clamp(16px,3.89vw,56px);box-shadow:4px 7px 36.8px rgba(0,0,0,.08),inset 0 1px 0 rgba(255,255,255,.5);z-index:100;opacity:0;pointer-events:none;transition:opacity .3s ease,transform .3s ease;max-width:calc(100vw - 24px)}
+/* «аркада»: переключение режимов как выбор миссии — глитч, барабан цифр, нитро-бар */
+@keyframes expGlitch{
+  0%{transform:translate(0,0);filter:none;clip-path:inset(0)}
+  15%{transform:translate(-4px,2px) skewX(-6deg);filter:hue-rotate(60deg) saturate(2.2);clip-path:inset(10% 0 55% 0)}
+  30%{transform:translate(5px,-2px) skewX(5deg);filter:hue-rotate(-50deg) contrast(1.4);clip-path:inset(55% 0 8% 0)}
+  50%{transform:translate(-3px,1px);filter:saturate(2.5);clip-path:inset(0)}
+  70%{transform:translate(3px,-1px) skewX(-3deg);filter:hue-rotate(120deg);clip-path:inset(30% 0 30% 0)}
+  100%{transform:translate(0,0);filter:none;clip-path:inset(0)}
+}
+.experience-badges.is-glitch .experience-badge{animation:expGlitch .42s steps(2,end)}
+.experience-badges.is-glitch .experience-badge:nth-child(2){animation-delay:.05s}
+.experience-badges.is-glitch .experience-badge:nth-child(3){animation-delay:.1s}
+.experience-stat-number.is-reel{text-shadow:3px 0 rgba(255,0,60,.55),-3px 0 rgba(0,200,255,.55);transform:skewX(-4deg)}
+.exp-tab.is-glitch{animation:expGlitch .32s steps(2,end)}
+@keyframes expNitro{0%{box-shadow:0 0 0 rgba(13,255,0,0)}35%{box-shadow:0 0 38px rgba(13,255,0,.55),0 0 90px rgba(255,185,104,.35)}100%{box-shadow:0 0 0 rgba(13,255,0,0)}}
+.experience-bar-track.nitro{animation:expNitro .9s ease-out}
+.exp-sound{border:none;background:transparent;padding:0;margin-left:4px;cursor:pointer;color:rgba(0,0,0,.3);font-family:'ONY Track Moscow',sans-serif;font-size:clamp(14px,1.6vw,22px);text-transform:uppercase;white-space:nowrap;transition:color .2s ease}
+.exp-sound[aria-pressed="true"]{color:#000}
+@media (prefers-reduced-motion:reduce){.experience-badges.is-glitch .experience-badge,.exp-tab.is-glitch,.experience-bar-track.nitro{animation:none}}
 .experience-floating-tabs.visible{opacity:1;pointer-events:auto;transform:translate(-50%,0)}
 /* размеры по редлайну: 48px/36 line-height на 1440 (клэмп держит их пропорцию —
    line-height задан unitless 0.75, чтобы масштабировался вместе со шрифтом);
@@ -789,6 +808,7 @@ touch-action: none;
   <button class="exp-tab active" type="button" data-tab="websites">Сайты</button>
   <button class="exp-tab" type="button" data-tab="apps">Приложения</button>
   <button class="exp-tab" type="button" data-tab="branding">Брендинг</button>
+  <button class="exp-sound" id="expSound" type="button" aria-pressed="false" aria-label="Звук интерфейса">♪ off</button>
 </div>
 
 <div class="cursor-follower" id="follower">
@@ -949,7 +969,9 @@ document.addEventListener('DOMContentLoaded', () => {
       void barTrack.offsetWidth;
       barTicks.forEach(function(tick, i){
         tick.style.transition = '';
-        tick.style.transitionDelay = (i < activeCount ? i * 12 : 0) + 'ms';
+        // нитро: шаг между делениями сокращается — бар разгоняется к концу
+        const x = activeCount > 1 ? i / (activeCount - 1) : 0;
+        tick.style.transitionDelay = (i < activeCount ? Math.round(650 * (1 - (1 - x) * (1 - x))) : 0) + 'ms';
         tick.style.background = i < activeCount ? barGradientColorAt(total > 1 ? i / (total - 1) : 0) : '#eee';
       });
     }
@@ -966,6 +988,71 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       paintBarTicks(percent, !!stagger);
     }
+
+
+    // ===== аркада: цифровой клик, глитч, барабан цифр, нитро =====
+    let audioCtx = null, soundOn = false, lastClickAt = 0;
+    function blip(freq, dur, vol){
+      if (!soundOn) return;
+      const now = performance.now();
+      if (now - lastClickAt < 28) return; // не лепим клики в кашу на быстрой прокрутке
+      lastClickAt = now;
+      try {
+        audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+        const t = audioCtx.currentTime, osc = audioCtx.createOscillator(), g = audioCtx.createGain();
+        osc.type = 'square'; osc.frequency.value = freq;
+        g.gain.setValueAtTime(vol || 0.04, t);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+        osc.connect(g); g.connect(audioCtx.destination);
+        osc.start(t); osc.stop(t + dur);
+      } catch(e){}
+    }
+    function glitch(el, cls, ms){
+      if (!el || reducedMotion) return;
+      el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls);
+      setTimeout(function(){ el.classList.remove(cls); }, ms);
+    }
+    // барабан слот-машины для числа: каждый символ-цифра крутится случайными значениями и
+    // «защёлкивается» слева направо; нецифры (%, +, к) остаются на месте
+    function reelNumber(el, finalText){
+      if (!el) return;
+      if (reducedMotion){ el.textContent = finalText; return; }
+      if (el._reelTimer) clearInterval(el._reelTimer);
+      const chars = Array.from(finalText);
+      const start = performance.now(), LOCK_STEP = 140, BASE = 220;
+      el.classList.add('is-reel');
+      el._reelTimer = setInterval(function(){
+        const t = performance.now() - start;
+        let done = true, out = '';
+        chars.forEach(function(ch, i){
+          if (!/\d/.test(ch)){ out += ch; return; }
+          if (t >= BASE + i * LOCK_STEP){ out += ch; return; }
+          done = false; out += Math.floor(Math.random() * 10);
+        });
+        el.textContent = out;
+        blip(520 + Math.random() * 380, 0.03, 0.025);
+        if (done){
+          clearInterval(el._reelTimer); el._reelTimer = null;
+          el.textContent = finalText; el.classList.remove('is-reel');
+          blip(880, 0.07, 0.05);
+        }
+      }, 45);
+    }
+    const soundBtn = document.getElementById('expSound');
+    if (soundBtn){
+      soundBtn.addEventListener('click', function(){
+        soundOn = !soundOn;
+        soundBtn.setAttribute('aria-pressed', String(soundOn));
+        soundBtn.textContent = soundOn ? '♪ on' : '♪ off';
+        blip(660, 0.08, 0.05);
+      });
+    }
+    expTabs.forEach(function(btn){
+      btn.addEventListener('pointerenter', function(e){
+        if (e.pointerType !== 'mouse' || btn.classList.contains('active')) return;
+        glitch(btn, 'is-glitch', 320); blip(420, 0.04, 0.03);
+      });
+    });
 
     let currentExpTab = null;
     function renderExpTab(key, animate){
@@ -996,13 +1083,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         // построчно: сперва числа, потом первая строка подписи, потом вторая —
         // в обеих колонках синхронно, с небольшим сдвигом между строками
-        flipLine(primaryNumberEl, cfg.percent + '%', 0);
-        flipLine(secondaryNumberEl, cfg.secondaryNumber, 0);
+        reelNumber(primaryNumberEl, cfg.percent + '%');
+        reelNumber(secondaryNumberEl, cfg.secondaryNumber);
+        glitch(document.querySelector('.experience-badges'), 'is-glitch', 520);
+        blip(300, 0.09, 0.05);
         flipLine(primaryLine1El, cfg.primaryLine1, 70);
         flipLine(secondaryLine1El, cfg.secondaryLine1, 70);
         flipLine(primaryLine2El, cfg.primaryLine2, 140);
         flipLine(secondaryLine2El, cfg.secondaryLine2, 140);
         expUpdateBar(cfg.percent, true);
+        glitch(barTrack, 'nitro', 900);
       }
       currentExpTab = key;
     }
