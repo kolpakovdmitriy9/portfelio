@@ -283,6 +283,12 @@ height: clamp(180px, 45vw, 440px);
    (37px от края экрана вместо обычных 30px паддинга), поэтому доп. inset через width/margin */
 .experience-bar-track{width:calc(100% - 14px);margin:0 auto 90px;height:clamp(80px,13.89vw,200px);display:flex;align-items:stretch;justify-content:space-between}
 .experience-bar-tick{flex:none;width:4px;height:100%;background:#eee;transition:background .3s ease}
+/* 3D-стопка карточек: одна фронтальная, соседние уходят в глубину и веером в стороны.
+   Листается сама, по наведению пауза, клик/свайп — следующая карточка */
+.exp-stack{position:relative;width:100%;height:clamp(300px,42vw,560px);margin:0 auto 90px;perspective:1400px;overflow:hidden;display:flex;align-items:center;justify-content:center;user-select:none;touch-action:pan-y;cursor:grab}
+.exp-stack:active{cursor:grabbing}
+.exp-stack-card{position:absolute;width:clamp(170px,24vw,320px);aspect-ratio:3/4;border-radius:24px;overflow:hidden;background:#e5e5e5;box-shadow:0 30px 60px rgba(0,0,0,.18);transition:transform .7s cubic-bezier(.22,.61,.36,1),opacity .7s ease;will-change:transform;backface-visibility:hidden}
+.exp-stack-card img{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}
 .experience-gallery{width:100vw;position:relative;left:50%;transform:translateX(-50%);overflow:hidden;-webkit-mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent);mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent)}
 .experience-gallery-track{display:flex;gap:16px;width:max-content;animation:expGalleryScroll 32s linear infinite}
 @keyframes expGalleryScroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
@@ -752,6 +758,14 @@ touch-action: none;
     </div>
   </div>
 
+  <div class="exp-stack" id="expStack" aria-label="Примеры работ">
+    <div class="exp-stack-card"><img src="images/experience-1.webp" alt="" loading="lazy" draggable="false"></div>
+    <div class="exp-stack-card"></div>
+    <div class="exp-stack-card"></div>
+    <div class="exp-stack-card"></div>
+    <div class="exp-stack-card"></div>
+  </div>
+
   <div class="experience-gallery"><div class="experience-gallery-track" id="expGalleryTrack"></div></div>
 
   <!-- === "ГОТОВ К РАБОТЕ" — свитчер связаться/предложить оффер === -->
@@ -1143,6 +1157,61 @@ document.addEventListener('DOMContentLoaded', () => {
       galleryEl.addEventListener('mouseenter', function(){ hovering = true; });
       galleryEl.addEventListener('mouseleave', function(){ hovering = false; });
     }
+  })();
+
+  // === 3D-СТОПКА КАРТОЧЕК «Опыт работы» — авто-листание, пауза при наведении, клик/свайп ===
+  (function(){
+    const stack = document.getElementById('expStack');
+    if (!stack) return;
+    const cards = Array.from(stack.querySelectorAll('.exp-stack-card'));
+    const N = cards.length;
+    const AUTO_MS = 3600;
+    const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let active = 0, timer = null, hover = false, pointerStart = null, dragged = false;
+
+    function layout(){
+      const w = cards[0].offsetWidth;
+      const pitch = w * 0.42, depth = w * 0.35;
+      cards.forEach(function(card, i){
+        let d = ((i - active) % N + N) % N;
+        if (d > N / 2) d -= N;
+        const abs = Math.abs(d);
+        const dir = d === 0 ? 0 : (d > 0 ? 1 : -1);
+        card.style.transform = 'translate3d(' + (d * pitch) + 'px,0,' + (-abs * depth) + 'px) rotateY(' + (-dir * 24) + 'deg) scale(' + (1 - abs * 0.06) + ')';
+        card.style.opacity = abs > 2 ? 0 : (abs === 2 ? 0.55 : 1);
+        card.style.zIndex = 10 - abs;
+      });
+    }
+    function go(step){ active = ((active + step) % N + N) % N; layout(); }
+    function canAuto(){ return !reduced && !hover && pointerStart === null; }
+    function schedule(){
+      clearTimeout(timer);
+      if (!canAuto()) return;
+      timer = setTimeout(function(){ go(1); schedule(); }, AUTO_MS);
+    }
+
+    stack.addEventListener('pointerenter', function(e){ if (e.pointerType === 'mouse'){ hover = true; clearTimeout(timer); } });
+    stack.addEventListener('pointerleave', function(e){ if (e.pointerType === 'mouse'){ hover = false; schedule(); } });
+    stack.addEventListener('pointerdown', function(e){
+      pointerStart = e.clientX; dragged = false; clearTimeout(timer);
+      stack.setPointerCapture(e.pointerId);
+    });
+    stack.addEventListener('pointermove', function(e){
+      if (pointerStart !== null && Math.abs(e.clientX - pointerStart) > 6) dragged = true;
+    });
+    function endPointer(e){
+      if (pointerStart === null) return;
+      const dx = e.clientX - pointerStart;
+      pointerStart = null;
+      if (dx < -40) go(1); else if (dx > 40) go(-1); else if (!dragged) go(1);
+      schedule();
+    }
+    stack.addEventListener('pointerup', endPointer);
+    stack.addEventListener('pointercancel', function(){ pointerStart = null; schedule(); });
+    window.addEventListener('resize', layout);
+
+    layout();
+    schedule();
   })();
 
   // === HERO HEIGHT ===
