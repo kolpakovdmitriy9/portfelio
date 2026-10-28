@@ -287,7 +287,7 @@ height: clamp(180px, 45vw, 440px);
    Листается сама, по наведению пауза, клик/свайп — следующая карточка */
 .exp-stack{position:relative;width:100%;height:clamp(300px,42vw,560px);margin:0 auto 90px;perspective:1400px;overflow:hidden;display:flex;align-items:center;justify-content:center;user-select:none;touch-action:pan-y;cursor:grab}
 .exp-stack:active{cursor:grabbing}
-.exp-stack-card{position:absolute;width:clamp(170px,24vw,320px);aspect-ratio:3/4;border-radius:24px;overflow:hidden;background:#e5e5e5;box-shadow:0 30px 60px rgba(0,0,0,.18);transition:transform .7s cubic-bezier(.22,.61,.36,1),opacity .7s ease;will-change:transform;backface-visibility:hidden}
+.exp-stack-card{position:absolute;width:clamp(170px,24vw,320px);aspect-ratio:3/4;border-radius:24px;overflow:hidden;background:#e5e5e5;box-shadow:0 30px 60px rgba(0,0,0,.18);transition:transform .8s cubic-bezier(.22,.61,.36,1),opacity .6s ease;will-change:transform;backface-visibility:hidden}
 .exp-stack-card img{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}
 .experience-gallery{width:100vw;position:relative;left:50%;transform:translateX(-50%);overflow:hidden;-webkit-mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent);mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent)}
 .experience-gallery-track{display:flex;gap:16px;width:max-content;animation:expGalleryScroll 32s linear infinite}
@@ -759,11 +759,11 @@ touch-action: none;
   </div>
 
   <div class="exp-stack" id="expStack" aria-label="Примеры работ">
-    <div class="exp-stack-card"><img src="images/experience-1.webp" alt="" loading="lazy" draggable="false"></div>
-    <div class="exp-stack-card"></div>
-    <div class="exp-stack-card"></div>
-    <div class="exp-stack-card"></div>
-    <div class="exp-stack-card"></div>
+    <div class="exp-stack-card"><img src="images/experience-1.webp" alt="" draggable="false"></div>
+    <div class="exp-stack-card"><img src="images/experience-2.webp" alt="" draggable="false"></div>
+    <div class="exp-stack-card"><img src="images/experience-3.webp" alt="" draggable="false"></div>
+    <div class="exp-stack-card"><img src="images/experience-4.webp" alt="" draggable="false"></div>
+    <div class="exp-stack-card"><img src="images/experience-5.webp" alt="" draggable="false"></div>
   </div>
 
   <div class="experience-gallery"><div class="experience-gallery-track" id="expGalleryTrack"></div></div>
@@ -1159,7 +1159,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   })();
 
-  // === 3D-СТОПКА КАРТОЧЕК «Опыт работы» — авто-листание, пауза при наведении, клик/свайп ===
+  // === 3D-СТОПКА КАРТОЧЕК «Опыт работы» — карточки стоят под разными углами в 3D,
+  // при листании каждая переходит в следующий слот; авто, пауза при наведении, клик/свайп ===
   (function(){
     const stack = document.getElementById('expStack');
     if (!stack) return;
@@ -1169,17 +1170,25 @@ document.addEventListener('DOMContentLoaded', () => {
     const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
     let active = 0, timer = null, hover = false, pointerStart = null, dragged = false;
 
+    // слоты: 0 — фронт, 1 — внизу слева, 2 — лежит плашмя справа, 3 — глубоко сзади, 4 — уходит
+    function slot(d, W, H){
+      switch (d){
+        case 0: return { x: 0, y: -0.02 * H, z: 0, rx: 0, ry: -12, rz: -6, s: 1, o: 1 };
+        case 1: return { x: -0.36 * W, y: 0.42 * H, z: -0.3 * W, rx: 0, ry: 18, rz: 10, s: 0.95, o: 1 };
+        case 2: return { x: 0.3 * W, y: 0.22 * H, z: -0.5 * W, rx: 68, ry: 0, rz: -24, s: 1, o: 1 };
+        case 3: return { x: -0.1 * W, y: 0.1 * H, z: -0.9 * W, rx: 0, ry: 0, rz: -4, s: 0.8, o: 0.35 };
+        default: return { x: -0.1 * W, y: 0.1 * H, z: -0.9 * W, rx: 0, ry: 0, rz: -4, s: 0.8, o: 0 };
+      }
+    }
     function layout(){
-      const w = cards[0].offsetWidth;
-      const pitch = w * 0.42, depth = w * 0.35;
+      const W = cards[0].offsetWidth, H = cards[0].offsetHeight;
+      stack.style.height = (H * 2.1) + 'px';
       cards.forEach(function(card, i){
-        let d = ((i - active) % N + N) % N;
-        if (d > N / 2) d -= N;
-        const abs = Math.abs(d);
-        const dir = d === 0 ? 0 : (d > 0 ? 1 : -1);
-        card.style.transform = 'translate3d(' + (d * pitch) + 'px,0,' + (-abs * depth) + 'px) rotateY(' + (-dir * 24) + 'deg) scale(' + (1 - abs * 0.06) + ')';
-        card.style.opacity = abs > 2 ? 0 : (abs === 2 ? 0.55 : 1);
-        card.style.zIndex = 10 - abs;
+        const d = ((i - active) % N + N) % N;
+        const t = slot(d, W, H);
+        card.style.transform = 'translate3d(' + t.x + 'px,' + t.y + 'px,' + t.z + 'px) rotateX(' + t.rx + 'deg) rotateY(' + t.ry + 'deg) rotateZ(' + t.rz + 'deg) scale(' + t.s + ')';
+        card.style.opacity = t.o;
+        card.style.zIndex = 10 - d;
       });
     }
     function go(step){ active = ((active + step) % N + N) % N; layout(); }
