@@ -294,6 +294,13 @@ height: clamp(180px, 45vw, 440px);
    4/7/36.8/0 #000 8%, активный таб — просто чёрный текст (100%), неактивный — 30%
    чёрного, никакой отдельной тёмной плашки под активным табом больше нет */
 .experience-floating-tabs{position:fixed;left:50%;bottom:28px;transform:translate(-50%,24px);display:flex;align-items:center;gap:clamp(8px,3vw,30px);background:rgba(255,255,255,.1);backdrop-filter:blur(24px) saturate(160%);-webkit-backdrop-filter:blur(24px) saturate(160%);border-radius:clamp(24px,5vw,48px);padding:clamp(16px,3.89vw,56px);box-shadow:4px 7px 36.8px rgba(0,0,0,.08),inset 0 1px 0 rgba(255,255,255,.5);z-index:100;opacity:0;pointer-events:none;transition:opacity .3s ease,transform .3s ease;max-width:calc(100vw - 24px)}
+/* «арканоид»: задержался курсором на баре — деления становятся кирпичами, ракетка под ними
+   едет за мышью, мячик (красный «5» Пятёрочки) выбивает кирпичи и всплывает факт */
+.experience-bar-wrap{position:relative}
+.exp-break{position:absolute;left:0;top:0;width:100%;pointer-events:none;z-index:4;opacity:0;transition:opacity .25s ease}
+.exp-break.on{opacity:1}
+.experience-badge--pyaterochka.is-ball{opacity:.25;transition:opacity .3s ease}
+.experience-bar-wrap.playing{cursor:none}
 .experience-floating-tabs.visible{opacity:1;pointer-events:auto;transform:translate(-50%,0)}
 /* размеры по редлайну: 48px/36 line-height на 1440 (клэмп держит их пропорцию —
    line-height задан unitless 0.75, чтобы масштабировался вместе со шрифтом);
@@ -739,7 +746,10 @@ touch-action: none;
     </div>
   </div>
 
-  <div class="experience-bar-track" id="expBarTrack"></div>
+  <div class="experience-bar-wrap" id="expBarWrap">
+    <div class="experience-bar-track" id="expBarTrack"></div>
+    <canvas class="exp-break" id="expBreak" aria-hidden="true"></canvas>
+  </div>
 
   <div class="experience-stats">
     <div class="experience-stat" id="expStatPrimary">
@@ -1143,6 +1153,138 @@ document.addEventListener('DOMContentLoaded', () => {
       galleryEl.addEventListener('mouseenter', function(){ hovering = true; });
       galleryEl.addEventListener('mouseleave', function(){ hovering = false; });
     }
+  })();
+
+  // === «АРКАНОИД» на баре «Опыт работы»: мышь задержалась на баре ~1.2с — старт. Цветные
+  // деления — кирпичи, ракетка едет за мышью, мячик отбивается; выбитый кирпич показывает
+  // факт из PROJECT_FACTS. Уход мыши / Esc / смена таба — выход, бар восстанавливается ===
+  (function(){
+    const wrap = document.getElementById('expBarWrap');
+    const track = document.getElementById('expBarTrack');
+    const cv = document.getElementById('expBreak');
+    const ballBadge = document.querySelector('.experience-badge--pyaterochka');
+    if (!wrap || !track || !cv) return;
+    if (!canHover || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const PROJECT_FACTS = ['Mobile-First', 'Core Web Vitals', 'Лендинги', 'E-commerce', 'Адаптив', 'Фреймворки', 'Анимации', 'Скорость загрузки'];
+    const ctx = cv.getContext('2d');
+    const PAD_W = 130, PAD_H = 9, R = 10, EXTRA = 84;
+    let playing = false, dwell = null, raf = 0, last = 0, W = 0, H = 0, barH = 0, dpr = 1;
+    let bricks = [], mouseX = 0, ball, padX = 0, pops = [], factIdx = 0, leaveT = null, wonT = null;
+
+    function setup(){
+      const wr = wrap.getBoundingClientRect(), tk = track.getBoundingClientRect();
+      dpr = Math.min(2, window.devicePixelRatio || 1);
+      W = wr.width; barH = tk.height; H = barH + EXTRA;
+      cv.style.height = H + 'px'; cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      bricks = [];
+      Array.from(track.children).forEach(function(t){
+        if (t.style.background.indexOf('238, 238, 238') !== -1 || !t.style.background) return;
+        const r = t.getBoundingClientRect();
+        bricks.push({ el: t, x: r.left - wr.left, w: r.width, alive: true, color: t.style.background });
+      });
+      padX = W / 2; mouseX = W / 2;
+    }
+    function serve(){ ball = { x: padX, y: H - 16 - PAD_H - R, vx: (Math.random() < .5 ? -1 : 1) * 160, vy: -400 }; }
+    function start(){
+      if (playing || !barIntroDone()) return;
+      setup(); if (!bricks.length) return;
+      playing = true; factIdx = 0; pops = [];
+      track.style.transition = 'none';
+      wrap.classList.add('playing'); cv.classList.add('on');
+      if (ballBadge) ballBadge.classList.add('is-ball');
+      serve(); last = 0; raf = requestAnimationFrame(frame);
+    }
+    function barIntroDone(){ return Array.from(track.children).some(function(t){ return t.style.background && t.style.background.indexOf('238, 238, 238') === -1; }); }
+    function stop(){
+      if (!playing) return;
+      playing = false; cancelAnimationFrame(raf); raf = 0;
+      clearTimeout(wonT); wonT = null; clearTimeout(leaveT); leaveT = null;
+      bricks.forEach(function(b){ b.el.style.opacity = ''; });
+      track.style.transition = '';
+      wrap.classList.remove('playing'); cv.classList.remove('on');
+      if (ballBadge) ballBadge.classList.remove('is-ball');
+      setTimeout(function(){ if (!playing) ctx.clearRect(0, 0, W, H); }, 300);
+    }
+    function frame(ts){
+      const dt = Math.min(0.03, (ts - (last || ts)) / 1000); last = ts;
+      // ракетка: пружинно догоняет мышь
+      padX += (mouseX - padX) * Math.min(1, dt * 18);
+      padX = Math.max(PAD_W / 2, Math.min(W - PAD_W / 2, padX));
+      const padY = H - 16 - PAD_H;
+      ball.x += ball.vx * dt; ball.y += ball.vy * dt;
+      if (ball.x < R){ ball.x = R; ball.vx = Math.abs(ball.vx); }
+      if (ball.x > W - R){ ball.x = W - R; ball.vx = -Math.abs(ball.vx); }
+      if (ball.y < R){ ball.y = R; ball.vy = Math.abs(ball.vy); }
+      // ракетка
+      if (ball.vy > 0 && ball.y + R >= padY && ball.y + R <= padY + PAD_H + 10 && Math.abs(ball.x - padX) <= PAD_W / 2 + R){
+        const off = (ball.x - padX) / (PAD_W / 2);
+        const sp = Math.min(720, Math.hypot(ball.vx, ball.vy) * 1.02);
+        const ang = off * 62 * Math.PI / 180;
+        ball.vx = Math.sin(ang) * sp; ball.vy = -Math.cos(ang) * sp; ball.y = padY - R;
+      }
+      if (ball.y > H + 30) serve();
+      // кирпичи занимают зону бара [0, barH]
+      if (ball.y - R < barH){
+        for (let i = 0; i < bricks.length; i++){
+          const b = bricks[i];
+          if (!b.alive) continue;
+          if (ball.x + R > b.x && ball.x - R < b.x + b.w){
+            b.alive = false; b.el.style.opacity = '0';
+            ball.vy = Math.abs(ball.vy);
+            if (ball.y - R < barH && ball.y > barH * 0.5) ball.y = barH + R; // не залипаем внутри кирпичного ряда
+            pops.push({ t: 0, x: Math.max(70, Math.min(W - 70, b.x)), y: Math.min(ball.y, barH) - 6, text: PROJECT_FACTS[factIdx++ % PROJECT_FACTS.length] });
+            break;
+          }
+        }
+        if (!bricks.some(function(b){ return b.alive; }) && !wonT){ wonT = setTimeout(function(){ wonT = null; stop(); }, 1400); }
+      }
+      draw(dt);
+      if (playing) raf = requestAnimationFrame(frame);
+    }
+    function draw(dt){
+      ctx.clearRect(0, 0, W, H);
+      // ракетка
+      ctx.fillStyle = '#0b0b0b';
+      ctx.beginPath(); ctx.roundRect(padX - PAD_W / 2, H - 16 - PAD_H, PAD_W, PAD_H, 4); ctx.fill();
+      // мячик — красный кружок «5»
+      ctx.fillStyle = '#E30613'; ctx.beginPath(); ctx.arc(ball.x, ball.y, R, 0, 7); ctx.fill();
+      ctx.fillStyle = '#fff'; ctx.font = '700 12px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText('5', ball.x, ball.y + 1);
+      // выбитые кирпичи: всплывающая подпись
+      pops = pops.filter(function(p){ return p.t < 1.4; });
+      pops.forEach(function(p){
+        p.t += dt;
+        ctx.globalAlpha = Math.max(0, 1 - p.t / 1.4);
+        ctx.fillStyle = '#0b0b0b'; ctx.font = '700 14px "Courier New",monospace'; ctx.textAlign = 'center';
+        ctx.fillText(p.text, p.x, p.y - p.t * 38);
+        ctx.globalAlpha = 1;
+      });
+      ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.font = '11px "Courier New",monospace'; ctx.textAlign = 'left';
+      ctx.fillText('BREAKOUT · ESC — выход', 8, H - 4);
+    }
+    wrap.addEventListener('pointerenter', function(e){
+      if (e.pointerType !== 'mouse') return;
+      clearTimeout(leaveT); clearTimeout(dwell);
+      if (!playing) dwell = setTimeout(start, 1200);
+    });
+    wrap.addEventListener('pointerleave', function(){
+      clearTimeout(dwell);
+      if (playing){ clearTimeout(leaveT); leaveT = setTimeout(function(){ leaveT = null; stop(); }, 900); }
+    });
+    window.addEventListener('pointermove', function(e){
+      if (e.pointerType !== 'mouse') return;
+      const r = wrap.getBoundingClientRect();
+      mouseX = e.clientX - r.left;
+      if (playing){
+        // мышь в пределах арены (бар + зона ракетки) — не выходим
+        if (e.clientY >= r.top - 10 && e.clientY <= r.top + H + 10){ clearTimeout(leaveT); leaveT = null; }
+        else if (!leaveT){ leaveT = setTimeout(function(){ leaveT = null; stop(); }, 900); }
+      }
+    }, { passive: true });
+    window.addEventListener('keydown', function(e){ if (e.key === 'Escape') stop(); });
+    window.addEventListener('resize', stop);
+    document.querySelectorAll('.exp-tab').forEach(function(b){ b.addEventListener('click', stop); });
   })();
 
   // === HERO HEIGHT ===
