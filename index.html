@@ -244,7 +244,7 @@ height: clamp(180px, 45vw, 440px);
 .count{font-size:16px;opacity:.8;margin-top:4px;font-family:'ONY One',sans-serif}
 
 /* === ОПЫТ РАБОТЫ (заменяет старый about-me с видео и табами) === */
-.experience-section{position:relative;max-width:1440px;margin:140px auto 0;padding:0 30px;width:100%;text-align:center;box-sizing:border-box}
+.experience-section{max-width:1440px;margin:140px auto 0;padding:0 30px;width:100%;text-align:center;box-sizing:border-box}
 .experience-title{font-size:clamp(40px,9.72vw,140px);font-family:'ONY Track Moscow',sans-serif;font-weight:400;margin:0;letter-spacing:-.02em;color:#0b0b0b}
 .experience-subtitle{font-size:clamp(20px,2.22vw,32px);color:#0b0b0b;margin:0 0 clamp(32px,6vw,64px);min-height:1.4em;transition:opacity .25s ease}
 .experience-subtitle.fading{opacity:0}
@@ -289,22 +289,18 @@ height: clamp(180px, 45vw, 440px);
 .experience-gallery-item{width:320px;height:512px;background:#e5e5e5;flex-shrink:0}
 
 
-/* «тир»: прицел вместо курсора в верхней части блока; выстрелы оставляют пробоины на белом
-   (гаснут), по бейджам — рикошет и «медальонный» наклон со свечением, шкала — перегрев */
-.experience-badges{perspective:900px}
-.exp-arena{position:absolute;left:0;top:0;pointer-events:none;z-index:6}
-.exp-cross{position:fixed;left:0;top:0;width:46px;height:46px;margin:-23px 0 0 -23px;pointer-events:none;z-index:2147483646;opacity:0;transition:opacity .15s ease;will-change:transform}
-.exp-cross.on{opacity:1}
-.exp-cross i{position:absolute;background:#e30613}
-.exp-cross i:nth-child(1){left:50%;top:0;width:2px;height:14px;margin-left:-1px}
-.exp-cross i:nth-child(2){left:50%;bottom:0;width:2px;height:14px;margin-left:-1px}
-.exp-cross i:nth-child(3){top:50%;left:0;height:2px;width:14px;margin-top:-1px}
-.exp-cross i:nth-child(4){top:50%;right:0;height:2px;width:14px;margin-top:-1px}
-.exp-cross::before{content:"";position:absolute;inset:7px;border:2px solid #e30613;border-radius:50%}
-.exp-cross::after{content:"";position:absolute;left:50%;top:50%;width:4px;height:4px;margin:-2px;border-radius:50%;background:#e30613}
-.exp-cross.fire{animation:expCrossFire .14s ease-out}
-@keyframes expCrossFire{0%{scale:1}35%{scale:.78}100%{scale:1}}
-body.exp-aim .experience-section{cursor:none}
+/* плавающий таб-бар с тремя категориями, виден пока секция «Опыт работы» на экране —
+   стеклянный эффект по редлайну: fill #fff 10%, blur-подложка (Frost), тень
+   4/7/36.8/0 #000 8%, активный таб — просто чёрный текст (100%), неактивный — 30%
+   чёрного, никакой отдельной тёмной плашки под активным табом больше нет */
+.experience-floating-tabs{position:fixed;left:50%;bottom:28px;transform:translate(-50%,24px);display:flex;align-items:center;gap:clamp(8px,3vw,30px);background:rgba(255,255,255,.1);backdrop-filter:blur(24px) saturate(160%);-webkit-backdrop-filter:blur(24px) saturate(160%);border-radius:clamp(24px,5vw,48px);padding:clamp(16px,3.89vw,56px);box-shadow:4px 7px 36.8px rgba(0,0,0,.08),inset 0 1px 0 rgba(255,255,255,.5);z-index:100;opacity:0;pointer-events:none;transition:opacity .3s ease,transform .3s ease;max-width:calc(100vw - 24px)}
+.experience-floating-tabs.visible{opacity:1;pointer-events:auto;transform:translate(-50%,0)}
+/* размеры по редлайну: 48px/36 line-height на 1440 (клэмп держит их пропорцию —
+   line-height задан unitless 0.75, чтобы масштабировался вместе со шрифтом);
+   нижняя граница clamp'а — минимум, при котором три лейбла ещё влезают на 390px
+   экран без горизонтального выхода за viewport */
+.exp-tab{border:none;background:transparent;padding:0;font-size:clamp(17px,3.33vw,48px);font-weight:400;letter-spacing:normal;text-transform:uppercase;line-height:.75;cursor:pointer;color:rgba(0,0,0,.3);font-family:'ONY Track Moscow',sans-serif;transition:color .2s ease;touch-action:manipulation;white-space:nowrap}
+.exp-tab.active{color:#000}
 @media (max-width:640px){
   .experience-gallery-item{width:200px;height:320px}
 }
@@ -314,6 +310,7 @@ body.exp-aim .experience-section{cursor:none}
 .word:hover{color:rgba(0,0,0,.2)}
 .cta-button:hover{background:#d33a2c}
 .tab-item:hover:not(.active){color:#333 !important}
+.exp-tab:hover:not(.active){color:rgba(0,0,0,.55)}
 .telegram-btn:hover{background:#2299cc}
 #pixel-grid{cursor:none}
 }
@@ -716,7 +713,6 @@ touch-action: none;
 
 <!-- === ОПЫТ РАБОТЫ (новая секция вместо старого about-me) === -->
 <div class="experience-section" id="experienceSection">
-  <canvas class="exp-arena" id="expArena" aria-hidden="true"></canvas>
   <h2 class="experience-title">МОЙ ОПЫТ</h2>
   <p class="experience-subtitle" id="expSubtitle">Mobile-First и скорость загрузки</p>
 
@@ -789,7 +785,11 @@ touch-action: none;
   </div>
 </div>
 
-<div class="exp-cross" id="expCross" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+<div class="experience-floating-tabs" id="expFloatingTabs">
+  <button class="exp-tab active" type="button" data-tab="websites">Сайты</button>
+  <button class="exp-tab" type="button" data-tab="apps">Приложения</button>
+  <button class="exp-tab" type="button" data-tab="branding">Брендинг</button>
+</div>
 
 <div class="cursor-follower" id="follower">
 <img id="follower-img" src="" alt="" aria-hidden="true">
@@ -967,8 +967,6 @@ document.addEventListener('DOMContentLoaded', () => {
       paintBarTicks(percent, !!stagger);
     }
 
-    window.__expBar = { paint: function(pc){ expBarPercent = expBarPercent; paintBarTicks(pc, false); }, base: function(){ return expTabConfigs.websites.percent; }, ready: function(){ return barIntroPlayed; } };
-
     let currentExpTab = null;
     function renderExpTab(key, animate){
       const cfg = expTabConfigs[key];
@@ -1145,139 +1143,6 @@ document.addEventListener('DOMContentLoaded', () => {
       galleryEl.addEventListener('mouseenter', function(){ hovering = true; });
       galleryEl.addEventListener('mouseleave', function(){ hovering = false; });
     }
-  })();
-
-  // === «ТИР» в верхней части блока «Опыт работы»: прицел, пробоины (гаснут), рикошет по
-  // бейджам-«медальонам» (наклон в сторону попадания + свечение), шкала — индикатор перегрева ===
-  (function(){
-    const section = document.getElementById('experienceSection');
-    const cv = document.getElementById('expArena');
-    const cross = document.getElementById('expCross');
-    const barWrap = document.getElementById('expBarTrack');
-    if (!section || !cv || !cross || !barWrap) return;
-    const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const badges = Array.from(section.querySelectorAll('.experience-badge'));
-    const ctx = cv.getContext('2d');
-    const HOLE_LIFE = 4.5, HEAT_PER_SHOT = 8.5, HEAT_DECAY = 22;
-    let W = 0, H = 0, holes = [], sparks = [], raf = 0, last = 0, heat = 0, litShown = -1, full = 0;
-    const tilt = new Map(); // badge -> {rx,ry,vx,vy,g}
-    badges.forEach(function(b){ tilt.set(b, { rx: 0, ry: 0, vx: 0, vy: 0, tx: 0, ty: 0, g: 0 }); });
-
-    function size(){
-      const sr = section.getBoundingClientRect(), br = barWrap.getBoundingClientRect();
-      W = sr.width; H = Math.max(0, br.bottom - sr.top);
-      cv.style.width = W + 'px'; cv.style.height = H + 'px';
-      cv.width = Math.round(W); cv.height = Math.round(H);
-    }
-    function arenaRect(){
-      const sr = section.getBoundingClientRect(), br = barWrap.getBoundingClientRect();
-      return { l: sr.left, t: sr.top, r: sr.right, b: br.bottom };
-    }
-    function inArena(x, y){ const a = arenaRect(); return x >= a.l && x <= a.r && y >= a.t && y <= a.b; }
-    function badgeAt(x, y){
-      for (const b of badges){
-        const r = b.getBoundingClientRect();
-        const dx = x - (r.left + r.width / 2), dy = y - (r.top + r.height / 2);
-        if (Math.hypot(dx, dy) <= r.width / 2) return { b: b, dx: dx / (r.width / 2), dy: dy / (r.width / 2), r: r };
-      }
-      return null;
-    }
-    function shoot(x, y){
-      if (!W || Math.abs(W - section.getBoundingClientRect().width) > 1) size();
-      const sr = section.getBoundingClientRect();
-      const px = x - sr.left, py = y - sr.top;
-      const hitB = badgeAt(x, y);
-      if (hitB){
-        // рикошет: искры веером от центра бейджа через точку попадания + короткая царапина
-        const base = Math.atan2(hitB.dy, hitB.dx);
-        for (let i = 0; i < 9; i++){
-          const a = base + (Math.random() - .5) * 1.1, sp = 180 + Math.random() * 260;
-          sparks.push({ x: px, y: py, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, t: 0, life: .35 + Math.random() * .25 });
-        }
-        holes.push({ x: px, y: py, t: 0, scratch: base, kind: 'metal' });
-        const st = tilt.get(hitB.b), k = 20;
-        st.vy += hitB.dx * k * 14; st.vx += -hitB.dy * k * 14; st.g = 1;
-      } else {
-        holes.push({ x: px, y: py, t: 0, seed: Math.random() * 6.28, kind: 'hole' });
-      }
-      heat = Math.min(100, heat + HEAT_PER_SHOT);
-      if (heat >= 100 && !full) full = 1.2;
-      cross.classList.remove('fire'); void cross.offsetWidth; cross.classList.add('fire');
-      if (!raf){ last = 0; raf = requestAnimationFrame(frame); }
-    }
-    function paintHeat(){
-      const bar = window.__expBar; if (!bar || !bar.ready()) return;
-      const lit = Math.round(Math.max(bar.base(), heat));
-      if (lit !== litShown){ litShown = lit; bar.paint(lit); }
-    }
-    function frame(ts){
-      const dt = Math.min(0.04, (ts - (last || ts)) / 1000); last = ts;
-      ctx.clearRect(0, 0, W, H);
-      // пробоины
-      holes = holes.filter(function(h){ return h.t < HOLE_LIFE; });
-      holes.forEach(function(h){
-        h.t += dt;
-        const a = Math.min(1, (HOLE_LIFE - h.t) / 1.2);
-        ctx.globalAlpha = Math.max(0, a); ctx.strokeStyle = '#111'; ctx.fillStyle = '#111';
-        if (h.kind === 'hole'){
-          ctx.beginPath(); ctx.arc(h.x, h.y, 3.2, 0, 7); ctx.fill();
-          ctx.lineWidth = 1.4; ctx.beginPath(); ctx.arc(h.x, h.y, 7, 0, 7); ctx.stroke();
-          for (let i = 0; i < 7; i++){
-            const an = h.seed + i * 0.9, l0 = 8, l1 = 12 + ((i * 7) % 6);
-            ctx.lineWidth = 1; ctx.beginPath();
-            ctx.moveTo(h.x + Math.cos(an) * l0, h.y + Math.sin(an) * l0);
-            ctx.lineTo(h.x + Math.cos(an) * l1, h.y + Math.sin(an) * l1); ctx.stroke();
-          }
-        } else {
-          ctx.strokeStyle = '#ffd47a'; ctx.lineWidth = 2;
-          ctx.beginPath(); ctx.moveTo(h.x - Math.cos(h.scratch) * 8, h.y - Math.sin(h.scratch) * 8);
-          ctx.lineTo(h.x + Math.cos(h.scratch) * 8, h.y + Math.sin(h.scratch) * 8); ctx.stroke();
-        }
-        ctx.globalAlpha = 1;
-      });
-      // искры рикошета
-      sparks = sparks.filter(function(s){ return s.t < s.life; });
-      sparks.forEach(function(s){
-        s.t += dt; s.x += s.vx * dt; s.y += s.vy * dt; s.vy += 500 * dt;
-        ctx.globalAlpha = 1 - s.t / s.life; ctx.strokeStyle = '#ffcf5a'; ctx.lineWidth = 2;
-        ctx.beginPath(); ctx.moveTo(s.x, s.y); ctx.lineTo(s.x - s.vx * 0.03, s.y - s.vy * 0.03); ctx.stroke();
-        ctx.globalAlpha = 1;
-      });
-      // бейджи-«медальоны»: пружина наклона + свечение
-      let moving = false;
-      tilt.forEach(function(st, b){
-        st.vx += ((0 - st.rx) * 90 - st.vx * 7) * dt; st.rx += st.vx * dt;
-        st.vy += ((0 - st.ry) * 90 - st.vy * 7) * dt; st.ry += st.vy * dt;
-        st.g = Math.max(0, st.g - dt * 0.9);
-        const mag = Math.hypot(st.rx, st.ry);
-        if (mag > 0.05 || st.g > 0.01){
-          moving = true;
-          b.style.rotate = mag > 0.05 ? (st.rx.toFixed(2) + ' ' + st.ry.toFixed(2) + ' 0 ' + mag.toFixed(2) + 'deg') : '';
-          b.style.boxShadow = st.g > 0.01 ? '0 0 ' + (46 * st.g).toFixed(1) + 'px ' + (12 * st.g).toFixed(1) + 'px rgba(255,214,120,' + (0.85 * st.g).toFixed(2) + '),inset 0 0 ' + (30 * st.g).toFixed(1) + 'px rgba(255,236,170,' + (0.5 * st.g).toFixed(2) + ')' : '';
-        } else { b.style.rotate = ''; b.style.boxShadow = ''; }
-      });
-      // перегрев шкалы
-      heat = Math.max(0, heat - HEAT_DECAY * dt * (full ? 0.2 : 1));
-      if (full > 0){ full -= dt; if (full <= 0){ full = 0; heat = Math.min(heat, 60); } }
-      paintHeat();
-      if (holes.length || sparks.length || moving || heat > 0.5 || full){ raf = requestAnimationFrame(frame); }
-      else { raf = 0; ctx.clearRect(0, 0, W, H); litShown = -1; const bar = window.__expBar; if (bar && bar.ready()) bar.paint(bar.base()); }
-    }
-
-    window.addEventListener('pointermove', function(e){
-      if (e.pointerType === 'touch') return;
-      const on = inArena(e.clientX, e.clientY);
-      cross.classList.toggle('on', on);
-      document.body.classList.toggle('exp-aim', on);
-      if (on) cross.style.transform = 'translate(' + e.clientX + 'px,' + e.clientY + 'px)';
-    }, { passive: true });
-    document.addEventListener('mouseleave', function(){ cross.classList.remove('on'); document.body.classList.remove('exp-aim'); });
-    window.addEventListener('pointerdown', function(e){
-      if (e.button !== 0 || reduced) return;
-      if (!inArena(e.clientX, e.clientY)) return;
-      shoot(e.clientX, e.clientY);
-    });
-    window.addEventListener('resize', size);
   })();
 
   // === HERO HEIGHT ===
