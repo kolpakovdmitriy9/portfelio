@@ -15,7 +15,7 @@ body{margin:0;padding:0 0 80px;width:100%;overflow-x:hidden;font-family:'ONY One
 body.design{background:linear-gradient(to bottom,#fff,#FDF7F3);background-attachment:fixed}
 body.interfaces{background:linear-gradient(to bottom,#fff,#e6f5ff);background-attachment:fixed}
 body.branding{background:linear-gradient(to bottom,#fff,#f5e6ff);background-attachment:fixed}
-/* Отступ над lottie ровно 64px на любом разрешении: контент прижат к верху,
+/* Отступ сверху ровно 64px на любом разрешении: контент прижат к верху,
    а не центрируется по высоте — при центрировании отступ плавал и совпадал
    с макетными 64 только на низких экранах */
 .hero-container{height:100vh;display:flex;flex-direction:column;justify-content:flex-start;align-items:center;text-align:center;padding:64px clamp(20px,5vw,80px) 0;box-sizing:border-box}
@@ -24,7 +24,6 @@ body.branding{background:linear-gradient(to bottom,#fff,#f5e6ff);background-atta
 .marquee-container{margin:clamp(16px,3vw,80px) 0 clamp(72px,5vw,120px)}
 .cta-container{margin-top:16px}
 .header-section{width:100%;max-width:360px;display:flex;flex-direction:column;align-items:center;gap:16px;text-align:center}
-.lottie-wrapper{width:64px;height:64px}
 .text-slider{position:relative;height:36px;overflow:hidden;width:100%;text-align:center;font-size:18px;line-height:1.2;letter-spacing:-0.02em;font-weight:400;display:flex;align-items:center;justify-content:center}
 .text-slide{position:absolute;width:100%;left:0;transition:transform .3s ease-out}
 .logo-wrapper{display:flex;justify-content:center;align-items:center}
@@ -252,15 +251,13 @@ height: clamp(180px, 45vw, 440px);
    Сам .experience-badge — белый круг 234px (это и есть белая обводка вокруг них — она
    нужна, чтобы кружки, перекрывая друг друга, не сливались по цвету на стыке); контент
    (лого/видео) — вложенный кружок поменьше (214px, т.е. отступ 10px от края) поверх. */
-.experience-badges{display:flex;justify-content:center;align-items:center;margin-bottom:90px}
+.experience-badges{display:flex;justify-content:center;align-items:center;margin-bottom:clamp(40px,6vw,90px)}
 /* по макету кружки перекрывают друг друга (630×234, отступ -36 при трёх кружках 234px) —
    отрицательный margin вместо gap (flex gap отрицательным не бывает) */
 .experience-badge{position:relative;width:clamp(72px,16.25vw,234px);height:clamp(72px,16.25vw,234px);border-radius:50%;flex-shrink:0;background:#fff}
 .experience-badge:not(:first-child){margin-left:clamp(-36px,-2.5vw,-12px)}
 .experience-badge-inner{position:absolute;inset:10px;border-radius:50%;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center}
-.experience-badge--rivgosh .experience-badge-inner{background:#0b0b0b;color:#fff;font-family:'ONY One',sans-serif;font-weight:700;font-size:clamp(12px,1.4vw,18px);line-height:1.2;letter-spacing:.02em}
-.experience-badge--pyaterochka .experience-badge-inner{background:#E30613}
-.experience-badge--pyaterochka svg{width:100%;height:100%;display:block}
+.experience-badge-inner img{width:100%;height:100%;object-fit:cover;display:block}
 .experience-badge--video .experience-badge-inner{background:#0b0b0b}
 .experience-badge--video video{width:100%;height:100%;object-fit:cover;display:block}
 /* кольцо прогресса просмотра лежит НА видео (тот же inset:10px, что и сам кружок
@@ -498,8 +495,7 @@ touch-action: none;
   .hero-container{padding:32px 12px 0}
   .cta-container{padding:0 12px}
 
-  /* лотти и логотип уменьшены пропорционально относительно десктопных 64px/34px */
-  .lottie-wrapper{width:40px;height:40px}
+  /* логотип уменьшен пропорционально относительно десктопных 34px */
   .portfolio-logo{height:20px}
 
   /* бегущая строка по центру между логотипом и кнопкой: band пересчитан под
@@ -522,7 +518,6 @@ touch-action: none;
 <body>
 <div class="hero-container">
 <div class="header-section">
-<div class="lottie-wrapper" id="lottieContainer"></div>
 <div class="logo-wrapper">
 <img class="portfolio-logo" src="https://raw.githubusercontent.com/kolpakovdmitriy9/newbring.github.io/363a26cc3be7802444e16917935d498c46c70b68/lovelllas.hyperesources/portfelix.svg" alt="Портфеликс" />
 </div>
@@ -713,20 +708,12 @@ touch-action: none;
 
 <!-- === ОПЫТ РАБОТЫ (новая секция вместо старого about-me) === -->
 <div class="experience-section" id="experienceSection">
-  <h2 class="experience-title">МОЙ ОПЫТ</h2>
-  <p class="experience-subtitle" id="expSubtitle">Mobile-First и скорость загрузки</p>
-
   <div class="experience-badges">
     <div class="experience-badge experience-badge--rivgosh" aria-label="Рив Гош">
-      <div class="experience-badge-inner"><span>РИВ</span><span>ГОШ</span></div>
+      <div class="experience-badge-inner"><img src="files/logo-rivgosh.png" alt="Рив Гош"></div>
     </div>
     <div class="experience-badge experience-badge--pyaterochka" aria-label="Пятёрочка">
-      <div class="experience-badge-inner">
-        <svg viewBox="0 0 100 100" aria-hidden="true">
-          <text x="38" y="72" font-family="'ONY One',sans-serif" font-weight="700" font-size="62" text-anchor="middle" fill="#fff">5</text>
-          <path d="M62 22C74 22 82 30 82 42C70 42 62 34 62 22Z" fill="#7AC943"/>
-        </svg>
-      </div>
+      <div class="experience-badge-inner"><img src="files/logo-5.png" alt="Пятёрочка"></div>
     </div>
     <div class="experience-badge experience-badge--video">
       <div class="experience-badge-inner">
@@ -738,6 +725,9 @@ touch-action: none;
       </svg>
     </div>
   </div>
+
+  <h2 class="experience-title">МОЙ ОПЫТ</h2>
+  <p class="experience-subtitle" id="expSubtitle">Mobile-First и скорость загрузки</p>
 
   <div class="experience-bar-track" id="expBarTrack"></div>
 
@@ -794,7 +784,6 @@ touch-action: none;
 <div class="cursor-follower" id="follower">
 <img id="follower-img" src="" alt="" aria-hidden="true">
 </div>
-<script src="https://unpkg.com/lottie-web@5.12.2/build/player/lottie.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
   // Устройство умеет наводить курсор (мышь/трекпад) — только там включаем ховер-логику на JS
@@ -1206,7 +1195,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // === MARQUEE ===
   const words = [
-    { text: "Айдентика.", className: "design" },
     { text: "Сайты.", className: "interfaces" },
     { text: "Приложения.", className: "branding" },
     { text: "Графика.", className: "design" }
@@ -1219,6 +1207,23 @@ document.addEventListener('DOMContentLoaded', () => {
   if (marqueeInner) marqueeInner.innerHTML = fullHTML;
   // движение задано в CSS через @keyframes marquee-scroll — так оно считается
   // композитором, а не этим потоком, и не спотыкается о нашу же остальную работу
+
+  // Автоскейл: одна копия строки должна быть не уже экрана, иначе на широких
+  // экранах в конце полосы появляется пустота. Масштабируем кегль и длительность,
+  // скорость при этом остаётся 72px/с на всех экранах
+  const MARQUEE_SPEED = 72;
+  function fitMarquee() {
+    if (!marqueeInner) return;
+    marqueeInner.style.fontSize = '';
+    marqueeInner.style.animationDuration = '';
+    const baseSize = parseFloat(getComputedStyle(marqueeInner).fontSize);
+    const copyWidth = marqueeInner.scrollWidth / 2;
+    const scale = Math.max(1, window.innerWidth / copyWidth);
+    marqueeInner.style.fontSize = baseSize * scale + 'px';
+    marqueeInner.style.animationDuration = copyWidth * scale / MARQUEE_SPEED + 's';
+  }
+  document.fonts.ready.then(fitMarquee);
+  window.addEventListener('resize', fitMarquee);
 
   // === CURSOR FOLLOWER (только для устройств с мышью — на тач-экранах ховера нет и он не нужен) ===
   if (canHover) {
@@ -1258,9 +1263,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // === LOTTIE ===
-  // Если CDN с lottie-web не загрузился (например, на нестабильном мобильном интернете),
-  // не даём этому уронить остальной скрипт — просто показываем фразы без анимации.
+  // === PHRASES ===
   const phrases = ["Привет. Познакомимся?","Поработаем вместе?","Пиццу будешь?","Почему не отвечаешь...","Понял. Попробуем еще раз"];
   let currentPhraseIndex = 0;
   function showPhrase(text) {
@@ -1280,18 +1283,7 @@ document.addEventListener('DOMContentLoaded', () => {
       showPhrase(phrases[currentPhraseIndex]);
     }, 2500);
   }
-  if (typeof lottie !== 'undefined') {
-    const anim = lottie.loadAnimation({
-      container: document.getElementById('lottieContainer'),
-      renderer: 'svg',
-      loop: true,
-      autoplay: true,
-      path: 'https://kolpakovdmitriy9.github.io/newbring.github.io/assets/animate.json'
-    });
-    anim.addEventListener('DOMLoaded', startPhraseLoop);
-  } else {
-    startPhraseLoop();
-  }
+  startPhraseLoop();
 
   // === HOVER IMAGE ===
   // На устройствах с мышью — переключение по наведению, на тач-экранах — по тапу (аналог ховера)
