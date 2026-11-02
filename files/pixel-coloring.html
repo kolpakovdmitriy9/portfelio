@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Пиксельная раскраска</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{min-height:100vh;display:flex;align-items:center;justify-content:center;background:#eceef2;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-tap-highlight-color:transparent;user-select:none}
+  .app{position:relative;width:476px;height:820px;background:#fff;overflow:hidden;box-shadow:0 10px 40px rgba(0,0,0,.12)}
+  .top{position:absolute;top:0;left:0;right:0;height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 14px}
+  .plate{width:60px;height:48px;background:#fff;box-shadow:0 2px 10px rgba(0,0,0,.12);border-radius:14px;border:0;display:grid;place-items:center;cursor:pointer;color:#2f7cf6}
+  .plate svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .plate.muted{color:#b5b5b5}
+  .plate.reset{color:#ff9f1c}
+  .plate.reset svg{width:26px;height:26px}
+  .board{position:absolute;top:64px;left:0;right:0;height:668px}
+  canvas{display:block;width:100%;height:100%;touch-action:none;cursor:crosshair}
+  .palette{position:absolute;left:0;right:0;bottom:0;height:88px;background:#f6f6f7;border-top:1px solid #ececec;display:flex;align-items:center;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .palette::-webkit-scrollbar{display:none}
+  .row{position:relative;display:flex;align-items:center;gap:10px;margin:0 auto;padding:0 16px;flex:none}
+  .hl{position:absolute;left:0;top:0;width:50px;height:50px;border-radius:16px;pointer-events:none;z-index:2;background:rgba(0,0,0,.14);transition:transform .35s cubic-bezier(.3,.7,.2,1),background-color .35s ease,opacity .25s ease}
+  .slot{position:relative;width:48px;height:48px;display:grid;place-items:center;z-index:1}
+  .swatch{width:40px;height:40px;border:0;border-radius:50%;cursor:pointer;font:700 16px/1 system-ui,-apple-system,sans-serif;display:grid;place-items:center;transition:opacity .25s}
+    .swatch:disabled{opacity:.28;cursor:not-allowed}
+  .eraser{background-color:#fff;background-image:conic-gradient(#d9d9d9 25%,#fff 0 50%,#d9d9d9 0 75%,#fff 0);background-size:12px 12px;border:1px solid #e3e3e3}
+  .done{position:absolute;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;gap:12px;background:rgba(255,255,255,.85);font:700 28px system-ui,sans-serif;color:#0b0b0b}
+  .done.show{display:flex}
+  .done button{margin-top:8px;padding:12px 24px;border:0;border-radius:24px;background:#0b0b0b;color:#fff;font:600 15px system-ui,sans-serif;cursor:pointer}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <div class="top">
+    <button class="plate" id="sound" aria-label="Звук" title="Звук">
+      <svg viewBox="0 0 24 24" id="soundOn"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></svg>
+      <svg viewBox="0 0 24 24" id="soundOff" style="display:none"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M22 9l-6 6M16 9l6 6"/></svg>
+    </button>
+    <button class="plate reset" id="reset" aria-label="Начать заново" title="Начать заново">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4" stroke="currentColor" fill="none" stroke-width="2"/><circle cx="8" cy="8" r="1.6" fill="currentColor"/><circle cx="16" cy="16" r="1.6" fill="currentColor"/><circle cx="12" cy="12" r="1.6" fill="currentColor"/></svg>
+    </button>
+  </div>
+
+  <div class="board"><canvas id="board"></canvas></div>
+
+  <div class="palette" id="palette">
+    <div class="row" id="row">
+    <div class="hl" id="hl"></div>
+    <div class="slot" data-slot="eraser"><button class="swatch eraser" id="eraser" aria-label="Стерка" title="Стерка"></button></div>
+    <div class="slot" data-n="1"><button class="swatch" data-n="1" style="background:#0c0c0e;color:#fff">1</button></div>
+    <div class="slot" data-n="2"><button class="swatch" data-n="2" style="background:#2e3136;color:#fff">2</button></div>
+    <div class="slot" data-n="3"><button class="swatch" data-n="3" style="background:#565b63;color:#fff">3</button></div>
+    <div class="slot" data-n="4"><button class="swatch" data-n="4" style="background:#8b9199;color:#0b0b0b">4</button></div>
+    <div class="slot" data-n="5"><button class="swatch" data-n="5" style="background:#d9a882;color:#0b0b0b">5</button></div>
+    <div class="slot" data-n="6"><button class="swatch" data-n="6" style="background:#f2c200;color:#0b0b0b">6</button></div>
+  </div>
+
+  <div class="done" id="done">Готово!<button id="again">Ещё раз</button></div>
+</div>
+
+<script>
+// Сетка: каждая цифра — номер цвета, в который нужно закрасить клетку. «.» — пустая клетка.
+const GRID = [
+ ".......22.....4........",
+ ".......22.....4........",
+ ".......224...34........",
+ ".......22333334........",
+ ".......22333334........",
+ ".......22333334........",
+ ".......22.333.4........",
+ ".......22333334........",
+ ".......22333334........",
+ ".......22555554........",
+ ".......22555554........",
+ ".......22555554........",
+ ".......22555554........",
+ ".......22355534........",
+ "......1223333341.......",
+ ".....112233333411......",
+ "....33333333333444.....",
+ "...2333333333333334....",
+ "...2312333222334134....",
+ "...2312332222234134....",
+ "...2312333222334134....",
+ "...2412333333334124....",
+ "2222412333333334124444.",
+ ".22241233333333412444..",
+ "..224123333333341244...",
+ "...2112333333334114....",
+ "...2416336363636124....",
+ "...2116666666666114....",
+ "...1116336363636111....",
+ "...1112334111234111....",
+ "...1112334111234111....",
+ "...1112334111234111....",
+ "...1112334111234111....",
+ "...1112224111224111....",
+ "...11.2224111224.11....",
+ "...1..2224.1.224..1....",
+ "...1..3224.1.224..1....",
+ ".....22224...2224......",
+ "....222224...22224....."
+];
+
+const COLORS = { 1: '#0c0c0e', 2: '#2e3136', 3: '#565b63', 4: '#8b9199', 5: '#d9a882', 6: '#f2c200' };
+const ROWS = GRID.length;
+const COLS = GRID[0].length;
+const BASE_CELL = 15;
+const MIN_CELL = BASE_CELL;
+const MAX_CELL = BASE_CELL * 4;
+
+const target = GRID.map(row => [...row].map(ch => (ch === '.' ? 0 : Number(ch))));
+const paint = target.map(row => row.map(() => 0));
+const totals = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 };
+target.forEach(row => row.forEach(n => { if (n) totals[n]++; }));
+
+let selected = 1;
+let erasing = false;
+let muted = false;
+let audio = null;
+
+// камера: размер клетки и положение левого верхнего угла сетки в координатах канваса
+const canvas = document.getElementById('board');
+const ctx = canvas.getContext('2d');
+let cell = BASE_CELL;
+let ox = 0, oy = 0;
+let W = 0, H = 0;
+let zoomed = false;
+
+// указатели: один — рисуем, два — зум и сдвиг, правая кнопка — сдвиг
+const pointers = new Map();
+let mode = null;          // 'paint' | 'pan' | 'pinch'
+let lastDist = 0, lastMid = null;
+
+function hexToRgb(hex) {
+  const v = parseInt(hex.slice(1), 16);
+  return [(v >> 16) & 255, (v >> 8) & 255, v & 255];
+}
+
+function layout() {
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.getBoundingClientRect();
+  W = rect.width;
+  H = rect.height;
+  canvas.width = Math.round(W * dpr);
+  canvas.height = Math.round(H * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  if (!zoomed) centerGrid();
+  clampOrigin();
+  draw();
+}
+
+function centerGrid() {
+  ox = (W - COLS * cell) / 2;
+  oy = (H - ROWS * cell) / 2;
+}
+
+function clampOrigin() {
+  const gw = COLS * cell, gh = ROWS * cell;
+  ox = gw <= W ? (W - gw) / 2 : Math.min(0, Math.max(W - gw, ox));
+  oy = gh <= H ? (H - gh) / 2 : Math.min(0, Math.max(H - gh, oy));
+}
+
+function zoomAt(mx, my, factor) {
+  const next = Math.min(MAX_CELL, Math.max(MIN_CELL, cell * factor));
+  const ratio = next / cell;
+  ox = mx - (mx - ox) * ratio;
+  oy = my - (my - oy) * ratio;
+  cell = next;
+  zoomed = cell > MIN_CELL;
+  clampOrigin();
+  draw();
+}
+
+function draw() {
+  ctx.clearRect(0, 0, W, H);
+  const fontSize = Math.max(7, Math.round(cell * 0.6));
+  ctx.font = `600 ${fontSize}px system-ui, sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      const n = target[r][c];
+      if (!n) continue;
+      const left = Math.round(ox + c * cell), top = Math.round(oy + r * cell);
+      const right = Math.round(ox + (c + 1) * cell), bottom = Math.round(oy + (r + 1) * cell);
+      if (left > W || top > H || right < 0 || bottom < 0) continue;
+      const w = right - left, h = bottom - top;
+      const p = paint[r][c];
+      ctx.fillStyle = p ? COLORS[p] : '#ffffff';
+      ctx.fillRect(left, top, w, h);
+      ctx.strokeStyle = '#e4e4e4';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(left + 0.5, top + 0.5, w - 1, h - 1);
+      if (!p) {
+        ctx.fillStyle = '#9a9a9a';
+        ctx.fillText(String(n), left + w / 2, top + h / 2 + 0.5);
+      }
+    }
+  }
+}
+
+function cellAt(clientX, clientY) {
+  const rect = canvas.getBoundingClientRect();
+  const c = Math.floor((clientX - rect.left - ox) / cell);
+  const r = Math.floor((clientY - rect.top - oy) / cell);
+  if (r < 0 || c < 0 || r >= ROWS || c >= COLS || !target[r][c]) return null;
+  return { r, c };
+}
+
+function click() {
+  if (muted) return;
+  try {
+    audio = audio || new (window.AudioContext || window.webkitAudioContext)();
+    const osc = audio.createOscillator();
+    const gain = audio.createGain();
+    osc.frequency.value = 880;
+    gain.gain.value = 0.04;
+    osc.connect(gain).connect(audio.destination);
+    osc.start();
+    osc.stop(audio.currentTime + 0.035);
+  } catch (e) { /* звук необязателен */ }
+}
+
+function paintAt(clientX, clientY) {
+  const hit = cellAt(clientX, clientY);
+  if (!hit) return;
+  const next = erasing ? 0 : selected;
+  if (paint[hit.r][hit.c] === next) return;
+  paint[hit.r][hit.c] = next;
+  if (!erasing) click();
+  draw();
+  updatePalette();
+  checkDone();
+}
+
+function correctCount(n) {
+  let count = 0;
+  for (let r = 0; r < ROWS; r++)
+    for (let c = 0; c < COLS; c++)
+      if (target[r][c] === n && paint[r][c] === n) count++;
+  return count;
+}
+
+function updatePalette() {
+  for (let n = 1; n <= 6; n++) {
+    const btn = document.querySelector(`.swatch[data-n="${n}"]`);
+    const full = correctCount(n) === totals[n];
+    btn.disabled = full;
+    if (full && selected === n) selected = 0;
+  }
+  if (!selected && !erasing) {
+    const free = [1, 2, 3, 4, 5, 6].find(n => !document.querySelector(`.swatch[data-n="${n}"]`).disabled);
+    if (free) selected = free;
+  }
+  renderSelection();
+}
+
+// подсветка: один скруглённый квадрат, который плавно переезжает к активному слоту
+function renderSelection() {
+  const hl = document.getElementById('hl');
+  const slot = erasing
+    ? document.querySelector('.slot[data-slot="eraser"]')
+    : (selected ? document.querySelector(`.slot[data-n="${selected}"]`) : null);
+  if (!slot) {
+    hl.style.opacity = '0';
+    return;
+  }
+  const [r, g, b] = erasing ? [0, 0, 0] : hexToRgb(COLORS[selected]);
+  const alpha = erasing ? 0.14 : 0.35;
+  hl.style.background = `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  hl.style.transform = `translate(${slot.offsetLeft + slot.offsetWidth / 2 - 25}px, ${slot.offsetTop + slot.offsetHeight / 2 - 25}px)`;
+  hl.style.opacity = '1';
+  const pal = document.getElementById('palette');
+  const slotBox = slot.getBoundingClientRect();
+  const palBox = pal.getBoundingClientRect();
+  if (slotBox.left < palBox.left) pal.scrollBy({ left: slotBox.left - palBox.left - 16, behavior: 'smooth' });
+  else if (slotBox.right > palBox.right) pal.scrollBy({ left: slotBox.right - palBox.right + 16, behavior: 'smooth' });
+}
+
+function checkDone() {
+  const done = [1, 2, 3, 4, 5, 6].every(n => correctCount(n) === totals[n]);
+  document.getElementById('done').classList.toggle('show', done);
+}
+
+function reset() {
+  paint.forEach(row => row.fill(0));
+  selected = 1;
+  erasing = false;
+  document.getElementById('done').classList.remove('show');
+  draw();
+  updatePalette();
+}
+
+document.querySelectorAll('.swatch[data-n]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    if (btn.disabled) return;
+    selected = Number(btn.dataset.n);
+    erasing = false;
+    renderSelection();
+  });
+});
+document.getElementById('eraser').addEventListener('click', () => {
+  erasing = true;
+  renderSelection();
+});
+
+canvas.addEventListener('contextmenu', e => e.preventDefault());
+
+canvas.addEventListener('pointerdown', e => {
+  canvas.setPointerCapture(e.pointerId);
+  pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (pointers.size === 1) {
+    mode = e.button === 2 ? 'pan' : 'paint';
+    if (mode === 'paint') paintAt(e.clientX, e.clientY);
+  } else if (pointers.size === 2) {
+    mode = 'pinch';
+    const [a, b] = [...pointers.values()];
+    lastDist = Math.hypot(a.x - b.x, a.y - b.y);
+    lastMid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+  }
+});
+
+canvas.addEventListener('pointermove', e => {
+  const prev = pointers.get(e.pointerId);
+  if (!prev) return;
+  pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  const rect = canvas.getBoundingClientRect();
+  if (mode === 'paint') {
+    paintAt(e.clientX, e.clientY);
+  } else if (mode === 'pan') {
+    ox += e.clientX - prev.x;
+    oy += e.clientY - prev.y;
+    clampOrigin();
+    draw();
+  } else if (mode === 'pinch' && pointers.size === 2) {
+    const [a, b] = [...pointers.values()];
+    const dist = Math.hypot(a.x - b.x, a.y - b.y);
+    const mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+    if (lastDist > 0) zoomAt(mid.x - rect.left, mid.y - rect.top, dist / lastDist);
+    ox += mid.x - lastMid.x;
+    oy += mid.y - lastMid.y;
+    clampOrigin();
+    draw();
+    lastDist = dist;
+    lastMid = mid;
+  }
+});
+
+function endPointer(e) {
+  pointers.delete(e.pointerId);
+  if (pointers.size === 0) mode = null;
+  else if (pointers.size === 1) mode = 'paint';
+}
+canvas.addEventListener('pointerup', endPointer);
+canvas.addEventListener('pointercancel', endPointer);
+
+canvas.addEventListener('wheel', e => {
+  e.preventDefault();
+  const rect = canvas.getBoundingClientRect();
+  zoomAt(e.clientX - rect.left, e.clientY - rect.top, e.deltaY < 0 ? 1.12 : 1 / 1.12);
+}, { passive: false });
+
+document.getElementById('sound').addEventListener('click', () => {
+  muted = !muted;
+  document.getElementById('soundOn').style.display = muted ? 'none' : '';
+  document.getElementById('soundOff').style.display = muted ? '' : 'none';
+  document.getElementById('sound').classList.toggle('muted', muted);
+});
+document.getElementById('reset').addEventListener('click', () => {
+  if (confirm('Начать раскраску заново?')) reset();
+});
+document.getElementById('again').addEventListener('click', reset);
+
+window.addEventListener('resize', layout);
+layout();
+updatePalette();
+</script>
+</body>
+</html>
