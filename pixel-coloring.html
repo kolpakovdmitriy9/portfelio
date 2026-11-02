@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Пиксельная раскраска</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{min-height:100vh;display:flex;align-items:center;justify-content:center;background:#eceef2;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-tap-highlight-color:transparent;user-select:none}
+  .app{position:relative;width:476px;height:820px;background:#fff;overflow:hidden;border-radius:28px;box-shadow:0 10px 40px rgba(0,0,0,.12)}
+  .top{position:absolute;top:0;left:0;right:0;height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 14px}
+  .icon-btn{width:44px;height:44px;border:0;border-radius:12px;background:none;display:grid;place-items:center;cursor:pointer;color:#2f7cf6}
+  .icon-btn svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .icon-btn.muted{color:#b5b5b5}
+  .menu-btn{width:60px;height:48px;background:#fff;box-shadow:0 2px 10px rgba(0,0,0,.12);border-radius:14px;color:#ff9f1c}
+  .menu-btn svg{width:26px;height:26px}
+  .board{position:absolute;top:64px;left:0;right:0;height:652px}
+  canvas{display:block;width:100%;height:100%;touch-action:none;cursor:crosshair}
+  .bottom{position:absolute;left:0;right:0;bottom:0;height:104px;background:#f6f6f7;border-top:1px solid #ececec;display:flex;align-items:center;justify-content:center;gap:14px;padding:0 12px}
+  .swatch{position:relative;width:44px;height:44px;border:0;border-radius:50%;cursor:pointer;font:700 17px/1 system-ui,-apple-system,sans-serif;display:grid;place-items:center;transition:transform .15s,opacity .2s}
+  .swatch:hover:not(:disabled){transform:scale(1.06)}
+  .swatch:disabled{opacity:.28;cursor:not-allowed}
+  .swatch-ring{padding:8px;border-radius:22px;background:transparent;transition:background .2s}
+  .swatch-ring.sel{background:#8fd4fb}
+  .eraser{background-color:#fff;background-image:conic-gradient(#d9d9d9 25%,#fff 0 50%,#d9d9d9 0 75%,#fff 0);background-size:12px 12px;border:1px solid #e3e3e3}
+  .eraser.sel{box-shadow:0 0 0 2px #2f7cf6}
+  .done{position:absolute;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;gap:12px;background:rgba(255,255,255,.85);font:700 28px system-ui,sans-serif;color:#0b0b0b}
+  .done.show{display:flex}
+  .done button{margin-top:8px;padding:12px 24px;border:0;border-radius:24px;background:#0b0b0b;color:#fff;font:600 15px system-ui,sans-serif;cursor:pointer}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <div class="top">
+    <button class="icon-btn" id="back" aria-label="Назад" title="Назад">
+      <svg viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
+    </button>
+    <button class="icon-btn" id="sound" aria-label="Звук" title="Звук">
+      <svg viewBox="0 0 24 24" id="soundOn"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></svg>
+      <svg viewBox="0 0 24 24" id="soundOff" style="display:none"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M22 9l-6 6M16 9l6 6"/></svg>
+    </button>
+    <button class="icon-btn menu-btn" id="reset" aria-label="Начать заново" title="Начать заново">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4" stroke="currentColor" fill="none" stroke-width="2"/><circle cx="8" cy="8" r="1.6" fill="currentColor"/><circle cx="16" cy="16" r="1.6" fill="currentColor"/><circle cx="12" cy="12" r="1.6" fill="currentColor"/></svg>
+    </button>
+  </div>
+
+  <div class="board"><canvas id="board"></canvas></div>
+
+  <div class="bottom" id="palette">
+    <div class="swatch-ring" id="eraserRing"><button class="swatch eraser" id="eraser" aria-label="Стерка" title="Стерка"></button></div>
+    <div class="swatch-ring" data-n="1"><button class="swatch" data-n="1" style="background:#7644ff;color:#fff">1</button></div>
+    <div class="swatch-ring" data-n="2"><button class="swatch" data-n="2" style="background:#0faeff;color:#fff">2</button></div>
+    <div class="swatch-ring" data-n="3"><button class="swatch" data-n="3" style="background:#4aff0c;color:#0b0b0b">3</button></div>
+    <div class="swatch-ring" data-n="4"><button class="swatch" data-n="4" style="background:#ffff08;color:#0b0b0b">4</button></div>
+    <div class="swatch-ring" data-n="5"><button class="swatch" data-n="5" style="background:#ffa80b;color:#0b0b0b">5</button></div>
+  </div>
+
+  <div class="done" id="done">Готово!<button id="again">Ещё раз</button></div>
+</div>
+
+<script>
+// Сетка: каждая цифра — номер цвета, в который нужно закрасить клетку. «.» — пустая клетка.
+const GRID = [
+ ".......22.....4........",
+ ".......22.....4........",
+ ".......224...34........",
+ ".......22333334........",
+ ".......22333334........",
+ ".......22333334........",
+ ".......22.333.4........",
+ ".......22333334........",
+ ".......22333334........",
+ ".......22555554........",
+ ".......22555554........",
+ ".......22555554........",
+ ".......22555554........",
+ ".......22355534........",
+ "......1223333341.......",
+ ".....112233333411......",
+ "....33333333333444.....",
+ "...2333333333333334....",
+ "...2312333222334134....",
+ "...2312332222234134....",
+ "...2312333222334134....",
+ "...2412333333334124....",
+ "2222412333333334124444.",
+ ".22241233333333412444..",
+ "..224123333333341244...",
+ "...2112333333334114....",
+ "...2415335353535124....",
+ "...2115555555555114....",
+ "...1115335353535111....",
+ "...1112334111234111....",
+ "...1112334111234111....",
+ "...1112334111234111....",
+ "...1112334111234111....",
+ "...1112224111224111....",
+ "...11.2224111224.11....",
+ "...1..2224.1.224..1....",
+ "...1..3224.1.224..1....",
+ ".....22224...2224......",
+ "....222224...22224....."
+];
+
+const COLORS = { 1: '#7644ff', 2: '#0faeff', 3: '#4aff0c', 4: '#ffff08', 5: '#ffa80b' };
+const ROWS = GRID.length;
+const COLS = GRID[0].length;
+const CELL = 15;
+
+const target = GRID.map(row => [...row].map(ch => (ch === '.' ? 0 : Number(ch))));
+const paint = target.map(row => row.map(() => 0));
+const totals = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+target.forEach(row => row.forEach(n => { if (n) totals[n]++; }));
+
+let selected = 1;
+let erasing = false;
+let pointerDown = false;
+let muted = false;
+let audio = null;
+
+const app = document.getElementById('app');
+const canvas = document.getElementById('board');
+const ctx = canvas.getContext('2d');
+let ox = 0, oy = 0;
+
+function layout() {
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.getBoundingClientRect();
+  canvas.width = Math.round(rect.width * dpr);
+  canvas.height = Math.round(rect.height * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ox = (rect.width - COLS * CELL) / 2;
+  oy = (rect.height - ROWS * CELL) / 2;
+  draw();
+}
+
+function draw() {
+  const w = canvas.clientWidth, h = canvas.clientHeight;
+  ctx.clearRect(0, 0, w, h);
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      const n = target[r][c];
+      if (!n) continue;
+      const x = ox + c * CELL, y = oy + r * CELL;
+      const p = paint[r][c];
+      ctx.fillStyle = p ? COLORS[p] : '#ffffff';
+      ctx.fillRect(x, y, CELL, CELL);
+      ctx.strokeStyle = '#e4e4e4';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(x + 0.5, y + 0.5, CELL - 1, CELL - 1);
+      if (!p) {
+        ctx.fillStyle = '#9a9a9a';
+        ctx.font = '600 9px system-ui, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(String(n), x + CELL / 2, y + CELL / 2 + 0.5);
+      }
+    }
+  }
+}
+
+function cellAt(clientX, clientY) {
+  const rect = canvas.getBoundingClientRect();
+  const c = Math.floor((clientX - rect.left - ox) / CELL);
+  const r = Math.floor((clientY - rect.top - oy) / CELL);
+  if (r < 0 || c < 0 || r >= ROWS || c >= COLS || !target[r][c]) return null;
+  return { r, c };
+}
+
+function click() {
+  if (muted) return;
+  try {
+    audio = audio || new (window.AudioContext || window.webkitAudioContext)();
+    const osc = audio.createOscillator();
+    const gain = audio.createGain();
+    osc.frequency.value = 880;
+    gain.gain.value = 0.04;
+    osc.connect(gain).connect(audio.destination);
+    osc.start();
+    osc.stop(audio.currentTime + 0.035);
+  } catch (e) { /* звук необязателен */ }
+}
+
+function paintAt(clientX, clientY) {
+  const cell = cellAt(clientX, clientY);
+  if (!cell) return;
+  const next = erasing ? 0 : selected;
+  if (paint[cell.r][cell.c] === next) return;
+  paint[cell.r][cell.c] = next;
+  if (!erasing) click();
+  draw();
+  updatePalette();
+  checkDone();
+}
+
+function correctCount(n) {
+  let count = 0;
+  for (let r = 0; r < ROWS; r++)
+    for (let c = 0; c < COLS; c++)
+      if (target[r][c] === n && paint[r][c] === n) count++;
+  return count;
+}
+
+function updatePalette() {
+  for (let n = 1; n <= 5; n++) {
+    const btn = document.querySelector(`.swatch[data-n="${n}"]`);
+    const full = correctCount(n) === totals[n];
+    btn.disabled = full;
+    if (full && selected === n) {
+      selected = 0;
+    }
+  }
+  if (!selected && !erasing) {
+    const free = [1, 2, 3, 4, 5].find(n => !document.querySelector(`.swatch[data-n="${n}"]`).disabled);
+    if (free) selected = free;
+  }
+  renderSelection();
+}
+
+function renderSelection() {
+  document.querySelectorAll('.swatch-ring').forEach(ring => ring.classList.remove('sel'));
+  document.getElementById('eraserRing').classList.toggle('sel', erasing);
+  if (!erasing && selected) {
+    document.querySelector(`.swatch-ring[data-n="${selected}"]`).classList.add('sel');
+  }
+  document.getElementById('eraser').classList.toggle('sel', erasing);
+}
+
+function checkDone() {
+  const done = [1, 2, 3, 4, 5].every(n => correctCount(n) === totals[n]);
+  document.getElementById('done').classList.toggle('show', done);
+}
+
+function reset() {
+  paint.forEach(row => row.fill(0));
+  selected = 1;
+  erasing = false;
+  document.getElementById('done').classList.remove('show');
+  draw();
+  updatePalette();
+}
+
+document.querySelectorAll('.swatch[data-n]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    if (btn.disabled) return;
+    selected = Number(btn.dataset.n);
+    erasing = false;
+    renderSelection();
+  });
+});
+document.getElementById('eraser').addEventListener('click', () => {
+  erasing = true;
+  renderSelection();
+});
+
+canvas.addEventListener('pointerdown', e => {
+  pointerDown = true;
+  canvas.setPointerCapture(e.pointerId);
+  paintAt(e.clientX, e.clientY);
+});
+canvas.addEventListener('pointermove', e => {
+  if (pointerDown) paintAt(e.clientX, e.clientY);
+});
+canvas.addEventListener('pointerup', () => { pointerDown = false; });
+canvas.addEventListener('pointercancel', () => { pointerDown = false; });
+
+document.getElementById('back').addEventListener('click', () => history.back());
+document.getElementById('sound').addEventListener('click', () => {
+  muted = !muted;
+  document.getElementById('soundOn').style.display = muted ? 'none' : '';
+  document.getElementById('soundOff').style.display = muted ? '' : 'none';
+  document.getElementById('sound').classList.toggle('muted', muted);
+});
+document.getElementById('reset').addEventListener('click', () => {
+  if (confirm('Начать раскраску заново?')) reset();
+});
+document.getElementById('again').addEventListener('click', reset);
+
+window.addEventListener('resize', layout);
+layout();
+updatePalette();
+</script>
+</body>
+</html>
