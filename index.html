@@ -279,8 +279,7 @@ height: clamp(180px, 45vw, 440px);
 /* по редлайну бар 1366×200 при экране 1440 — на 14px уже, чем остальной контент секции
    (37px от края экрана вместо обычных 30px паддинга), поэтому доп. inset через width/margin */
 .experience-paint{display:flex;justify-content:center;margin:0 0 90px}
-.experience-paint iframe{display:block;width:476px;max-width:100%;height:820px;border:0;aspect-ratio:476/820}
-body.paint-in-view .experience-floating-tabs{opacity:0 !important;pointer-events:none !important}
+.experience-paint iframe{display:block;box-sizing:border-box;width:476px;max-width:100%;height:820px;border:1px solid #c4c4c4;aspect-ratio:476/820}
 .experience-bar-track{width:calc(100% - 14px);margin:0 auto 90px;height:clamp(80px,13.89vw,200px);display:flex;align-items:stretch;justify-content:space-between}
 .experience-bar-tick{flex:none;width:4px;height:100%;background:#eee;transition:background .3s ease}
 .experience-gallery{width:100vw;position:relative;left:50%;transform:translateX(-50%);overflow:hidden;-webkit-mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent);mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent)}
@@ -293,14 +292,10 @@ body.paint-in-view .experience-floating-tabs{opacity:0 !important;pointer-events
    стеклянный эффект по редлайну: fill #fff 10%, blur-подложка (Frost), тень
    4/7/36.8/0 #000 8%, активный таб — просто чёрный текст (100%), неактивный — 30%
    чёрного, никакой отдельной тёмной плашки под активным табом больше нет */
-.experience-floating-tabs{position:fixed;left:50%;bottom:28px;transform:translate(-50%,24px);display:flex;align-items:center;gap:clamp(8px,3vw,30px);background:rgba(255,255,255,.1);backdrop-filter:blur(24px) saturate(160%);-webkit-backdrop-filter:blur(24px) saturate(160%);border-radius:clamp(24px,5vw,48px);padding:clamp(16px,3.89vw,56px);box-shadow:4px 7px 36.8px rgba(0,0,0,.08),inset 0 1px 0 rgba(255,255,255,.5);z-index:100;opacity:0;pointer-events:none;transition:opacity .3s ease,transform .3s ease;max-width:calc(100vw - 24px)}
-.experience-floating-tabs.visible{opacity:1;pointer-events:auto;transform:translate(-50%,0)}
 /* размеры по редлайну: 48px/36 line-height на 1440 (клэмп держит их пропорцию —
    line-height задан unitless 0.75, чтобы масштабировался вместе со шрифтом);
    нижняя граница clamp'а — минимум, при котором три лейбла ещё влезают на 390px
    экран без горизонтального выхода за viewport */
-.exp-tab{border:none;background:transparent;padding:0;font-size:clamp(17px,3.33vw,48px);font-weight:400;letter-spacing:normal;text-transform:uppercase;line-height:.75;cursor:pointer;color:rgba(0,0,0,.3);font-family:'ONY Track Moscow',sans-serif;transition:color .2s ease;touch-action:manipulation;white-space:nowrap}
-.exp-tab.active{color:#000}
 @media (max-width:640px){
   .experience-gallery-item{width:200px;height:320px}
 }
@@ -310,7 +305,6 @@ body.paint-in-view .experience-floating-tabs{opacity:0 !important;pointer-events
 .word:hover{color:rgba(0,0,0,.2)}
 .cta-button:hover{background:#d33a2c}
 .tab-item:hover:not(.active){color:#333 !important}
-.exp-tab:hover:not(.active){color:rgba(0,0,0,.55)}
 .telegram-btn:hover{background:#2299cc}
 #pixel-grid{cursor:none}
 }
@@ -783,11 +777,6 @@ touch-action: none;
   </div>
 </div>
 
-<div class="experience-floating-tabs" id="expFloatingTabs">
-  <button class="exp-tab active" type="button" data-tab="websites">Сайты</button>
-  <button class="exp-tab" type="button" data-tab="apps">Приложения</button>
-  <button class="exp-tab" type="button" data-tab="branding">Брендинг</button>
-</div>
 
 <div class="cursor-follower" id="follower">
 <img id="follower-img" src="" alt="" aria-hidden="true">
@@ -1076,29 +1065,6 @@ document.addEventListener('DOMContentLoaded', () => {
       addEventListener('resize', onScroll);
       apply();
     })();
-
-    // плавающий таб-бар внизу экрана — виден, пока секция «Опыт работы» в зоне видимости,
-    // но прячется, пока на экране блок «Готов к работе» (перекрывал бы свайпер офера)
-    const floatingTabs = document.getElementById('expFloatingTabs');
-    const offerEl = document.querySelector('.experience-offer');
-    if (floatingTabs && 'IntersectionObserver' in window){
-      let sectionInView = false, offerInView = false;
-      function syncFloatingTabs(){
-        floatingTabs.classList.toggle('visible', sectionInView && !offerInView);
-      }
-      const expIO = new IntersectionObserver(function(entries){
-        entries.forEach(function(en){ sectionInView = en.isIntersecting; });
-        syncFloatingTabs();
-      }, { threshold: 0.15 });
-      expIO.observe(section);
-      if (offerEl){
-        const offerIO = new IntersectionObserver(function(entries){
-          entries.forEach(function(en){ offerInView = en.isIntersecting; });
-          syncFloatingTabs();
-        }, { threshold: 0.15 });
-        offerIO.observe(offerEl);
-      }
-    }
 
     // бесконечная лента-галерея — серые заглушки, дублируем контент для бесшовной прокрутки
     const galleryTrack = document.getElementById('expGalleryTrack');
@@ -2396,11 +2362,6 @@ switchTab('websites');
   rot = rotTarget = gate > 0.99 ? Math.round(raw0 / STEP) * STEP : raw0;
   renderTicks();
   renderSlides(progress);
-})();
-</script>
-<script>
-(function(){var el=document.querySelector('.experience-paint');if(!el||!('IntersectionObserver' in window))return;
-  new IntersectionObserver(function(en){document.body.classList.toggle('paint-in-view',en[0].isIntersecting);},{threshold:0.3}).observe(el);
 })();
 </script>
 </body>
