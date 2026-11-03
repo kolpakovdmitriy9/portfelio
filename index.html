@@ -70,7 +70,7 @@ display: inline-block;
 touch-action: manipulation;
 }
 /* === /MARQUEE === */
-.cursor-follower{position:fixed;width:180px;height:180px;border-radius:50%;pointer-events:none;z-index:2147483647;top:0;left:0;opacity:0;transform:scale(.4);transition:opacity .15s ease-out,transform .15s cubic-bezier(.22,.61,.36,1);overflow:hidden}
+.cursor-follower{position:fixed;width:calc(180px * var(--ui,1));height:calc(180px * var(--ui,1));border-radius:50%;pointer-events:none;z-index:2147483647;top:0;left:0;opacity:0;transform:scale(.4);transition:opacity .15s ease-out,transform .15s cubic-bezier(.22,.61,.36,1);overflow:hidden}
 .cursor-follower img{width:100%;height:100%;object-fit:cover;border-radius:50%}
 @media (hover:none),(pointer:coarse){
 .cursor-follower{display:none}
@@ -1231,8 +1231,9 @@ document.addEventListener('DOMContentLoaded', () => {
       });
       word.addEventListener('mousemove', (e) => {
         if (follower) {
-          follower.style.left = (e.clientX - 90) + 'px';
-          follower.style.top = (e.clientY - 90) + 'px';
+          const half = follower.offsetWidth / 2;
+          follower.style.left = (e.clientX - half) + 'px';
+          follower.style.top = (e.clientY - half) + 'px';
         }
       });
       word.addEventListener('mouseleave', () => {
