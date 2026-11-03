@@ -26,6 +26,7 @@ body.branding{background:linear-gradient(to bottom,#fff,#f5e6ff);background-atta
 .header-section{width:100%;max-width:360px;display:flex;flex-direction:column;align-items:center;gap:16px;text-align:center}
 .text-slider{position:relative;height:36px;overflow:hidden;width:100%;text-align:center;font-size:18px;line-height:1.2;letter-spacing:-0.02em;font-weight:400;display:flex;align-items:center;justify-content:center}
 .text-slide{position:absolute;width:100%;left:0;transition:transform .3s ease-out}
+.hero-mark{width:64px;height:64px;display:block}
 .logo-wrapper{display:flex;justify-content:center;align-items:center}
 .portfolio-logo{height:34px;width:auto;max-width:100%}
 /* === MARQUEE === */
@@ -493,6 +494,7 @@ touch-action: none;
   .cta-container{padding:0 12px}
 
   /* логотип уменьшен пропорционально относительно десктопных 34px */
+  .hero-mark{width:40px;height:40px}
   .portfolio-logo{height:20px}
 
   /* бегущая строка по центру между логотипом и кнопкой: band пересчитан под
@@ -515,6 +517,7 @@ touch-action: none;
 <body>
 <div class="hero-container">
 <div class="header-section">
+<img class="hero-mark" src="files/hero-mark.png" alt="" />
 <div class="logo-wrapper">
 <img class="portfolio-logo" src="https://raw.githubusercontent.com/kolpakovdmitriy9/newbring.github.io/363a26cc3be7802444e16917935d498c46c70b68/lovelllas.hyperesources/portfelix.svg" alt="Портфеликс" />
 </div>
