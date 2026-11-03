@@ -18,7 +18,7 @@ body.branding{background:linear-gradient(to bottom,#fff,#f5e6ff);background-atta
 /* Отступ сверху ровно 64px на любом разрешении: контент прижат к верху,
    а не центрируется по высоте — при центрировании отступ плавал и совпадал
    с макетными 64 только на низких экранах */
-.hero-container{height:100vh;display:flex;flex-direction:column;justify-content:flex-start;align-items:center;text-align:center;padding:64px clamp(20px,5vw,80px) 0;box-sizing:border-box}
+.hero-container{zoom:var(--ui,1);height:calc(100vh / var(--ui,1));display:flex;flex-direction:column;justify-content:flex-start;align-items:center;text-align:center;padding:64px clamp(20px,5vw,80px) 0;box-sizing:border-box}
 .header-section,.marquee-container,.cta-container{margin:0;padding:0}
 .header-section{margin-bottom:16px}
 .marquee-container{margin:clamp(16px,3vw,80px) 0 clamp(72px,5vw,120px)}
@@ -1109,6 +1109,9 @@ document.addEventListener('DOMContentLoaded', () => {
   })();
 
   // === HERO HEIGHT ===
+  // на широких экранах весь первый экран масштабируется вместе с кнопкой (до 1.6×)
+  function setHeroScale(){ document.documentElement.style.setProperty('--ui', Math.min(1.6, Math.max(1, innerWidth / 1440)).toFixed(3)); }
+  setHeroScale(); window.addEventListener('resize', setHeroScale);
   const hero = document.querySelector('.hero-container');
   function setHeroHeight() {
     const h = window.visualViewport ? window.visualViewport.height : window.innerHeight;
