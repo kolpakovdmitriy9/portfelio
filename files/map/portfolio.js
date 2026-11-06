@@ -40,7 +40,7 @@ renderer.autoClear = false; renderer.setClearColor(0x000000, 0);
 renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
 const scene = new THREE.Scene();            // transparent: the page shows through
-const data = await (await fetch(new URL('./data/scene-flat.json', import.meta.url))).json();
+const data = window.__mapFetch ? await window.__mapFetch.data : await (await fetch(new URL('./data/scene-flat.json', import.meta.url))).json();
 const world = await buildWorld({scene, data, routePre:[[ROUTE_X0, -340], [446, -339], [434, -338]]});
 const {car, bounds} = world;
 // layers: 0 = map (drawn only inside the rectangle), 1 = car, 2 = shadow catcher (drawn only outside the rectangle)

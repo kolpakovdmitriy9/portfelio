@@ -7,8 +7,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
 <link rel="preconnect" href="https://raw.githubusercontent.com" crossorigin>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-<link rel="prefetch" href="files/map/data/scene-flat.json" as="fetch" crossorigin>
-<link rel="prefetch" href="files/map/models/car.glb" as="fetch" crossorigin>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preload" as="font" href="https://kolpakovdmitriy9.github.io/newbring.github.io/lovelllas.hyperesources/ONYTrackMoscow-Condenced_1.woff" type="font/woff" crossorigin>
 <style>
@@ -2575,6 +2573,15 @@ switchTab('websites');
 <script type="module">
   const rect = document.getElementById('map-rect');
   if (rect) {
+    // the scene data and the car model start downloading right now, in parallel with the three.js module (one request each)
+    window.__mapFetch = {
+      data: fetch('files/map/data/scene-flat.json').then(function(r){ return r.json(); }),
+      car: fetch('files/map/models/car.glb').then(function(r){ return r.arrayBuffer(); })
+    };
+    // the Draco decoder for the car (the same files the loader asks for later: they come from the HTTP cache then)
+    const dracoBase = 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/libs/draco/gltf/';
+    fetch(dracoBase + 'draco_wasm_wrapper.js').catch(function(){});
+    fetch(dracoBase + 'draco_decoder.wasm').catch(function(){});
     // load the scene early (after the page is idle) so the rectangle is never empty when it scrolls into view;
     // the block coming near the screen starts the load too
     let started = false;

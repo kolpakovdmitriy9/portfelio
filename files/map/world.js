@@ -205,7 +205,9 @@ function rigWheels(m){
   return wheels;
 }
 async function loadCar(){
-  const gltf = await gltfLoader().loadAsync(carUrl);
+  // the model may already be downloading (started by the page); parse it then, otherwise load it normally
+  const carBuf = window.__mapFetch ? await window.__mapFetch.car : null;
+  const gltf = carBuf ? await gltfLoader().parseAsync(carBuf, '') : await gltfLoader().loadAsync(carUrl);
   const m = gltf.scene; m.updateMatrixWorld(true);
   m.traverse(o => { if (!o.isMesh) return;
     const hit = PAINT_GLB.find(([re]) => re.test(o.name));
