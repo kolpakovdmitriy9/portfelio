@@ -2132,6 +2132,10 @@ switchTab('websites');
   function sizeAt(p){
     return 1 + Math.max(0, p - CFG.sizeGrowFrom) * CFG.sizeGrowRate;
   }
+  /* размер и прозрачность кольца ведёт скрипт перехода (ниже): деления остаются, пока логотип растёт, и уходят ровно
+     в тот момент, когда он вырос до полного размера (window.__ringK / __ringO, считаются от того же прогресса, что и логотип) */
+  const ringK = function(){ return window.__ringK || 1; };
+  const ringO = function(){ return window.__ringO == null ? 1 : window.__ringO; };
 
   /* растворяется в прозрачность к моменту, когда рост уже почти завершён — раньше,
      чем сцена успевает упереться в нижний край своего же контейнера и обрезать круг.
@@ -2309,9 +2313,9 @@ switchTab('websites');
     // гораздо более резкий гейт — включаем только у самого конца подхода
     const pulseGate = smooth(clamp((approach - 0.97) / 0.03, 0, 1));
     const pulse = 1 + (CFG.pulseScale - 1) * energy * pulseGate;
-    dialScale = (CFG.scaleFar + (CFG.scaleNear - CFG.scaleFar) * near) * sizeAt(progressGrow) * pulse;
+    dialScale = (CFG.scaleFar + (CFG.scaleNear - CFG.scaleFar) * near) * ringK() * pulse;
     svg.style.transform = 'scale(' + dialScale.toFixed(4) + ')';
-    svg.style.opacity = fadeAt(progressGrow).toFixed(3);
+    svg.style.opacity = ringO().toFixed(3);
     publishExpReveal(progressGrow);
 
     const prev = rot;
@@ -2337,6 +2341,7 @@ switchTab('websites');
   function wake(){
     if (!ticking){ ticking = true; requestAnimationFrame(loop); }
   }
+  window.__dialWake = wake;
   function kick(){
     progress     = sceneProgress();
     progressGrow = sceneProgressUncapped();
@@ -2379,9 +2384,9 @@ switchTab('websites');
   updateRamp();
   stage.style.setProperty('--dial-accent', rgb(accent));
   const near0 = smooth(clamp((approach - CFG.scaleFrom) / (1 - CFG.scaleFrom), 0, 1));
-  dialScale = (CFG.scaleFar + (CFG.scaleNear - CFG.scaleFar) * near0) * sizeAt(progressGrow);
+  dialScale = (CFG.scaleFar + (CFG.scaleNear - CFG.scaleFar) * near0) * ringK();
   svg.style.transform = 'scale(' + dialScale.toFixed(4) + ')';
-  svg.style.opacity = fadeAt(progressGrow).toFixed(3);
+  svg.style.opacity = ringO().toFixed(3);
   publishExpReveal(progressGrow);
   const raw0 = progress * CFG.rotationTotal - CFG.preSpin * (1 - near0);
   // страница может открыться уже внутри сцены — сразу доводим стрелку на 12 часов
@@ -2416,6 +2421,7 @@ switchTab('websites');
   const clamp = function(v, a, b){ if (a === undefined) a = 0; if (b === undefined) b = 1; return v < a ? a : v > b ? b : v; };
   const ease = function(t){ return t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; };
   const lerp = function(a, b, t){ return a + (b - a) * t; };
+  const smooth = function(t){ return t * t * (3 - 2 * t); };
 
   const fly = document.createElement('div');
   fly.className = 'logo-flyer'; fly.setAttribute('aria-hidden', 'true');
@@ -2471,6 +2477,13 @@ switchTab('websites');
     if (Math.abs(Et - Es) < .0004) Es = Et;
     const E = Es;
     window.__dialExit = E;
+    // деления кольца («стрелки») убираются только когда логотип вырос до полного размера (E ≈ .40): тогда расходятся наружу и гаснут
+    const re = smooth(clamp((E - .40) / .14));
+    const ringK = 1 + .4 * re, ringO = 1 - re;
+    if (window.__ringK !== ringK || window.__ringO !== ringO){
+      window.__ringK = ringK; window.__ringO = ringO;
+      if (window.__dialWake) window.__dialWake();
+    }
 
     // пока идёт переход, блок «Опыт работы» физически ещё едет снизу вверх, а круги и заголовок стоят на конечном месте:
     // конечное место = естественное положение минус то, на сколько блок ещё должен доехать (оно сходит в 0 к E = 1)
