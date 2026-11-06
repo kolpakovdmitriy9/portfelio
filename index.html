@@ -262,8 +262,8 @@ height: clamp(180px, 45vw, 440px);
 .experience-badge-inner{position:absolute;inset:10px;border-radius:50%;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center}
 .experience-badge-inner img{width:100%;height:100%;object-fit:cover;display:block}
 .experience-badge--video .experience-badge-inner{background:#0b0b0b}
-/* круги выезжают из-под первого (Рив Гош), поэтому левый лежит выше правого */
-.experience-badge--rivgosh{z-index:3}.experience-badge--pyaterochka{z-index:2}.experience-badge--video{z-index:1}
+/* Рив Гош — третий (справа) и лежит выше всех; остальные выезжают из-под него влево: видео, потом Пятёрочка */
+.experience-badge--pyaterochka{z-index:1}.experience-badge--video{z-index:2}.experience-badge--rivgosh{z-index:3}
 /* «летящий» логотип: иконка последнего слайда превращается в круг Рив Гош и едет на его место в ряду */
 /* на время перехода ряд кругов и заголовок «Опыт работы» закреплены на своём конечном месте (fixed) —
    так их не трясёт при быстром скролле; в конце перехода они возвращаются в поток на то же самое место */
@@ -728,9 +728,6 @@ touch-action: none;
 <!-- === ОПЫТ РАБОТЫ (новая секция вместо старого about-me) === -->
 <div class="experience-section" id="experienceSection">
   <div class="experience-badges">
-    <div class="experience-badge experience-badge--rivgosh" aria-label="Рив Гош">
-      <div class="experience-badge-inner"><img src="files/logo-rivgosh.png" alt="Рив Гош"></div>
-    </div>
     <div class="experience-badge experience-badge--pyaterochka" aria-label="Пятёрочка">
       <div class="experience-badge-inner"><img src="files/logo-5.png" alt="Пятёрочка"></div>
     </div>
@@ -742,6 +739,9 @@ touch-action: none;
         <circle cx="107" cy="107" r="100" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="3"/>
         <circle id="expVideoProgress" cx="107" cy="107" r="100" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-dasharray="628.32" stroke-dashoffset="628.32"/>
       </svg>
+    </div>
+    <div class="experience-badge experience-badge--rivgosh" aria-label="Рив Гош">
+      <div class="experience-badge-inner"><img src="files/logo-rivgosh.png" alt="Рив Гош"></div>
     </div>
   </div>
 
@@ -2406,9 +2406,9 @@ switchTab('websites');
   const icon = last && last.querySelector('.dial-icon');
   const count = last && last.querySelector('.dial-count');
   const copy = last && last.querySelector('.dial-copy');
-  const b1 = section.querySelector('.experience-badge--rivgosh');
-  const b2 = section.querySelector('.experience-badge--pyaterochka');
-  const b3 = section.querySelector('.experience-badge--video');
+  const b1 = section.querySelector('.experience-badge--rivgosh');       // логотип — третий (справа)
+  const b2 = section.querySelector('.experience-badge--video');          // средний: выезжает первым
+  const b3 = section.querySelector('.experience-badge--pyaterochka');    // левый: выезжает следом
   const title = section.querySelector('.experience-title');
   if (!icon || !b1 || !b2 || !b3) return;
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;   // без анимации всё остаётся на своих местах
@@ -2471,54 +2471,52 @@ switchTab('websites');
     if (holdRow) hold(holdRow, held, natTop(holdRow) - hy);
     if (holdTitle) hold(holdTitle, held, natTop(holdTitle) - hy);
 
-    // 1. цифра, заголовок и текст последнего слайда гаснут и уходят вверх — так же, как у двух предыдущих
-    const f = ease(clamp(E / .26));
+    // 1. цифра, заголовок и текст последнего слайда гаснут и уходят вверх — быстро, ДО того как логотип тронется с места,
+    //    чтобы под ним ничего не оставалось
+    const f = ease(clamp(E / .10));
     [count, copy].forEach(function(el){
       if (!el) return;
       el.style.opacity = (1 - f).toFixed(3);
       el.style.transform = f > 0 ? 'translate3d(0,' + (-34 * f).toFixed(1) + 'px,0)' : '';
     });
 
-    // 2. круг «Рив Гош» (он и есть иконка слайда): сначала встаёт в ЦЕНТР экрана и растёт там на месте до полного
-    //    размера; потом уезжает влево на своё место; Пятёрочка выезжает из-под него, видео — позже, из-под Пятёрочки.
-    //    Ряд кругов по центру экрана, заголовок и карта растут от него вниз.
-    // конечные места кругов (в закреплённом ряду, БЕЗ собственного сдвига): мерить с transform: none, иначе сдвиг
-    // прошлого кадра попадает в расчёт нового и круги «съезжают»
+    // 2. круг «Рив Гош» (он и есть иконка слайда) едет на ТРЕТЬЕ место ряда (справа, на вертикальном центре экрана),
+    //    растёт там до полного размера и остаётся на месте: дальше из-под него выезжают остальные.
+    //    Положения кругов измеряем без их собственного сдвига (transform: none), иначе прошлый кадр попадает в новый
     const r1 = natRect(b1), r2 = natRect(b2), r3 = natRect(b3);
-    const f1 = { x: r1.left + r1.width / 2, y: r1.top + r1.height / 2 };
-    const f2 = { x: r2.left + r2.width / 2, y: r2.top + r2.height / 2 };      // средний круг — ровно в центре экрана
-    const f3 = { x: r3.left + r3.width / 2, y: r3.top + r3.height / 2 };
-    const m  = ease(clamp(E / .20));                                         // иконка → центр экрана
-    const g  = ease(clamp((E - .14) / .28));                                 // рост на месте
-    const p1 = ease(clamp((E - .44) / .34));                                 // «Рив Гош» и Пятёрочка на свои места
-    const p3 = ease(clamp((E - .60) / .32));                                 // видео — позже
-    const moving = E > 0.001 && p1 < 1;
+    const f1 = { x: r1.left + r1.width / 2, y: r1.top + r1.height / 2 };   // третье место (логотип)
+    const f2 = { x: r2.left + r2.width / 2, y: r2.top + r2.height / 2 };   // среднее
+    const f3 = { x: r3.left + r3.width / 2, y: r3.top + r3.height / 2 };   // левое
+    const m  = ease(clamp((E - .10) / .20));                                // иконка → третье место
+    const g  = ease(clamp((E - .16) / .24));                                // рост до размера круга в ряду
+    const p2 = ease(clamp((E - .42) / .26));                                // среднее (видео) выезжает из-под логотипа
+    const p3 = ease(clamp((E - .56) / .28));                                // левое (Пятёрочка) — позже, из-под среднего
+    const flying = E > 0.001 && E < .40;                                    // дальше логотип — это уже настоящий круг в ряду
     icon.style.visibility = E > 0.001 ? 'hidden' : '';
     const s = icon.getBoundingClientRect();
-    const ax = lerp(s.left + s.width / 2, f2.x, m), ay = lerp(s.top + s.height / 2, f2.y, m);   // якорь роста
     const w = lerp(s.width, r1.width, g);
-    const cx = lerp(ax, f1.x, p1), cy = lerp(ay, f1.y, p1);                  // центр логотипа
-    if (moving){
+    const cx = lerp(s.left + s.width / 2, f1.x, m), cy = lerp(s.top + s.height / 2, f1.y, m);
+    if (flying){
       fly.style.display = 'block';
       fly.style.width = fly.style.height = w.toFixed(1) + 'px';
       fly.style.transform = 'translate3d(' + (cx - w / 2).toFixed(1) + 'px,' + (cy - w / 2).toFixed(1) + 'px,0)';
     } else fly.style.display = 'none';
-    b1.style.opacity = p1 >= 1 ? '1' : '0';
+    b1.style.opacity = E >= .40 ? '1' : '0';
 
-    // 3. Пятёрочка и видео: проявляются через прозрачность, пока выезжают
-    const o2 = ease(clamp((E - .44) / .10)), o3 = ease(clamp((E - .60) / .10));
-    const c2 = { x: lerp(ax, f2.x, p1), y: lerp(ay, f2.y, p1) };
-    const c3 = { x: c2.x + (f3.x - f2.x) * p3, y: c2.y + (f3.y - f2.y) * p3 };   // видео привязано к Пятёрочке и отъезжает от неё
-    function place(b, nb, f, c, o, done){
+    // 3. средний и левый круги: проявляются через прозрачность и едут из-под логотипа влево; левый стартует из-под среднего
+    const o2 = ease(clamp((E - .42) / .10)), o3 = ease(clamp((E - .56) / .10));
+    const c2 = { x: lerp(f1.x, f2.x, p2), y: lerp(f1.y, f2.y, p2) };
+    const c3 = { x: c2.x + (f3.x - f2.x) * p3, y: c2.y + (f3.y - f2.y) * p3 };
+    function place(b, f, c, o, done){
       b.style.opacity = o.toFixed(3);
-      b.style.transform = done ? '' : 'translate(' + (c.x - f.x).toFixed(2) + 'px,' + (c.y - f.y).toFixed(2) + 'px) scale(' + (w / nb.width).toFixed(4) + ')';
+      b.style.transform = done ? '' : 'translate(' + (c.x - f.x).toFixed(2) + 'px,' + (c.y - f.y).toFixed(2) + 'px)';
     }
-    place(b2, r2, f2, c2, o2, p1 >= 1);
-    place(b3, r3, f3, c3, o3, p3 >= 1);
+    place(b2, f2, c2, o2, p2 >= 1);
+    place(b3, f3, c3, o3, p3 >= 1);
 
     // 4. заголовок «ОПЫТ РАБОТЫ» проявляется, когда круги на месте
     if (title){
-      const t = ease(clamp((E - .82) / .18));
+      const t = ease(clamp((E - .86) / .14));
       title.style.opacity = t.toFixed(3);
       title.style.transform = 'translateY(' + ((1 - t) * 40).toFixed(1) + 'px) scale(' + (0.85 + 0.15 * t).toFixed(3) + ')';
     }
