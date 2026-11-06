@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Портфолио</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+<link rel="preconnect" href="https://raw.githubusercontent.com" crossorigin>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="prefetch" href="files/map/data/scene-flat.json" as="fetch" crossorigin>
 <link rel="prefetch" href="files/map/models/car.glb" as="fetch" crossorigin>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -143,7 +145,7 @@ transition: opacity 0.5s linear;
 position: relative;
 width: 100%;
 height: 100%;
-background-image: url('https://raw.githubusercontent.com/kolpakovdmitriy9/newbring.github.io/refs/heads/master/lovelllas.hyperesources/sls.png');
+background-image: url('files/img/sls.webp');
 background-size: cover;
 background-position: center;
 border-radius: 0;
@@ -564,14 +566,14 @@ touch-action: none;
 <div class="projects-section-mock">
 <div class="project-card">
 <div class="project-image-container">
-<img class="default-image" src="https://raw.githubusercontent.com/kolpakovdmitriy9/newbring.github.io/refs/heads/master/lovelllas.hyperesources/tseh1.png" alt="Default"/>
-<img class="hover-image" src="https://raw.githubusercontent.com/kolpakovdmitriy9/newbring.github.io/refs/heads/master/lovelllas.hyperesources/tseh2.png" alt="Hover"/>
+<img class="default-image" src="files/img/tseh1.webp" alt="Default" loading="lazy" decoding="async"/>
+<img class="hover-image" src="files/img/tseh2.webp" alt="Hover" loading="lazy" decoding="async"/>
 </div>
 <div class="project-description">Изготовление и установка навесов под ключ</div>
 </div>
 <div class="project-card">
 <div class="designer-header">
-<img class="designer-avatar" src="https://raw.githubusercontent.com/kolpakovdmitriy9/newbring.github.io/refs/heads/master/lovelllas.hyperesources/avatar.png" alt="Дмитрий Колпаков" />
+<img class="designer-avatar" src="files/img/avatar.webp" alt="Дмитрий Колпаков" loading="lazy" decoding="async" />
 <div class="designer-info">
 <div class="designer-name">Дмитрий Колпаков</div>
 <div class="designer-role">ux/ui designer</div>
@@ -688,7 +690,7 @@ touch-action: none;
 <div class="about-me-section" style="display:none">
 <div class="about-left">
 <div class="about-video-circle">
-<video id="video-element" src="https://github.com/kolpakovdmitriy9/newbring.github.io/raw/refs/heads/master/lovelllas.hyperesources/video.mp4" muted playsinline preload="auto"></video>
+<video id="video-element" src="https://github.com/kolpakovdmitriy9/newbring.github.io/raw/refs/heads/master/lovelllas.hyperesources/video.mp4" muted playsinline preload="none"></video>
 <svg class="about-video-progress" viewBox="0 0 380 380">
 <circle cx="190" cy="190" r="187" fill="none" stroke="white" stroke-width="3" stroke-opacity="0.5" />
 <circle id="video-progress-circle" cx="190" cy="190" r="187" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-dasharray="1175" stroke-dashoffset="1175"/>
@@ -738,7 +740,7 @@ touch-action: none;
     </div>
     <div class="experience-badge experience-badge--video">
       <div class="experience-badge-inner">
-        <video id="expVideoCircle" src="https://github.com/kolpakovdmitriy9/newbring.github.io/raw/refs/heads/master/lovelllas.hyperesources/video.mp4" muted playsinline preload="auto"></video>
+        <video id="expVideoCircle" src="https://github.com/kolpakovdmitriy9/newbring.github.io/raw/refs/heads/master/lovelllas.hyperesources/video.mp4" muted playsinline preload="none"></video>
       </div>
       <svg class="experience-badge-progress" viewBox="0 0 214 214" aria-hidden="true">
         <circle cx="107" cy="107" r="100" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="3"/>
@@ -1801,7 +1803,7 @@ switchTab('websites');
 
   // Preload hover image
   const preloadImg = new Image();
-  preloadImg.src = "https://raw.githubusercontent.com/kolpakovdmitriy9/newbring.github.io/refs/heads/master/lovelllas.hyperesources/tseh2.webp";
+  preloadImg.src = "files/img/tseh2.webp";
 });
 
 </script>
