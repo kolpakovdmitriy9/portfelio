@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Портфолио</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+<link rel="prefetch" href="files/map/data/scene-flat.json" as="fetch" crossorigin>
+<link rel="prefetch" href="files/map/models/car.glb" as="fetch" crossorigin>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preload" as="font" href="https://kolpakovdmitriy9.github.io/newbring.github.io/lovelllas.hyperesources/ONYTrackMoscow-Condenced_1.woff" type="font/woff" crossorigin>
 <style>
@@ -293,6 +295,9 @@ height: clamp(180px, 45vw, 440px);
    (37px от края экрана вместо обычных 30px паддинга), поэтому доп. inset через width/margin */
 .experience-paint{--map-w:min(476px,calc(100vw - 60px));--map-h:calc(var(--map-w) * 820 / 476);--pin-len:170vh;display:block;position:relative;height:calc(var(--map-h) + var(--pin-len));margin:0 0 90px}
 .experience-paint iframe{display:block;box-sizing:border-box;width:476px;max-width:100%;height:820px;border:1px solid #c4c4c4;aspect-ratio:476/820}
+#map-rect.is-loading{background:#f4f7f9 !important}
+#map-rect.is-loading::after{content:'';position:absolute;left:50%;top:50%;width:28px;height:28px;margin:-14px 0 0 -14px;border-radius:50%;border:2px solid #d3d5d8;border-top-color:#0b0b0b;animation:mapSpin .9s linear infinite}
+@keyframes mapSpin{to{transform:rotate(360deg)}}
 /* карта-сцена в прямоугольнике (заменила iframe с пиксельной раскраской). Блок закреплён (sticky) внутри высокой дорожки .experience-paint:
    скролл по дорожке меняет ракурс камеры (перспектива вдоль улицы -> вид сверху), затем стартует машина — files/map/portfolio.js */
 .experience-paint #map-rect{display:block;box-sizing:border-box;position:sticky;top:max(0px,calc(50vh - var(--map-h) / 2));width:var(--map-w);height:var(--map-h);margin:0 auto;border:0;background:#f4f7f9}
@@ -748,7 +753,7 @@ touch-action: none;
   <h2 class="experience-title">ОПЫТ РАБОТЫ</h2>
 
   <div class="experience-paint">
-    <div id="map-rect" role="img" aria-label="Карта города сверху: машина выезжает на дорогу, камера плавно отдаляется"></div>
+    <div id="map-rect" class="is-loading" role="img" aria-label="Карта города сверху: машина выезжает на дорогу, камера плавно отдаляется"></div>
   </div>
 
   <p class="experience-subtitle" id="expSubtitle">Mobile-First и скорость загрузки</p>
@@ -2577,8 +2582,10 @@ switchTab('websites');
       if (entries.some(function(e){ return e.isIntersecting; })) load();
     }, { rootMargin: '3000px 0px' });
     io.observe(rect);
-    const idle = window.requestIdleCallback || function(f){ return setTimeout(f, 2000); };
-    addEventListener('load', function(){ idle(load, { timeout: 4000 }); });
+    // start as soon as the page has been painted (not after the window load event): the data and the model are
+    // prefetched above, so by the time the user scrolls to the block the scene is usually ready already
+    const kick = function(){ setTimeout(load, 0); };
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', kick); else kick();
   }
 </script>
 </body>

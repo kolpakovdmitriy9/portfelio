@@ -212,6 +212,7 @@ renderer.setAnimationLoop(now => {
   if (state === 'run' && (f.prog < .6 || !f.any) && T > .5){ placeIdle(); progS = f.prog; } // scrolled back up / away: re-arm, plays again later
   if (!f.any){ renderer.setScissorTest(false); renderer.clear(); return; }
   step(dt, progS); render();
+  if (rectEl.classList.contains('is-loading')) rectEl.classList.remove('is-loading');   // the scene is on screen: drop the loader
 });
 
 // test / debug hooks: seek(t) replays the timeline deterministically at 30 fps; idleAt(p) shows the scroll-driven pre-phase
