@@ -2477,9 +2477,11 @@ switchTab('websites');
     if (Math.abs(Et - Es) < .0004) Es = Et;
     const E = Es;
     window.__dialExit = E;
-    // деления кольца («стрелки») убираются только когда логотип вырос до полного размера (E ≈ .40): тогда расходятся наружу и гаснут
-    const re = smooth(clamp((E - .40) / .14));
-    const ringK = 1 + .4 * re, ringO = 1 - re;
+    // деления кольца («стрелки») убираются, когда логотип вырос: тогда расходятся наружу и гаснут
+    // начало — когда логотип ВИЗУАЛЬНО вырос (ease-in-out: последние ~15% роста почти незаметны, поэтому не ждём E = .40):
+    // сначала деления расходятся наружу (размер), и только когда уже разошлись — гаснут (прозрачность)
+    const re = smooth(clamp((E - .28) / .20));
+    const ringK = 1 + .55 * re, ringO = 1 - smooth(clamp((re - .35) / .65));
     if (window.__ringK !== ringK || window.__ringO !== ringO){
       window.__ringK = ringK; window.__ringO = ringO;
       if (window.__dialWake) window.__dialWake();
