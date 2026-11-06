@@ -2455,19 +2455,27 @@ switchTab('websites');
     }
   }
 
-  let queued = false;
-  function update(){
+  let queued = false, Es = null, lastT = 0;
+  const K = 9;                                                             // «упругость» догоняния, 1/с: больше — резче, меньше — мягче и «тягучее»
+  function update(now){
     queued = false;
     const vh = window.innerHeight, EXIT = 0.95 * vh;
     const sr = stage.getBoundingClientRect();
     const total = sr.height - vh - EXIT;
-    const E = total > 0 ? clamp((-sr.top - total) / EXIT, 0, 1) : 0;       // 0 — отрезок ещё не начался, 1 — закончился
+    const Et = total > 0 ? clamp((-sr.top - total) / EXIT, 0, 1) : 0;      // настоящий прогресс скролла: 0 — отрезок ещё не начался, 1 — закончился
+    // анимация идёт по ДОГОНЯЮЩЕМУ значению E: колёсико мыши прыгает ступеньками, а E плавно, с мягким стартом и торможением, к нему подтягивается;
+    // положение закреплённых блоков (hold) считается по настоящему Et — оно обязано совпадать со скроллом страницы
+    const dt = lastT ? Math.min(Math.max((now - lastT) / 1000, 0.001), .05) : .016; lastT = now || 0;
+    if (Es === null) Es = Et;
+    Es += (Et - Es) * (1 - Math.exp(-dt * K));
+    if (Math.abs(Et - Es) < .0004) Es = Et;
+    const E = Es;
     window.__dialExit = E;
 
     // пока идёт переход, блок «Опыт работы» физически ещё едет снизу вверх, а круги и заголовок стоят на конечном месте:
     // конечное место = естественное положение минус то, на сколько блок ещё должен доехать (оно сходит в 0 к E = 1)
-    const hy = (1 - E) * EXIT;
-    const held = E > 0.001 && E < 0.999;
+    const hy = (1 - Et) * EXIT;
+    const held = Et > 0.001 && Et < 0.999;
     if (holdRow) hold(holdRow, held, natTop(holdRow) - hy);
     if (holdTitle) hold(holdTitle, held, natTop(holdTitle) - hy);
 
@@ -2480,46 +2488,52 @@ switchTab('websites');
       el.style.transform = f > 0 ? 'translate3d(0,' + (-34 * f).toFixed(1) + 'px,0)' : '';
     });
 
-    // 2. круг «Рив Гош» (он и есть иконка слайда) едет на ТРЕТЬЕ место ряда (справа, на вертикальном центре экрана),
-    //    растёт там до полного размера и остаётся на месте: дальше из-под него выезжают остальные.
+    // 2. круг «Рив Гош» (он и есть иконка слайда): встаёт в ЦЕНТР страницы и растёт там на месте до полного размера;
+    //    потом уезжает вправо, на ТРЕТЬЕ место ряда; из-под него выезжают остальные.
     //    Положения кругов измеряем без их собственного сдвига (transform: none), иначе прошлый кадр попадает в новый
     const r1 = natRect(b1), r2 = natRect(b2), r3 = natRect(b3);
     const f1 = { x: r1.left + r1.width / 2, y: r1.top + r1.height / 2 };   // третье место (логотип)
-    const f2 = { x: r2.left + r2.width / 2, y: r2.top + r2.height / 2 };   // среднее
+    const f2 = { x: r2.left + r2.width / 2, y: r2.top + r2.height / 2 };   // среднее — это и есть центр страницы
     const f3 = { x: r3.left + r3.width / 2, y: r3.top + r3.height / 2 };   // левое
-    const m  = ease(clamp((E - .10) / .20));                                // иконка → третье место
-    const g  = ease(clamp((E - .16) / .24));                                // рост до размера круга в ряду
-    const p2 = ease(clamp((E - .42) / .26));                                // среднее (видео) выезжает из-под логотипа
-    const p3 = ease(clamp((E - .56) / .28));                                // левое (Пятёрочка) — позже, из-под среднего
-    const flying = E > 0.001 && E < .40;                                    // дальше логотип — это уже настоящий круг в ряду
+    const C = f2;
+    const m  = ease(clamp((E - .10) / .20));                                // иконка → центр
+    const g  = ease(clamp((E - .16) / .24));                                // рост на месте, в центре
+    const TL0 = .40, TL = .24;                                              // логотип уезжает вправо: E .40 → .64
+    const pL = ease(clamp((E - TL0) / TL));
+    const pB = ease(clamp((E - .50) / .26));                                // среднее (видео) выезжает из-под логотипа
+    const pA = ease(clamp((E - .62) / .26));                                // левое (Пятёрочка) — из-под среднего
+    const sB = lerp(C.x, f1.x, ease(clamp((.50 - TL0) / TL)));              // где логотип в момент, когда из-под него выезжает видео
     icon.style.visibility = E > 0.001 ? 'hidden' : '';
     const s = icon.getBoundingClientRect();
+    const ax = lerp(s.left + s.width / 2, C.x, m), ay = lerp(s.top + s.height / 2, C.y, m);
     const w = lerp(s.width, r1.width, g);
-    const cx = lerp(s.left + s.width / 2, f1.x, m), cy = lerp(s.top + s.height / 2, f1.y, m);
-    if (flying){
+    const cx = lerp(ax, f1.x, pL), cy = lerp(ay, f1.y, pL);
+    if (E > 0.001 && pL < 1){
       fly.style.display = 'block';
       fly.style.width = fly.style.height = w.toFixed(1) + 'px';
       fly.style.transform = 'translate3d(' + (cx - w / 2).toFixed(1) + 'px,' + (cy - w / 2).toFixed(1) + 'px,0)';
     } else fly.style.display = 'none';
-    b1.style.opacity = E >= .40 ? '1' : '0';
+    b1.style.opacity = pL >= 1 ? '1' : '0';
 
-    // 3. средний и левый круги: проявляются через прозрачность и едут из-под логотипа влево; левый стартует из-под среднего
-    const o2 = ease(clamp((E - .42) / .10)), o3 = ease(clamp((E - .56) / .10));
-    const c2 = { x: lerp(f1.x, f2.x, p2), y: lerp(f1.y, f2.y, p2) };
-    const c3 = { x: c2.x + (f3.x - f2.x) * p3, y: c2.y + (f3.y - f2.y) * p3 };
+    // 3. видео и Пятёрочка: проявляются через прозрачность и едут из-под логотипа влево, по очереди;
+    //    видео стартует там, где в этот момент логотип (из-под него), Пятёрочка — из-под видео
+    const o2 = ease(clamp((E - .50) / .08)), o3 = ease(clamp((E - .62) / .08));
+    const c2 = { x: lerp(sB, f2.x, pB), y: f2.y };
+    const c3 = { x: c2.x + (f3.x - f2.x) * pA, y: f2.y };
     function place(b, f, c, o, done){
       b.style.opacity = o.toFixed(3);
       b.style.transform = done ? '' : 'translate(' + (c.x - f.x).toFixed(2) + 'px,' + (c.y - f.y).toFixed(2) + 'px)';
     }
-    place(b2, f2, c2, o2, p2 >= 1);
-    place(b3, f3, c3, o3, p3 >= 1);
+    place(b2, f2, c2, o2, pB >= 1);
+    place(b3, f3, c3, o3, pA >= 1);
 
     // 4. заголовок «ОПЫТ РАБОТЫ» проявляется, когда круги на месте
     if (title){
-      const t = ease(clamp((E - .86) / .14));
+      const t = ease(clamp((E - .88) / .12));
       title.style.opacity = t.toFixed(3);
       title.style.transform = 'translateY(' + ((1 - t) * 40).toFixed(1) + 'px) scale(' + (0.85 + 0.15 * t).toFixed(3) + ')';
     }
+    if (Es !== Et) schedule(); else lastT = 0;                              // ещё догоняем скролл — продолжаем кадры
   }
   function schedule(){ if (!queued){ queued = true; requestAnimationFrame(update); } }
   addEventListener('scroll', schedule, { passive: true });
