@@ -495,7 +495,7 @@ touch-action: none;
   --reel-stagger: 90ms;
   --reel-ease: cubic-bezier(0.16, 1, 0.3, 1);
 }
-.t-reel-col{display:inline-block;overflow:hidden;height:1em;line-height:1em;vertical-align:top}
+.t-reel-col{display:inline-block;overflow:hidden;height:1em;line-height:1em;vertical-align:top;-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 10%,#000 90%,transparent 100%);mask-image:linear-gradient(to bottom,transparent 0,#000 10%,#000 90%,transparent 100%)}   /* мягкие края, без резкой границы контейнера */
 .t-reel-strip{display:flex;flex-direction:column;will-change:transform,filter;transform:translateY(0)}
 .t-reel-digit{display:block;height:1em;line-height:1em;text-align:center}
 @media (prefers-reduced-motion: reduce){.t-reel-strip{transition:none!important;filter:none!important}}
