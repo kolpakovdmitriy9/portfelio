@@ -267,8 +267,6 @@ height: clamp(180px, 45vw, 440px);
 /* «летящий» логотип: иконка последнего слайда превращается в круг Рив Гош и едет на его место в ряду */
 .logo-flyer{position:fixed;left:0;top:0;border-radius:50%;pointer-events:none;z-index:900;display:none;will-change:transform,width,height}
 .logo-flyer>div{position:absolute;inset:0;border-radius:50%;background:#fff}
-.logo-flyer .lf-star{box-sizing:border-box;border:1px solid currentColor;display:grid;place-items:center}
-.logo-flyer .lf-star svg{width:38%;height:38%;fill:none;stroke:currentColor}
 .logo-flyer .lf-logo img{position:absolute;inset:4.27%;width:91.46%;height:91.46%;border-radius:50%;object-fit:cover;display:block}
 .experience-badge--video video{width:100%;height:100%;object-fit:cover;display:block}
 /* кольцо прогресса просмотра лежит НА видео (тот же inset:10px, что и сам кружок
@@ -475,6 +473,8 @@ touch-action: none;
 /* первая иконка — точный ассет из макета (96×96, уже со своим кругом внутри) */
 .dial-icon--asset{border:none}
 .dial-icon--asset svg{width:100%;height:100%}
+.dial-icon--logo{border:none;background:#fff;overflow:hidden}
+.dial-icon--logo img{width:91.46%;height:91.46%;border-radius:50%;object-fit:cover;display:block}
 /* число набрано Regular без трекинга — в макете межбуквенное задано только тексту */
 .dial-count{color:var(--dial-accent);font-family:'ONY Track Moscow',sans-serif;font-size:var(--dial-num);font-weight:var(--dial-regular);line-height:1;font-variant-numeric:tabular-nums;white-space:nowrap}
 /* цифра — барабан: колонка 0…9 (+довесок до нужного значения) едет вверх и приземляется на цель.
@@ -659,7 +659,7 @@ touch-action: none;
 
         <article class="dial-slide">
           <div class="dial-mark">
-            <span class="dial-icon"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.6 5.6 6.1.8-4.5 4.2 1.2 6.1L12 16.8 6.6 19.7l1.2-6.1L3.3 9.4l6.1-.8z"/></svg></span>
+            <span class="dial-icon dial-icon--logo"><img src="files/logo-rivgosh.png" alt="Рив Гош"></span>
             <span class="dial-count">17</span>
           </div>
           <div class="dial-copy">
@@ -2409,16 +2409,14 @@ switchTab('websites');
   if (!icon || !b1 || !b2 || !b3) return;
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;   // без анимации всё остаётся на своих местах
 
-  const clamp = function(v, a, b){ return v < a ? a : v > b ? b : v; };
+  const clamp = function(v, a, b){ if (a === undefined) a = 0; if (b === undefined) b = 1; return v < a ? a : v > b ? b : v; };
   const ease = function(t){ return t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; };
   const lerp = function(a, b, t){ return a + (b - a) * t; };
 
   const fly = document.createElement('div');
   fly.className = 'logo-flyer'; fly.setAttribute('aria-hidden', 'true');
-  fly.innerHTML = '<div class="lf-star"></div><div class="lf-logo"><img src="files/logo-rivgosh.png" alt=""></div>';
+  fly.innerHTML = '<div class="lf-logo"><img src="files/logo-rivgosh.png" alt=""></div>';
   document.body.appendChild(fly);
-  const flyStar = fly.firstChild, flyLogo = fly.lastChild;
-  flyStar.innerHTML = icon.innerHTML;
 
   // положение блока без собственного transform — туда он должен прийти
   function natRect(el){
@@ -2439,49 +2437,48 @@ switchTab('websites');
     const hy = (1 - E) * EXIT;
 
     // 1. цифра, заголовок и текст последнего слайда гаснут и уходят вверх — так же, как у двух предыдущих
-    const f = ease(clamp(E / .28));
+    const f = ease(clamp(E / .26));
     [count, copy].forEach(function(el){
       if (!el) return;
       el.style.opacity = (1 - f).toFixed(3);
       el.style.transform = f > 0 ? 'translate3d(0,' + (-34 * f).toFixed(1) + 'px,0)' : '';
     });
 
-    // 2. иконка → «летящий» логотип → круг в ряду (на конечное место)
-    const X = ease(clamp((E - .08) / .52));                                  // полёт: 0 — на месте иконки, 1 — в ряду
-    const flying = E > 0.001 && X < 1;
+    // 2. круг «Рив Гош» (он и есть иконка слайда): сначала растёт НА МЕСТЕ, по центру, до полного размера;
+    //    и только потом уезжает влево на своё место, а Пятёрочка и видео выезжают из-под него
+    const g = ease(clamp((E - .05) / .33));                                  // рост на месте: 0 — размер иконки, 1 — размер круга в ряду
+    const p = ease(clamp((E - .40) / .48));                                  // разъезд: 0 — все под центром, 1 — каждый в своём месте ряда
+    const moving = E > 0.001 && p < 1;
     icon.style.visibility = E > 0.001 ? 'hidden' : '';
-    const nb1 = natRect(b1);
     const s = icon.getBoundingClientRect();
-    const fcx = nb1.left + nb1.width / 2, fcy = nb1.top + nb1.height / 2 - hy;   // конечный центр первого круга
-    const w = lerp(s.width, nb1.width, X);
-    const cx = lerp(s.left + s.width / 2, fcx, X);
-    const cy = lerp(s.top + s.height / 2, fcy, X);
-    if (flying){
-      const c = ease(clamp((X - .04) / .40));                                // звезда → лого
+    const sx = s.left + s.width / 2, sy = s.top + s.height / 2;              // центр иконки (круг растёт вокруг него)
+    const nb1 = natRect(b1);
+    const w = lerp(s.width, nb1.width, g);
+    const cx = lerp(sx, nb1.left + nb1.width / 2, p);
+    const cy = lerp(sy, nb1.top + nb1.height / 2 - hy, p);
+    if (moving){
       fly.style.display = 'block';
       fly.style.width = fly.style.height = w.toFixed(1) + 'px';
       fly.style.transform = 'translate3d(' + (cx - w / 2).toFixed(1) + 'px,' + (cy - w / 2).toFixed(1) + 'px,0)';
-      fly.style.color = getComputedStyle(icon).color;
-      flyStar.style.opacity = (1 - c).toFixed(3); flyLogo.style.opacity = c.toFixed(3);
     } else fly.style.display = 'none';
-    b1.style.opacity = X >= 1 ? '1' : '0';
+    b1.style.opacity = p >= 1 ? '1' : '0';
     b1.style.transform = hy > .5 ? 'translateY(' + (-hy).toFixed(1) + 'px)' : '';
 
-    // 3. два других круга выезжают из-под первого (он лежит выше всех)
-    const e2 = ease(clamp((E - .50) / .42));
-    const show = E > .47;
+    // 3. два других круга — под логотипом (он лежит выше всех); расходятся вместе с ним
+    const show = E > .30;
     [b2, b3].forEach(function(b){
       const nb = natRect(b);
-      const sc = lerp(w / nb.width, 1, e2);
-      const dx = (cx - (nb.left + nb.width / 2)) * (1 - e2);
-      const dy = (cy - (nb.top + nb.height / 2)) * (1 - e2) - hy * e2;
-      b.style.transform = (e2 >= 1 && hy <= .5) ? '' : 'translate(' + dx.toFixed(1) + 'px,' + dy.toFixed(1) + 'px) scale(' + sc.toFixed(4) + ')';
+      const bx = nb.left + nb.width / 2, by = nb.top + nb.height / 2;
+      const sc = w / nb.width;                                              // пока логотип растёт, круги не больше его
+      const dx = (sx - bx) * (1 - p);
+      const dy = (sy - by) * (1 - p) - hy * p;
+      b.style.transform = (p >= 1 && hy <= .5) ? '' : 'translate(' + dx.toFixed(1) + 'px,' + dy.toFixed(1) + 'px) scale(' + (p >= 1 ? 1 : sc).toFixed(4) + ')';
       b.style.opacity = show ? '1' : '0';
     });
 
     // 4. заголовок «ОПЫТ РАБОТЫ» проявляется, когда круги на месте
     if (title){
-      const t = ease(clamp((E - .66) / .34));
+      const t = ease(clamp((E - .72) / .28));
       title.style.opacity = t.toFixed(3);
       title.style.transform = 'translateY(' + (((1 - t) * 40) - hy).toFixed(1) + 'px) scale(' + (0.85 + 0.15 * t).toFixed(3) + ')';
     }
