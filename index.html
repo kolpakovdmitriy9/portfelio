@@ -318,6 +318,24 @@ height: clamp(180px, 45vw, 440px);
    line-height задан unitless 0.75, чтобы масштабировался вместе со шрифтом);
    нижняя граница clamp'а — минимум, при котором три лейбла ещё влезают на 390px
    экран без горизонтального выхода за viewport */
+/* чёрный блок «Быстрый запуск»: два курсора (dsg# — автомат, «Вы» — за мышью) проходят шаги
+   вместе; цифра — точечная матрица. Содержимое — заглушка (рыба) */
+.exp-duo{position:relative;width:100vw;left:50%;transform:translateX(-50%);height:clamp(460px,52vw,740px);background:#000;color:#fff;overflow:hidden;margin:0 0 90px;text-align:left;user-select:none;-webkit-user-select:none}
+@media (hover:hover) and (pointer:fine){.exp-duo{cursor:none}}
+.exp-duo-title{position:absolute;left:clamp(20px,4.2vw,64px);top:clamp(24px,4.2vw,60px);margin:0;font:400 clamp(22px,3.5vw,50px)/1.05 'ONY One',sans-serif;max-width:40%}
+.exp-duo-cap{position:absolute;right:clamp(20px,4.2vw,64px);bottom:clamp(24px,4.2vw,60px);margin:0;font:400 clamp(22px,3.5vw,50px)/1.05 'ONY One',sans-serif;text-align:right;max-width:55%;transition:opacity .25s ease}
+.exp-duo-digit{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:grid;grid-template-columns:repeat(5,1fr);gap:clamp(4px,.7vw,10px);width:clamp(110px,15vw,220px)}
+.exp-duo-digit i{aspect-ratio:1;border-radius:50%;background:#fff;opacity:.08;transition:opacity .25s ease,transform .25s ease}
+.exp-duo-digit i.on{opacity:1}
+.exp-duo-target{position:absolute;width:clamp(54px,6vw,84px);aspect-ratio:1;margin:calc(clamp(54px,6vw,84px) / -2) 0 0 calc(clamp(54px,6vw,84px) / -2);border-radius:50%;border:2px dashed currentColor;opacity:.75;pointer-events:none;transition:opacity .3s ease,transform .3s ease,background .3s ease}
+.exp-duo-target.done{opacity:1;background:color-mix(in srgb,currentColor 35%,transparent);transform:scale(.8)}
+.exp-duo-target[data-who="dsg"]{color:#8b5cf6}
+.exp-duo-target[data-who="you"]{color:#f0561a}
+.exp-duo-cursor{position:absolute;left:0;top:0;pointer-events:none;will-change:transform}
+.exp-duo-cursor svg{display:block;width:34px;height:34px}
+.exp-duo-cursor span{position:absolute;left:22px;top:26px;padding:6px 14px 8px;border-radius:999px;font:400 clamp(15px,1.7vw,22px)/1 'ONY One',sans-serif;white-space:nowrap}
+.exp-duo-cursor[data-who="dsg"] svg{color:#8b5cf6}.exp-duo-cursor[data-who="dsg"] span{background:#8b5cf6;color:#fff}
+.exp-duo-cursor[data-who="you"] svg{color:#f0561a}.exp-duo-cursor[data-who="you"] span{background:#f0561a;color:#000}
 @media (max-width:640px){
   .experience-gallery-item{width:200px;height:320px}
 }
@@ -771,6 +789,17 @@ touch-action: none;
     </div>
   </div>
 
+  <!-- === ЧЁРНЫЙ БЛОК «Быстрый запуск» (заглушка-рыба) === -->
+  <div class="exp-duo" id="expDuo">
+    <h3 class="exp-duo-title">Быстрый запуск</h3>
+    <div class="exp-duo-digit" id="expDuoDigit" aria-hidden="true"></div>
+    <p class="exp-duo-cap" id="expDuoCap">Макет передан в разработку</p>
+    <div class="exp-duo-target" data-who="dsg" id="expDuoTA"></div>
+    <div class="exp-duo-target" data-who="you" id="expDuoTB"></div>
+    <div class="exp-duo-cursor" data-who="dsg" id="expDuoCA"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 3l7.5 18 2.6-7.4L21 10.9z"/></svg><span>dsg#</span></div>
+    <div class="exp-duo-cursor" data-who="you" id="expDuoCB"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 3l7.5 18 2.6-7.4L21 10.9z"/></svg><span>Вы</span></div>
+  </div>
+
   <div class="experience-gallery"><div class="experience-gallery-track" id="expGalleryTrack"></div></div>
 
   <!-- === "ГОТОВ К РАБОТЕ" — свитчер связаться/предложить оффер === -->
@@ -1134,6 +1163,78 @@ document.addEventListener('DOMContentLoaded', () => {
       galleryEl.addEventListener('mouseenter', function(){ hovering = true; });
       galleryEl.addEventListener('mouseleave', function(){ hovering = false; });
     }
+  })();
+
+  // === Чёрный блок «Быстрый запуск»: dsg# (авто) и «Вы» (за мышью) проходят шаги вместе: у каждого
+  // своя мишень, шаг засчитан, когда оба на своих; нет мыши — «Вы» играет сам. Тексты — рыба ===
+  (function(){
+    const box = document.getElementById('expDuo');
+    if (!box) return;
+    const dg = document.getElementById('expDuoDigit'), cap = document.getElementById('expDuoCap');
+    const tA = document.getElementById('expDuoTA'), tB = document.getElementById('expDuoTB');
+    const cA = document.getElementById('expDuoCA'), cB = document.getElementById('expDuoCB');
+    const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const G = {0:'01110100011001110101110011000101110',1:'00100011000010000100001000010001110',2:'01110100010000100010001000100011111',3:'11110000010000101110000010000111110',4:'00010001100101010010111110001000010',5:'11111100001111000001000011000101110',6:'00110010001000011110100011000101110',7:'11111000010001000100010000100001000',8:'01110100011000101110100011000101110',9:'01110100011000101111000010001001100'};
+    for (let i = 0; i < 35; i++) dg.appendChild(document.createElement('i'));
+    const dots = dg.children;
+    function showDigit(n){ const g = G[n]; for (let i = 0; i < 35; i++){ dots[i].classList.toggle('on', g[i] === '1'); } }
+    const STEPS = [
+      { cap: 'Макет передан в разработку', a: [.33,.40], b: [.67,.62] },
+      { cap: 'Компонент собран и проверен', a: [.30,.68], b: [.70,.34] },
+      { cap: 'Если нужно быстро запустить, то сделаем MVP', a: [.40,.30], b: [.60,.70] }
+    ];
+    let step = 0, holdT = 0, pausedUntil = 0, W = 0, H = 0, raf = 0, last = 0, visible = false, mouse = null, mouseAt = 0;
+    const A = { x: 0, y: 0 }, B = { x: 0, y: 0 };
+    function size(){ const r = box.getBoundingClientRect(); W = r.width; H = r.height; }
+    function place(el, p){ el.style.left = (p[0] * 100) + '%'; el.style.top = (p[1] * 100) + '%'; }
+    function load(i){
+      const st = STEPS[i % STEPS.length];
+      tA.classList.remove('done'); tB.classList.remove('done');
+      place(tA, st.a); place(tB, st.b);
+      cap.style.opacity = 0; setTimeout(function(){ cap.textContent = st.cap; cap.style.opacity = 1; }, 220);
+      showDigit((i % STEPS.length) + 1);
+      holdT = 0;
+    }
+    function frame(ts){
+      const dt = Math.min(0.04, (ts - (last || ts)) / 1000); last = ts;
+      const st = STEPS[step % STEPS.length];
+      const aT = { x: st.a[0] * W, y: st.a[1] * H }, bT = { x: st.b[0] * W, y: st.b[1] * H };
+      const now = performance.now();
+      if (now < pausedUntil){ // пауза после шага: курсоры плывут к центру
+        A.x += (W * .42 - A.x) * dt * 3; A.y += (H * .5 - A.y) * dt * 3; B.x += (W * .58 - B.x) * dt * 3; B.y += (H * .5 - B.y) * dt * 3;
+      } else {
+        // dsg# идёт к своей мишени (с небольшим «дыханием»)
+        const k = Math.min(1, dt * 2.4);
+        A.x += (aT.x + Math.sin(ts / 420) * 4 - A.x) * k; A.y += (aT.y + Math.cos(ts / 380) * 4 - A.y) * k;
+        const human = mouse && now - mouseAt < 3000;
+        const tx = human ? mouse.x : bT.x, ty = human ? mouse.y : bT.y; // нет мыши 3с — «Вы» играет сам
+        const kb = human ? Math.min(1, dt * 14) : Math.min(1, dt * 1.6);
+        B.x += (tx - B.x) * kb; B.y += (ty - B.y) * kb;
+        const r = W * .038;
+        const okA = Math.hypot(A.x - aT.x, A.y - aT.y) < r, okB = Math.hypot(B.x - bT.x, B.y - bT.y) < r;
+        tA.classList.toggle('done', okA); tB.classList.toggle('done', okB);
+        holdT = (okA && okB) ? holdT + dt : Math.max(0, holdT - dt * 2);
+        if (holdT > 0.55){
+          step++; pausedUntil = now + (step % STEPS.length === 0 ? 1800 : 900);
+          setTimeout(function(){ load(step); }, step % STEPS.length === 0 ? 1700 : 800);
+        }
+      }
+      cA.style.transform = 'translate(' + A.x.toFixed(1) + 'px,' + A.y.toFixed(1) + 'px)';
+      cB.style.transform = 'translate(' + B.x.toFixed(1) + 'px,' + B.y.toFixed(1) + 'px)';
+      raf = visible ? requestAnimationFrame(frame) : 0;
+    }
+    box.addEventListener('pointermove', function(e){
+      if (e.pointerType === 'touch') return;
+      const r = box.getBoundingClientRect(); mouse = { x: e.clientX - r.left, y: e.clientY - r.top }; mouseAt = performance.now();
+    });
+    box.addEventListener('pointerleave', function(){ mouseAt = 0; });
+    window.addEventListener('resize', size);
+    size(); load(0);
+    A.x = W * .15; A.y = H * .2; B.x = W * .85; B.y = H * .8;
+    if (reduced){ showDigit(1); return; }
+    if ('IntersectionObserver' in window){
+      new IntersectionObserver(function(en){ visible = en[0].isIntersecting; if (visible && !raf){ last = 0; size(); raf = requestAnimationFrame(frame); } }, { threshold: .15 }).observe(box);
+    } else { visible = true; raf = requestAnimationFrame(frame); }
   })();
 
   // === HERO HEIGHT ===
