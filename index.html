@@ -1289,20 +1289,35 @@ document.addEventListener('DOMContentLoaded', () => {
       box.appendChild(pn); setTimeout(function(){ pn.classList.add('fade'); }, 3500); setTimeout(function(){ pn.remove(); }, 9000);
     }
     function puff(x, y){ const e = document.createElement('div'); e.className = 'exp-puff'; e.style.left = x + 'px'; e.style.top = y + 'px'; e.style.setProperty('--dx', (Math.random() * 40 - 20) + 'px'); box.appendChild(e); setTimeout(function(){ e.remove(); }, 950); }
-    function applyEdit(id, kind){
+    function applyEdit(id, kind, extra){
       const o = objs[id]; o.n++; edits++; showDigit(edits);
       if (kind === 'air'){ o.s = Math.max(.7, o.s - .05); o.dy += 4; }
       else if (kind === 'big'){ o.s = Math.min(1.35, o.s + .06); }
       else if (kind === 'bright'){ o.hue += 0; o.el.style.background = o.d.bg; o.el.style.opacity = 1; o.s = Math.min(1.3, o.s + .02); }
       else if (kind === 'none'){ /* дизайнер отказался — правка без изменений */ }
+      else if (kind === 'small'){ o.s = Math.max(.6, o.s - .08); }
+      else if (kind === 'move' && extra){ o.dx += extra.dx || 0; o.dy += extra.dy || 0; }
+      else if (kind === 'color' && extra && extra.color){ o.el.style.background = extra.color; }
       else { o.ci = (o.ci + 1) % COLORS.length; o.el.style.background = COLORS[o.ci]; }
       if (kind === 'bright') o.hue = (o.hue + 18) % 360;
       setT(o); return o;
     }
+    // Свободный текст: понимаем конкретные цвета, сдвиги и «меньше» без нейросети (она может не ответить)
+    const COLOR_WORDS = [['зелен|зелён','#2fbf71'],['красн','#e5262b'],['син|голуб','#3b82f6'],['жёлт|желт','#f5c518'],['оранж','#f0561a'],['фиолет|пурпур','#8b5cf6'],['розов','#ec5fa5'],['чёрн|черн','#111111'],['бел','#ffffff'],['сер','#9a9a9a'],['бирюз','#14b8a6']];
+    function parseIntent(text){
+      const t = String(text || '').toLowerCase();
+      for (let i = 0; i < COLOR_WORDS.length; i++) if (new RegExp(COLOR_WORDS[i][0]).test(t)) return { kind: 'color', color: COLOR_WORDS[i][1] };
+      if (/влев|левее|лево/.test(t)) return { kind: 'move', dx: -28, dy: 0 };
+      if (/впра|правее|право/.test(t)) return { kind: 'move', dx: 28, dy: 0 };
+      if (/выше|вверх/.test(t)) return { kind: 'move', dx: 0, dy: -18 };
+      if (/ниже|вниз/.test(t)) return { kind: 'move', dx: 0, dy: 18 };
+      if (/меньше|уменьш|поменьше|мельче/.test(t)) return { kind: 'small' };
+      return null;
+    }
     // комментарий: пин → дизайнер читает → применяет или реагирует
     function queueComment(x, y, kind, text){
       const id = objAt(x, y); addPin(x, y, text, false);
-      pending.push({ id: id, kind: kind, x: x, y: y, ai: askDesigner(text, id) });
+      pending.push({ id: id, kind: kind, x: x, y: y, intent: parseIntent(text), ai: askDesigner(text, id) });
     }
     async function handle(c, tok){
       const o = objs[c.id], r = rectOf(o.el);
@@ -1310,9 +1325,10 @@ document.addEventListener('DOMContentLoaded', () => {
       status('Дизайнер читает комментарий…');
       const ai = await Promise.race([c.ai, sleep(2500).then(function(){ return null; })]); if (tok !== alive) return;
       if (ai && ai.action) c.kind = ai.action;
+      if (c.intent) c.kind = c.intent.kind; // явная просьба из текста важнее выбора модели
       talk(ai && ai.reply && String(ai.reply).trim().length > 3 ? String(ai.reply).trim() : rand(REPLY), 2300); // слишком короткое («?») — заготовка await sleep(900); if (tok !== alive) return;
       o.el.classList.add('sel'); go(A, r.x + r.w * .8, r.y + r.h * .8); await sleep(350);
-      applyEdit(c.id, c.kind); setAnnoy(annoy + (placed ? 9 : 5)); await sleep(500); if (tok !== alive) return;
+      applyEdit(c.id, c.kind, c.intent); setAnnoy(annoy + (placed ? 9 : 5)); await sleep(500); if (tok !== alive) return;
       o.el.classList.remove('sel');
       if (o.n > 5 && !swapped){ swapped = true; await swapSeq(tok); }
     }
