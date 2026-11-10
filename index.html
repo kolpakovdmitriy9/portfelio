@@ -1181,9 +1181,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const STEPS = [
       { cap: 'Макет передан в разработку', a: [.33,.40], b: [.67,.62] },
       { cap: 'Компонент собран и проверен', a: [.30,.68], b: [.70,.34] },
-      { cap: 'Если нужно быстро запустить, то сделаем MVP', a: [.40,.30], b: [.60,.70] }
+      { cap: 'Нажмите вместе: запуск MVP', a: [.40,.30], b: [.60,.70], click: true },
+      { cap: 'Если нужно быстро запустить, то сделаем MVP', a: [.5,.32], b: [.5,.7], final: true }
     ];
-    let step = 0, holdT = 0, pausedUntil = 0, W = 0, H = 0, raf = 0, last = 0, visible = false, mouse = null, mouseAt = 0;
+    let clickAt = 0, step = 0, holdT = 0, pausedUntil = 0, W = 0, H = 0, raf = 0, last = 0, visible = false, mouse = null, mouseAt = 0;
     const A = { x: 0, y: 0 }, B = { x: 0, y: 0 };
     function size(){ const r = box.getBoundingClientRect(); W = r.width; H = r.height; }
     function place(el, p){ el.style.left = (p[0] * 100) + '%'; el.style.top = (p[1] * 100) + '%'; }
@@ -1213,8 +1214,18 @@ document.addEventListener('DOMContentLoaded', () => {
         const r = W * .038;
         const okA = Math.hypot(A.x - aT.x, A.y - aT.y) < r, okB = Math.hypot(B.x - bT.x, B.y - bT.y) < r;
         tA.classList.toggle('done', okA); tB.classList.toggle('done', okB);
-        holdT = (okA && okB) ? holdT + dt : Math.max(0, holdT - dt * 2);
+        // шаг «нажмите вместе»: мало встать на мишени — «Вы» должны ещё и кликнуть (в автоигре кликает сам)
+        let go = okA && okB;
+        if (go && st.click){
+          if (!human && !st.autoAt) st.autoAt = now + 700;
+          go = human ? (now - clickAt < 600) : now > st.autoAt;
+        }
+        if (go && st.final) go = false; // финальный экран — просто показываем, затем цикл
+        holdT = go ? holdT + dt : Math.max(0, holdT - dt * 2);
+        if (st.final && !st.fin){ st.fin = now + 2600; }
+        if (st.final && now > st.fin){ st.fin = 0; holdT = 1; }
         if (holdT > 0.55){
+          STEPS.forEach(function(x){ x.autoAt = 0; });
           step++; pausedUntil = now + (step % STEPS.length === 0 ? 1800 : 900);
           setTimeout(function(){ load(step); }, step % STEPS.length === 0 ? 1700 : 800);
         }
@@ -1227,6 +1238,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (e.pointerType === 'touch') return;
       const r = box.getBoundingClientRect(); mouse = { x: e.clientX - r.left, y: e.clientY - r.top }; mouseAt = performance.now();
     });
+    box.addEventListener('pointerdown', function(){ clickAt = performance.now(); });
     box.addEventListener('pointerleave', function(){ mouseAt = 0; });
     window.addEventListener('resize', size);
     size(); load(0);
