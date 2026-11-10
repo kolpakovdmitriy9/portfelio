@@ -330,15 +330,24 @@ height: clamp(180px, 45vw, 440px);
 .exp-duo-digit i.on{opacity:1}
 .exp-duo-lbl{position:absolute;left:clamp(16px,4vw,64px);bottom:calc(clamp(16px,3vw,44px) + clamp(44px,5vw,70px) * 1.45 + 8px);font:400 12px/1 'ONY One',sans-serif;opacity:.5;letter-spacing:.06em;text-transform:uppercase}
 .fg-frame{container-type:inline-size;position:absolute;left:50%;top:50%;width:52%;height:66%;transform:translate(-50%,-50%);background:#ececec;border-radius:14px;overflow:visible;box-shadow:0 0 0 1px #333}
-.fg-obj{position:absolute;opacity:0;transform:scale(.6);transition:opacity .35s ease,transform .35s ease,filter .35s ease,left .35s ease,top .35s ease,width .35s ease,height .35s ease,background .35s ease;border-radius:8px;outline:1.5px solid transparent}
-.fg-obj.in{opacity:1;transform:scale(1)}
+.fg-obj{position:absolute;clip-path:inset(0 100% 100% 0);transition:clip-path .6s cubic-bezier(.3,.7,.2,1),filter .35s ease,left .35s ease,top .35s ease,width .35s ease,height .35s ease,background .35s ease,font-size .35s ease,border-radius .35s ease,color .35s ease;border-radius:8px}
+.fg-obj.in{clip-path:inset(-60px)}
+/* выделение как в Figma: синяя рамка 1px, белые квадратики по углам, плашка «ширина × высота» */
+.fg-sel{position:absolute;z-index:8;border:1px solid #0d99ff;pointer-events:none;display:none;box-sizing:border-box}
+.fg-sel.on{display:block}
+.fg-sel.grow{transition:width .6s cubic-bezier(.3,.7,.2,1),height .6s cubic-bezier(.3,.7,.2,1)}
+.fg-sel i{position:absolute;width:8px;height:8px;background:#fff;border:1px solid #0d99ff;box-sizing:border-box;margin:-4px 0 0 -4px}
+.fg-sel i:nth-child(1){left:0;top:0}.fg-sel i:nth-child(2){left:100%;top:0}.fg-sel i:nth-child(3){left:0;top:100%}.fg-sel i:nth-child(4){left:100%;top:100%}
+.fg-sel b{position:absolute;left:50%;top:calc(100% + 8px);transform:translateX(-50%);padding:3px 8px;background:#0d99ff;color:#fff;border-radius:4px;font:500 12px/1.2 Inter,-apple-system,'Segoe UI',Arial,sans-serif;white-space:nowrap}
+.fg-tools{position:absolute;left:50%;bottom:clamp(14px,2.6vw,36px);transform:translateX(-50%);display:flex;gap:2px;padding:4px;background:#2c2c2c;border-radius:10px;z-index:9;pointer-events:none}
+.fg-tools span{width:32px;height:32px;display:grid;place-items:center;border-radius:6px;color:#fff;opacity:.85}
+.fg-tools span svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.fg-tools span.on{background:#0d99ff;opacity:1}
  .fg-obj.t{display:flex;align-items:center;overflow:hidden;white-space:nowrap;font-family:'ONY One',sans-serif;color:#111;border-radius:6px}
 .fg-obj.t.c{justify-content:center;color:#fff}
 .fg-obj.card{box-shadow:0 10px 30px rgba(0,0,0,.18)}
 .fg-obj.ph{overflow:hidden}
 .fg-obj.ph img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;transition:transform .45s ease,object-position .45s ease;pointer-events:none}
-.fg-obj.sel{outline-color:#8b5cf6}
-.fg-obj.sel::after{content:"";position:absolute;inset:-4px;border:1px solid #8b5cf6;pointer-events:none}
 .fg-obj.drag{cursor:none}
 .fg-pin{position:absolute;margin:-12px 0 0 -12px;min-width:24px;height:24px;padding:0 9px 0 0;border-radius:12px 12px 12px 0;background:#f0561a;color:#000;font:400 13px/24px 'ONY One',sans-serif;white-space:nowrap;pointer-events:none;animation:fgPop .25s ease-out;z-index:5}
 .fg-pin::before{content:attr(data-who);display:inline-block;width:24px;text-align:center;font-size:11px}
@@ -843,6 +852,13 @@ touch-action: none;
     <div class="fg-frame" id="fgFrame">
       <div class="fg-slot" id="fgSlot"></div>
       <div class="fg-meter" id="fgMeter">Задолбанность клиентом<b><i id="fgMeterFill"></i></b></div>
+    </div>
+    <div class="fg-sel" id="fgSel"><i></i><i></i><i></i><i></i><b id="fgSelLbl">0 × 0</b></div>
+    <div class="fg-tools" id="fgTools" aria-hidden="true">
+      <span data-t="move"><svg viewBox="0 0 24 24"><path d="M5 3l14 8-6 2-2 6z"/></svg></span>
+      <span data-t="frame"><svg viewBox="0 0 24 24"><path d="M7 3v18M17 3v18M3 7h18M3 17h18"/></svg></span>
+      <span data-t="rect"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="1"/></svg></span>
+      <span data-t="text"><svg viewBox="0 0 24 24"><path d="M5 6V4h14v2M12 4v16M9 20h6"/></svg></span>
     </div>
     <div class="fg-tool" id="fgTool">+ Задолбанность клиентом</div>
     <div class="fg-pop" id="fgPop">
@@ -1377,9 +1393,9 @@ document.addEventListener('DOMContentLoaded', () => {
       if (c.intent) c.kind = c.intent.kind; // явная просьба из текста важнее выбора модели
       if (c.kind === 'auto') c.kind = rand((ACTS[c.id] || ACTS.photo))[0];
       talk(ai && ai.reply && String(ai.reply).trim().length > 3 ? String(ai.reply).trim() : rand(REPLY), 2300); // слишком короткое («?») — заготовка await sleep(900); if (tok !== alive) return;
-      o.el.classList.add('sel'); go(A, r.x + r.w * .8, r.y + r.h * .8); await sleep(350);
+      setTool('move'); showSel(o, false); go(A, r.x + r.w, r.y + r.h); await sleep(350);
       applyEdit(c.id, c.kind, c.intent || {}); setAnnoy(annoy + (placed ? 9 : 5)); await sleep(500); if (tok !== alive) return;
-      o.el.classList.remove('sel');
+      hideSel();
       if (o.n > 5 && !swapped){ swapped = true; await swapSeq(tok); }
     }
     async function swapSeq(tok){
@@ -1406,17 +1422,33 @@ document.addEventListener('DOMContentLoaded', () => {
       dragging = null; tool.classList.remove('on', 'drag'); slot.classList.remove('on'); meter.classList.add('on'); placed = true; editMode = false; youN.textContent = 'Вы';
       talk('Вот. Теперь следи за ним.', 2200); status('Клиент вносит правки…'); setAnnoy(annoy + 6);
     }
+    const selEl = $('fgSel'), selLbl = $('fgSelLbl'), tools = $('fgTools');
+    let selTimer = 0;
+    function setTool(t){ Array.prototype.forEach.call(tools.children, function(e){ e.classList.toggle('on', e.dataset.t === t); }); }
+    function updLabel(){ selLbl.textContent = Math.round(selEl.offsetWidth) + ' × ' + Math.round(selEl.offsetHeight); }
+    function showSel(o, grow){
+      const r = rectOf(o.el); clearInterval(selTimer);
+      selEl.classList.remove('grow'); selEl.style.left = r.x + 'px'; selEl.style.top = r.y + 'px';
+      selEl.style.width = grow ? '0px' : r.w + 'px'; selEl.style.height = grow ? '0px' : r.h + 'px'; selEl.classList.add('on'); updLabel();
+      if (grow){
+        void selEl.offsetWidth; selEl.classList.add('grow'); selEl.style.width = r.w + 'px'; selEl.style.height = r.h + 'px';
+        selTimer = setInterval(updLabel, 40); setTimeout(function(){ clearInterval(selTimer); updLabel(); }, 700);
+      }
+    }
+    function hideSel(){ clearInterval(selTimer); selEl.classList.remove('on', 'grow'); }
+    function toolFor(d){ return d.type === 'deco' ? 'frame' : (d.type === 'text' && !d.c) ? 'text' : 'rect'; }
     async function drawAll(tok){
       status('Дизайнер собирает макет');
       for (let i = 0; i < DEFS.length; i++){
         if (tok !== alive) return;
         const o = objs[DEFS[i].id], r = rectOf(o.el);
-        go(A, r.x + 4, r.y + 4); await arrive(A);
-        o.el.classList.add('sel', 'in'); go(A, r.x + r.w - 4, r.y + r.h - 4); await sleep(650);
-        o.el.classList.remove('sel');
+        setTool(toolFor(DEFS[i]));
+        go(A, r.x, r.y); await arrive(A); if (tok !== alive) return;
+        o.el.classList.add('in'); showSel(o, true); go(A, r.x + r.w, r.y + r.h); await sleep(780);
+        hideSel(); setTool('move');
         while (pending.length && tok === alive) await handle(pending.shift(), tok);
       }
-      status('Макет готов. Кликните по нему — оставьте комментарий');
+      setTool('move'); status('Макет готов. Кликните по нему — оставьте комментарий');
     }
     async function endScreen(){
       alive++; pop.classList.remove('on');
@@ -1426,7 +1458,7 @@ document.addEventListener('DOMContentLoaded', () => {
       alive++; const tok = alive;
       pending = []; edits = 0; swapped = placed = rage = editMode = false; dragging = null; hot = false;
       endEl.classList.remove('on'); pop.classList.remove('on'); meter.classList.remove('on', 'hot'); slot.classList.remove('on'); tool.classList.remove('on');
-      cA.classList.remove('rage'); youN.textContent = 'Вы'; setAnnoy(0); showDigit(0); size(); buildObjs();
+      cA.classList.remove('rage'); youN.textContent = 'Вы'; hideSel(); setTool('move'); setAnnoy(0); showDigit(0); size(); buildObjs();
       A.x = A.tx = W * .1; A.y = A.ty = H * .15; B.x = B.tx = W * .88; B.y = B.ty = H * .8;
       story(tok);
     }
