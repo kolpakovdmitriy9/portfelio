@@ -383,6 +383,27 @@ height: clamp(180px, 45vw, 440px);
 .exp-duo-cursor.rage svg{filter:drop-shadow(0 0 8px #ff3b1f)}
 .exp-puff{position:absolute;width:14px;height:14px;margin:-7px;border-radius:50%;background:rgba(200,200,200,.5);pointer-events:none;animation:fgPuff .9s ease-out forwards;z-index:25}
 @keyframes fgPuff{to{transform:translate(var(--dx),-60px) scale(2.6);opacity:0}}
+/* игровая механика: «идеальность» карточки растёт от правок, но бешенство дизайнера растёт от них же;
+   похвала его успокаивает; на пределе — GTA-подобная красная рамка по краям и глитч */
+.fg-qual{position:absolute;right:clamp(16px,4vw,64px);top:clamp(18px,3vw,50px);width:clamp(120px,14vw,200px);font:400 11px/1 'ONY One',sans-serif;letter-spacing:.06em;text-transform:uppercase;opacity:.9;z-index:6}
+.fg-qual b{display:block;height:6px;margin-top:6px;border-radius:3px;background:#2a2a2a;overflow:hidden}
+.fg-qual b i{display:block;height:100%;width:0;background:#2fbf71;transition:width .4s}
+.fg-qual span{float:right}
+.fg-rage{position:absolute;inset:0;z-index:36;pointer-events:none;opacity:0;transition:opacity .4s;
+  background:radial-gradient(ellipse at center,transparent 38%,rgba(255,0,20,.28) 68%,rgba(255,0,20,.8) 100%)}
+.fg-rage::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(255,0,0,.07) 0 2px,transparent 2px 5px);mix-blend-mode:screen}
+.exp-duo.rage1 .fg-rage{animation:fgVig .9s ease-in-out infinite alternate}
+.exp-duo.rage2 .fg-rage{animation:fgVig .35s ease-in-out infinite alternate}
+@keyframes fgVig{from{filter:brightness(.8)}to{filter:brightness(1.45)}}
+.exp-duo.rage2 .fg-frame{animation:fgGlitch .5s steps(1) infinite}
+.exp-duo.rage2 .exp-duo-title,.exp-duo.rage2 .exp-duo-cap{text-shadow:3px 0 rgba(255,0,60,.9),-3px 0 rgba(0,220,255,.8)}
+@keyframes fgGlitch{
+  0%{transform:translate(-50%,-50%);filter:none}
+  20%{transform:translate(calc(-50% + 5px),calc(-50% - 2px));filter:drop-shadow(5px 0 rgba(255,0,60,.85)) drop-shadow(-5px 0 rgba(0,220,255,.7))}
+  40%{transform:translate(calc(-50% - 4px),calc(-50% + 1px)) skewX(-1.5deg);filter:hue-rotate(20deg) drop-shadow(-6px 0 rgba(255,0,60,.85))}
+  60%{transform:translate(-50%,-50%);filter:none;clip-path:inset(0 0 55% 0)}
+  80%{transform:translate(calc(-50% + 3px),calc(-50% + 2px));filter:drop-shadow(4px 0 rgba(255,0,60,.85)) drop-shadow(-4px 0 rgba(0,220,255,.7));clip-path:inset(40% 0 0 0)}
+  100%{transform:translate(-50%,-50%);filter:none;clip-path:none}}
 .fg-end{position:absolute;inset:0;z-index:40;background:rgba(0,0,0,.88);display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:18px;padding:20px;cursor:default}
 .fg-end.on{display:flex}
 .fg-end h4{margin:0;font:400 clamp(26px,4vw,56px)/1.05 'ONY One',sans-serif}
@@ -849,6 +870,8 @@ touch-action: none;
     <p class="exp-duo-cap" id="expDuoCap"></p>
     <div class="exp-duo-lbl">правок</div>
     <div class="exp-duo-digit" id="expDuoDigit" aria-hidden="true"></div>
+    <div class="fg-qual" id="fgQual">Идеальность <span id="fgQualV">0%</span><b><i id="fgQualFill"></i></b></div>
+    <div class="fg-rage" id="fgRage"></div>
     <div class="fg-frame" id="fgFrame">
       <div class="fg-slot" id="fgSlot"></div>
       <div class="fg-meter" id="fgMeter">Задолбанность клиентом<b><i id="fgMeterFill"></i></b></div>
@@ -862,7 +885,7 @@ touch-action: none;
     </div>
     <div class="fg-tool" id="fgTool">+ Задолбанность клиентом</div>
     <div class="fg-pop" id="fgPop">
-      <div class="rx"><button data-rx="👍">👍</button><button data-rx="🔥">🔥</button><button data-rx="😍">😍</button><button data-rx="🤔">🤔</button></div>
+      <div class="rx" title="Похвалить дизайнера"><button data-rx="👍">👍</button><button data-rx="🔥">🔥</button><button data-rx="😍">😍</button><button data-rx="🤔">🤔</button></div>
       <div class="ps"><button data-p="air">Больше воздуха</button><button data-p="bright">Ярче!</button><button data-p="big">Крупнее</button><button data-p="color">Другой цвет</button></div>
       <input id="fgInp" type="text" maxlength="40" placeholder="Свой комментарий + Enter" autocomplete="off">
     </div>
@@ -1280,7 +1303,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const objs = {};
     let alive = 0, B = {}, A = {}, W = 0, H = 0, raf = 0, visible = false, last = 0;
     let pending = [], edits = 0, annoy = 0, swapped = false, placed = false, rage = false, editMode = false;
-    let humanAt = 0, human = false, dragging = null, popPt = null, popObj = 'photo', hot = false;
+    let quality = 0, streak = 0, humanAt = 0, human = false, dragging = null, popPt = null, popObj = 'photo', hot = false;
     // Нейросеть-«дизайнер»: URL Cloudflare Worker (см. worker/README.md). Пусто — сценка на заготовленных репликах.
     const DESIGNER_API = window.EXP_DESIGNER_API || 'https://designer-proxy.12deman58.workers.dev';
     let aiCalls = 0;
@@ -1319,9 +1342,26 @@ document.addEventListener('DOMContentLoaded', () => {
     function arrive(c){ return new Promise(function(res){ const t0 = performance.now(); (function chk(){ if (Math.hypot(c.x - c.tx, c.y - c.ty) < 10 || performance.now() - t0 > 2200) res(); else setTimeout(chk, 40); })(); }); }
     function talk(text, ms){ say.textContent = text; say.classList.add('on'); clearTimeout(talk.t); talk.t = setTimeout(function(){ say.classList.remove('on'); }, ms || 1700); }
     function status(t){ cap.style.opacity = 0; setTimeout(function(){ cap.textContent = t; cap.style.opacity = 1; }, 180); }
+    function mood(){ return annoy < 25 ? '🙂' : annoy < 50 ? '😐' : annoy < 72 ? '😠' : '🤬'; }
     function setAnnoy(v){
       annoy = Math.max(0, Math.min(100, v)); fill.style.width = annoy + '%';
       const h = annoy >= 82; meter.classList.toggle('hot', h && placed); hot = h;
+      cA.querySelector('.n').textContent = 'dsg# ' + mood();
+      // GTA-подобная красная рамка по краям + глитч: растут с бешенством дизайнера
+      $('fgRage').style.opacity = String(Math.max(0, Math.min(1, (annoy - 45) / 45)));
+      box.classList.toggle('rage1', annoy >= 55); box.classList.toggle('rage2', annoy >= 78);
+    }
+    function setQuality(v){ quality = Math.max(0, Math.min(100, v)); $('fgQualFill').style.width = quality + '%'; $('fgQualV').textContent = Math.round(quality) + '%'; }
+    // похвала: успокаивает дизайнера; подряд идущие похвалы работают сильнее; в хорошем настроении он сам улучшает карточку
+    async function praise(power, x, y, tok){
+      streak++; setAnnoy(annoy - power - Math.min(8, streak * 2));
+      talk(rand(['Спасибо!', 'Ооо, приятно :)', 'Вот это я понимаю', 'Продолжайте в том же духе']), 1800);
+      if (annoy < 65 && Math.random() < .75){
+        const id = rand(EDITABLE), act = rand(ACTS[id]);
+        await sleep(700); if (tok !== undefined && tok !== alive) return;
+        showSel(objs[id], false); go(A, rectOf(objs[id].el).x + 20, rectOf(objs[id].el).y + 20); await sleep(500);
+        applyEdit(id, act[0], {}); setQuality(quality + 5); talk('Я тут ещё чуть улучшил', 1800); await sleep(600); hideSel();
+      }
     }
     function addPin(x, y, text, mine){
       const pn = document.createElement('div'); pn.className = 'fg-pin' + (mine ? ' me' : ''); pn.dataset.who = mine ? 'D' : 'В';
@@ -1370,6 +1410,7 @@ document.addEventListener('DOMContentLoaded', () => {
       for (let i = 0; i < COLOR_WORDS.length; i++) if (new RegExp(COLOR_WORDS[i][0]).test(t)){ out.kind = 'color'; out.color = COLOR_WORDS[i][1]; return out; }
       if (/друго\S*\s+(фото|картин)|смен\S*\s+(фото|картин)|замен\S*\s+(фото|картин)/.test(t)){ out.kind = 'swap'; out.target = 'photo'; return out; }
       if (/скругл/.test(t)){ out.kind = 'round'; return out; }
+      if (/круто|класс|молодец|супер|отлично|спасибо|шикарн|красив|нравит|огонь|топ|умница|браво/.test(t)){ out.kind = 'praise'; return out; }
       if (/влев|левее|лево/.test(t)){ out.kind = 'move'; out.dx = -28; out.dy = 0; return out; }
       if (/впра|правее|право/.test(t)){ out.kind = 'move'; out.dx = 28; out.dy = 0; return out; }
       if (/выше|вверх/.test(t)){ out.kind = 'move'; out.dx = 0; out.dy = -18; return out; }
@@ -1381,6 +1422,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // комментарий: пин → дизайнер читает → применяет или реагирует
     function queueComment(x, y, kind, text, forcedId){
       const intent = parseIntent(text);
+      if (intent && intent.kind === 'praise'){ addPin(x, y, text, false); praise(10, x, y, alive); return; }
       const id = forcedId || (intent && intent.target) || objAt(x, y); addPin(x, y, text, false);
       pending.push({ id: id, kind: kind, x: x, y: y, intent: intent && intent.kind ? intent : null, ai: askDesigner(text, id) });
     }
@@ -1392,15 +1434,18 @@ document.addEventListener('DOMContentLoaded', () => {
       if (ai && ai.action && c.kind === 'auto'){ const AM = { big: 'size', color: 'color', bright: 'bg', air: 'round', none: 'none' }; c.kind = AM[ai.action] || 'color'; }
       if (c.intent) c.kind = c.intent.kind; // явная просьба из текста важнее выбора модели
       if (c.kind === 'auto') c.kind = rand((ACTS[c.id] || ACTS.photo))[0];
-      talk(ai && ai.reply && String(ai.reply).trim().length > 3 ? String(ai.reply).trim() : rand(REPLY), 2300); // слишком короткое («?») — заготовка await sleep(900); if (tok !== alive) return;
+      talk(ai && ai.reply && String(ai.reply).trim().length > 3 ? String(ai.reply).trim() : rand(REPLY), 2300); /* короткое («?») — заготовка */ await sleep(900); if (tok !== alive) return;
       setTool('move'); showSel(o, false); go(A, r.x + r.w, r.y + r.h); await sleep(350);
-      applyEdit(c.id, c.kind, c.intent || {}); setAnnoy(annoy + (placed ? 9 : 5)); await sleep(500); if (tok !== alive) return;
+      const calm = annoy; streak = 0;
+      applyEdit(c.id, c.kind, c.intent || {});
+      setQuality(quality + (calm < 50 ? 7 : calm < 80 ? 3 : 1)); // чем злее дизайнер, тем меньше пользы от правок
+      setAnnoy(annoy + (o.n > 3 ? 12 : 8)); await sleep(500); if (tok !== alive) return;
       hideSel();
-      if (o.n > 5 && !swapped){ swapped = true; await swapSeq(tok); }
+      if (!swapped && (o.n > 8 || annoy >= 62)){ swapped = true; await swapSeq(tok, o.n > 8 ? 'obj' : 'rage'); }
     }
-    async function swapSeq(tok){
+    async function swapSeq(tok, why){
       editMode = true; youN.textContent = 'Вы · правки'; status('Теперь правит наблюдатель'); const fr = rectOf(frame);
-      go(A, fr.x + fr.w * .5, fr.y + fr.h * .3); talk('Так, стоп. Давай ты, а я командую.', 2200); await sleep(2400); if (tok !== alive) return;
+      go(A, fr.x + fr.w * .5, fr.y + fr.h * .3); talk(why === 'rage' ? 'Всё, я устал от правок. Давай ты, а я командую.' : 'Так, стоп. Давай ты, а я командую.', 2400); await sleep(2400); if (tok !== alive) return;
       const b = objs.btn; talk('Кнопку левее!', 1300); await sleep(1400); b.dx -= 0; talk('Нет, ещё левее… теперь ниже', 1800); await sleep(1900);
       talk('Добавь в углу индикатор: «задолбанность клиентом»', 4200);
       slot.classList.add('on'); tool.classList.add('on'); status('Перетащите индикатор в угол макета');
@@ -1445,14 +1490,16 @@ document.addEventListener('DOMContentLoaded', () => {
         setTool(toolFor(DEFS[i]));
         go(A, r.x, r.y); await arrive(A); if (tok !== alive) return;
         o.el.classList.add('in'); showSel(o, true); go(A, r.x + r.w, r.y + r.h); await sleep(780);
-        hideSel(); setTool('move');
+        hideSel(); setTool('move'); streak = 0; setQuality(0); box.classList.remove('rage1', 'rage2'); $('fgRage').style.opacity = 0;
         while (pending.length && tok === alive) await handle(pending.shift(), tok);
       }
-      setTool('move'); status('Макет готов. Кликните по нему — оставьте комментарий');
+      setTool('move'); status('Кликните по карточке: правка или похвала. Дизайнер не любит одни правки');
     }
-    async function endScreen(){
-      alive++; pop.classList.remove('on');
-      $('fgEndH').textContent = 'Правок: ' + edits; endEl.classList.add('on');
+    async function endScreen(win){
+      alive++; pop.classList.remove('on'); box.classList.remove('rage1', 'rage2'); $('fgRage').style.opacity = 0;
+      $('fgEndH').textContent = win ? 'Идеальная карточка!' : 'Правок: ' + edits;
+      endEl.querySelector('p').textContent = win ? 'Дизайнер доволен: вы вовремя хвалили и не завалили его правками. Так и работаем.' : 'Терпение закончилось. Хорошо, что в жизни правки я принимаю спокойнее. Подсказка: дизайнера нужно хвалить.';
+      endEl.classList.add('on');
     }
     function reset(){
       alive++; const tok = alive;
@@ -1468,9 +1515,10 @@ document.addEventListener('DOMContentLoaded', () => {
         await sleep(160); tick++;
         if (!visible) continue;
         const now = performance.now();
+        if (quality >= 100 && annoy < 100){ await endScreen(true); return; }
         if (pending.length){ await handle(pending.shift(), tok); continue; }
         if (placed){
-          setAnnoy(annoy + 0.16 * (rage ? 2.2 : 1) * (annoy > 90 ? 1.5 : 1) * 1.0);
+          if (annoy >= 60 || rage) setAnnoy(annoy + 0.09 * (rage ? 2.2 : 1) * (annoy > 90 ? 1.5 : 1));
           if (annoy >= 82 && !rage){ rage = true; cA.classList.add('rage'); talk('Так. Всё. Я больше не могу.', 2200); status('Дизайнер в ярости'); }
           if (rage){
             puff(A.x + 8, A.y + 6);
@@ -1487,7 +1535,7 @@ document.addEventListener('DOMContentLoaded', () => {
           const act = rand(ACTS[tid]); queueComment(x, y, act[0], act[1], tid);
           human = false;
         }
-        if (tick % 40 === 0 && !placed) status(swapped ? 'Перетащите индикатор в угол макета' : 'Макет готов. Кликните по нему — оставьте комментарий');
+        if (tick % 40 === 0 && !placed) status(swapped ? 'Перетащите индикатор в угол макета' : 'Кликните по карточке: правка или похвала. Дизайнер не любит одни правки');
       }
     }
 
@@ -1523,7 +1571,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     pop.addEventListener('click', function(e){
       const b = e.target.closest('button'); if (!b || !popPt) return;
-      if (b.dataset.rx){ addPin(popPt.x, popPt.y, b.dataset.rx, false); setAnnoy(annoy - 4); talk('Спасибо :)', 1500); }
+      if (b.dataset.rx){ addPin(popPt.x, popPt.y, b.dataset.rx, false); if (b.dataset.rx === '🤔'){ setAnnoy(annoy + 4); talk('Что-то не так?', 1500); } else praise(b.dataset.rx === '😍' ? 12 : 8, popPt.x, popPt.y, alive); }
       else if (b.dataset.p) queueComment(popPt.x, popPt.y, b.dataset.p, b.textContent, popObj);
       closePop();
     });
