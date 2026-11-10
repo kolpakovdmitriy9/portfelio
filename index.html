@@ -1310,7 +1310,7 @@ document.addEventListener('DOMContentLoaded', () => {
       status('Дизайнер читает комментарий…');
       const ai = await Promise.race([c.ai, sleep(2500).then(function(){ return null; })]); if (tok !== alive) return;
       if (ai && ai.action) c.kind = ai.action;
-      talk(ai && ai.reply ? ai.reply : rand(REPLY), 2300); await sleep(900); if (tok !== alive) return;
+      talk(ai && ai.reply && String(ai.reply).trim().length > 3 ? String(ai.reply).trim() : rand(REPLY), 2300); // слишком короткое («?») — заготовка await sleep(900); if (tok !== alive) return;
       o.el.classList.add('sel'); go(A, r.x + r.w * .8, r.y + r.h * .8); await sleep(350);
       applyEdit(c.id, c.kind); setAnnoy(annoy + (placed ? 9 : 5)); await sleep(500); if (tok !== alive) return;
       o.el.classList.remove('sel');
