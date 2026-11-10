@@ -1,0 +1,10 @@
+name = "designer-proxy"
+main = "designer-proxy.js"
+compatibility_date = "2024-11-01"
+
+[ai]
+binding = "AI"
+
+[vars]
+# Адрес сайта, с которого разрешены запросы (без слеша в конце). Поменяй, если сайт на другом домене.
+ALLOWED_ORIGIN = "https://kolpakovdmitriy9.github.io"
