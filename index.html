@@ -1245,7 +1245,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let pending = [], edits = 0, annoy = 0, swapped = false, placed = false, rage = false, editMode = false;
     let humanAt = 0, human = false, dragging = null, popPt = null, hot = false;
     // Нейросеть-«дизайнер»: URL Cloudflare Worker (см. worker/README.md). Пусто — сценка на заготовленных репликах.
-    const DESIGNER_API = window.EXP_DESIGNER_API || '';
+    const DESIGNER_API = window.EXP_DESIGNER_API || 'https://designer-proxy.12deman58.workers.dev';
     let aiCalls = 0;
     const NAMES = { nav: 'шапка', hero: 'баннер', ttl: 'заголовок', txt: 'текст', btn: 'кнопка' };
     function askDesigner(comment, id){
