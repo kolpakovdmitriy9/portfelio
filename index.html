@@ -329,7 +329,7 @@ height: clamp(180px, 45vw, 440px);
 .exp-duo-digit i{aspect-ratio:1;border-radius:50%;background:#fff;opacity:.08;transition:opacity .25s ease}
 .exp-duo-digit i.on{opacity:1}
 .exp-duo-lbl{position:absolute;left:clamp(16px,4vw,64px);bottom:calc(clamp(16px,3vw,44px) + clamp(44px,5vw,70px) * 1.45 + 8px);font:400 12px/1 'ONY One',sans-serif;opacity:.5;letter-spacing:.06em;text-transform:uppercase}
-.fg-frame{container-type:inline-size;position:absolute;left:50%;top:50%;width:52%;height:66%;transform:translate(-50%,-50%);background:#ececec;border-radius:14px;overflow:visible;box-shadow:0 0 0 1px #333}
+.fg-frame{container-type:inline-size;position:absolute;left:50%;top:50%;width:52%;height:66%;transform:translate(-50%,-50%);background:transparent;border-radius:14px;overflow:visible}
 .fg-obj{position:absolute;clip-path:inset(0 100% 100% 0);transition:clip-path .6s cubic-bezier(.3,.7,.2,1),filter .35s ease,left .35s ease,top .35s ease,width .35s ease,height .35s ease,background .35s ease,font-size .35s ease,border-radius .35s ease,color .35s ease;border-radius:8px}
 .fg-obj.in{clip-path:inset(-60px)}
 /* выделение как в Figma: синяя рамка 1px, белые квадратики по углам, плашка «ширина × высота» */
@@ -354,7 +354,7 @@ height: clamp(180px, 45vw, 440px);
 .fg-tools span.on{background:#0d99ff;opacity:1}
  .fg-obj.t{display:flex;align-items:center;overflow:hidden;white-space:nowrap;font-family:'ONY One',sans-serif;color:#111;border-radius:6px}
 .fg-obj.t.c{justify-content:center;color:#fff}
-.fg-obj.card{box-shadow:0 10px 30px rgba(0,0,0,.18)}
+.fg-obj.card{box-shadow:0 18px 50px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.06)}
 .fg-obj.ph{overflow:hidden}
 .fg-obj.ph img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;transition:transform .45s ease,object-position .45s ease;pointer-events:none}
 .fg-obj.drag{cursor:none}
@@ -371,7 +371,7 @@ height: clamp(180px, 45vw, 440px);
 .fg-pop .ps{display:flex;flex-wrap:wrap;gap:5px}
 .fg-pop input{width:100%;box-sizing:border-box;margin-top:7px;border:1.5px solid #ccc;border-radius:999px;padding:8px 11px;font:400 14px/1 'ONY One',sans-serif;outline:0}
 .fg-pop button:hover{background:#f0561a;color:#fff}
-.fg-meter{position:absolute;right:-1px;top:-1px;width:30%;padding:8px 10px 10px;background:#111;color:#fff;border-radius:0 14px 0 12px;font:400 11px/1.1 'ONY One',sans-serif;letter-spacing:.04em;text-transform:uppercase;display:none;z-index:6;transition:box-shadow .3s}
+.fg-meter{position:absolute;left:calc(100% + 16px);top:6%;width:30%;padding:9px 11px 11px;background:#111;border:1px solid #333;color:#fff;border-radius:10px;font:400 11px/1.1 'ONY One',sans-serif;letter-spacing:.04em;text-transform:uppercase;display:none;z-index:6;transition:box-shadow .3s}
 .fg-meter.on{display:block;animation:fgPop .3s ease-out}
 .fg-meter b{display:block;height:8px;margin-top:6px;border-radius:4px;background:#333;overflow:hidden}
 .fg-meter b i{display:block;height:100%;width:0;background:linear-gradient(90deg,#ffb968,#8b5cf6);transition:width .3s}
@@ -1282,20 +1282,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const G = {0:'01110100011001110101110011000101110',1:'00100011000010000100001000010001110',2:'01110100010000100010001000100011111',3:'11110000010000101110000010000111110',4:'00010001100101010010111110001000010',5:'11111100001111000001000011000101110',6:'00110010001000011110100011000101110',7:'11111000010001000100010000100001000',8:'01110100011000101110100011000101110',9:'01110100011000101111000010001001100'};
     for (let i = 0; i < 35; i++) dg.appendChild(document.createElement('i'));
     function showDigit(n){ const g = G[Math.min(9, n)]; for (let i = 0; i < 35; i++) dg.children[i].classList.toggle('on', g[i] === '1'); }
-    const IMGS = ['images/work-6.webp', 'images/work-7.webp', 'images/work-8.webp', 'images/work-9.png', 'images/work-10.webp'];
+    const IMGS = ['images/p-sneaker.svg', 'images/p-headphones.svg', 'images/p-watch.svg'];
+    const IMGT = ['Кроссовки Nimbus Run', 'Наушники Studio Pro', 'Смарт-часы Pulse 2'], IMGP = ['7 990 ₽', '12 490 ₽', '9 990 ₽'];
     // «карточка товара»: рамка-карточка + фото, бейдж, название, цена, кнопка. fs — размер шрифта в cqw (от ширины рамки)
     const DEFS = [
-      { id: 'card',  type: 'deco',  x: 22, y: 6,  w: 56, h: 88, bg: '#ffffff' },
-      { id: 'photo', type: 'photo', x: 25, y: 10, w: 50, h: 46, bg: '#e9e6f7' },
-      { id: 'badge', type: 'text',  x: 27, y: 12.5, w: 13, h: 6.5, bg: '#e5262b', c: 1, fs: 1.8, text: '-20%' },
-      { id: 'title', type: 'text',  x: 25, y: 60, w: 50, h: 8, fs: 3.1, text: 'Кроссовки Air Run' },
-      { id: 'price', type: 'text',  x: 25, y: 70, w: 28, h: 8, fs: 3.8, text: '4 990 ₽' },
-      { id: 'btn',   type: 'text',  x: 25, y: 81, w: 50, h: 9, bg: '#f0561a', c: 1, fs: 2.5, text: 'В корзину' }
+      { id: 'card',  type: 'deco',  x: 21, y: 2,  w: 58, h: 96, bg: '#ffffff' },
+      { id: 'photo', type: 'photo', x: 24, y: 5,  w: 52, h: 46, bg: 'linear-gradient(160deg,#f6f5fb,#dedaf0)' },
+      { id: 'badge', type: 'text',  x: 26, y: 7.5, w: 13, h: 6, bg: '#e5262b', c: 1, fs: 1.7, text: '-20%' },
+      { id: 'rate',  type: 'text',  x: 24, y: 54, w: 52, h: 5, fs: 1.9, text: '★★★★★ 4,8 · 312 отзывов', st: 1 },
+      { id: 'title', type: 'text',  x: 24, y: 60, w: 52, h: 8, fs: 3.1, text: 'Кроссовки Nimbus Run' },
+      { id: 'price', type: 'text',  x: 24, y: 69.5, w: 28, h: 8, fs: 4, text: '7 990 ₽' },
+      { id: 'old',   type: 'text',  x: 52, y: 70.5, w: 24, h: 8, fs: 2.4, text: '9 990 ₽', st: 1 },
+      { id: 'btn',   type: 'text',  x: 24, y: 81, w: 52, h: 10, bg: '#f0561a', c: 1, fs: 2.6, text: 'В корзину' }
     ];
     const COLORS = ['#f0561a', '#2fbf71', '#e8c53a', '#4a90e2', '#d94fa3', '#8b5cf6', '#14b8a6', '#111111', '#e5262b'];
     const POOLS = {
-      title: ['Кроссовки Air Run', 'Худи «Утро»', 'Рюкзак City 20L', 'Лампа «Луна»', 'Кофеварка Mini', 'Футболка Basic'],
-      price: ['4 990 ₽', '3 490 ₽', '12 900 ₽', '990 ₽', '7 250 ₽', '1 590 ₽'],
+      title: ['Кроссовки Nimbus Run', 'Наушники Studio Pro', 'Смарт-часы Pulse 2', 'Кроссовки Air Run', 'Часы Classic'],
+      price: ['7 990 ₽', '12 490 ₽', '9 990 ₽', '5 490 ₽', '3 290 ₽', '1 990 ₽'],
       btn: ['В корзину', 'Купить', 'Оформить', 'Хочу!', 'Заказать'],
       badge: ['-20%', 'NEW', 'HIT', '-50%', 'ХИТ', '-10%']
     };
@@ -1336,7 +1339,8 @@ document.addEventListener('DOMContentLoaded', () => {
         el.style.cssText = 'left:' + d.x + '%;top:' + d.y + '%;width:' + d.w + '%;height:' + d.h + '%;' + (d.bg ? 'background:' + d.bg + ';' : '') + (d.type === 'deco' ? 'border-radius:16px;' : '') + (d.fs ? 'font-size:' + d.fs + 'cqw;' : '');
         const o = { el: el, d: d, n: 0, dx: 0, dy: 0, fs: 1, zoom: 1, img: 0, imgEl: null };
         if (d.type === 'photo'){ const im = document.createElement('img'); im.src = IMGS[0]; im.alt = ''; im.draggable = false; el.appendChild(im); o.imgEl = im; el.style.borderRadius = '10px'; }
-        if (d.type === 'text'){ el.textContent = d.text; el.style.padding = '0 ' + (d.c ? '0' : '2%'); }
+        if (d.st){ el.style.color = d.id === 'old' ? '#9a9aa6' : '#f0a020'; if (d.id === 'old') el.style.textDecoration = 'line-through'; if (d.id === 'rate') el.style.color = '#6b6b78'; }
+        if (d.type === 'text'){ el.textContent = d.text; if (d.id === 'rate') el.innerHTML = '<span style="color:#f5a623;letter-spacing:.08em">★★★★★</span>&nbsp;4,8 · 312 отзывов'; el.style.padding = '0 ' + (d.c ? '0' : '2%'); }
         frame.appendChild(el); objs[d.id] = o;
       });
     }
@@ -1378,13 +1382,14 @@ document.addEventListener('DOMContentLoaded', () => {
       box.appendChild(pn); setTimeout(function(){ pn.classList.add('fade'); }, 3500); setTimeout(function(){ pn.remove(); }, 9000);
     }
     function puff(x, y){ const e = document.createElement('div'); e.className = 'exp-puff'; e.style.left = x + 'px'; e.style.top = y + 'px'; e.style.setProperty('--dx', (Math.random() * 40 - 20) + 'px'); box.appendChild(e); setTimeout(function(){ e.remove(); }, 950); }
+    function setOld(){ const n = parseInt(objs.price.el.textContent.replace(/\D/g, ''), 10); if (n) objs.old.el.textContent = (Math.round(n * 1.25 / 10) * 10).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + ' ₽'; }
     function applyEdit(id, kind, extra){
       const o = objs[id]; o.n++; edits++; showDigit(edits);
       const t = o.d.type, ex = extra || {};
       const R = rand;
       if (kind === 'none') { /* дизайнер отказался */ }
       else if (kind === 'move'){ o.dx += ex.dx || 0; o.dy += ex.dy || 0; setT(o); }
-      else if (kind === 'swap' && o.imgEl){ o.img = (o.img + 1) % IMGS.length; o.imgEl.src = IMGS[o.img]; }
+      else if (kind === 'swap' && o.imgEl){ o.img = (o.img + 1) % IMGS.length; o.imgEl.src = IMGS[o.img]; objs.title.el.textContent = IMGT[o.img]; objs.price.el.textContent = IMGP[o.img]; setOld(); }
       else if (kind === 'zoom' && o.imgEl){
         o.zoom = Math.max(.7, Math.min(2.2, o.zoom + (ex.down ? -.2 : .22)));
         o.imgEl.style.transform = 'scale(' + o.zoom.toFixed(2) + ')'; o.imgEl.style.objectPosition = R(['50% 50%', '30% 40%', '70% 60%', '50% 25%', '60% 75%']);
@@ -1395,7 +1400,7 @@ document.addEventListener('DOMContentLoaded', () => {
         else { o.fs = Math.max(.6, Math.min(1.7, o.fs * (kind === 'small' ? .85 : 1.18))); o.el.style.fontSize = (o.d.fs * o.fs).toFixed(2) + 'cqw'; }
       }
       else if (kind === 'text' && POOLS[id]){
-        o.el.textContent = ex.text || R(POOLS[id].filter(function(v){ return v !== o.el.textContent; }));
+        o.el.textContent = ex.text || R(POOLS[id].filter(function(v){ return v !== o.el.textContent; })); if (id === 'price') setOld();
       }
       else if (kind === 'bg' || kind === 'color'){
         const col = ex.color || R(COLORS);
