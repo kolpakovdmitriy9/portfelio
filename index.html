@@ -318,24 +318,64 @@ height: clamp(180px, 45vw, 440px);
    line-height задан unitless 0.75, чтобы масштабировался вместе со шрифтом);
    нижняя граница clamp'а — минимум, при котором три лейбла ещё влезают на 390px
    экран без горизонтального выхода за viewport */
-/* чёрный блок «Быстрый запуск»: два курсора (dsg# — автомат, «Вы» — за мышью) проходят шаги
-   вместе; цифра — точечная матрица. Содержимое — заглушка (рыба) */
-.exp-duo{position:relative;width:100vw;left:50%;transform:translateX(-50%);height:clamp(460px,52vw,740px);background:#000;color:#fff;overflow:hidden;margin:0 0 90px;text-align:left;user-select:none;-webkit-user-select:none}
+/* чёрный блок «Быстрый запуск» — «Фигма»: фиолетовый дизайнер (авто) собирает макет, оранжевый
+   «Вы» — наблюдатель: комментарии и реакции; >5 правок одного объекта — режим правок у «Вас»,
+   дизайнер командует, счётчик «задолбанности» растёт → дым и агрессия. Тексты — рыба */
+.exp-duo{position:relative;width:100vw;left:50%;transform:translateX(-50%);height:clamp(520px,56vw,780px);background:#000;color:#fff;overflow:hidden;margin:0 0 90px;text-align:left;user-select:none;-webkit-user-select:none;font-family:'ONY One',sans-serif}
 @media (hover:hover) and (pointer:fine){.exp-duo{cursor:none}}
-.exp-duo-title{position:absolute;left:clamp(20px,4.2vw,64px);top:clamp(24px,4.2vw,60px);margin:0;font:400 clamp(22px,3.5vw,50px)/1.05 'ONY One',sans-serif;max-width:40%}
-.exp-duo-cap{position:absolute;right:clamp(20px,4.2vw,64px);bottom:clamp(24px,4.2vw,60px);margin:0;font:400 clamp(22px,3.5vw,50px)/1.05 'ONY One',sans-serif;text-align:right;max-width:55%;transition:opacity .25s ease}
-.exp-duo-digit{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:grid;grid-template-columns:repeat(5,1fr);gap:clamp(4px,.7vw,10px);width:clamp(110px,15vw,220px)}
-.exp-duo-digit i{aspect-ratio:1;border-radius:50%;background:#fff;opacity:.08;transition:opacity .25s ease,transform .25s ease}
+.exp-duo-title{position:absolute;left:clamp(16px,4vw,64px);top:clamp(18px,3vw,50px);margin:0;font:400 clamp(20px,3vw,44px)/1.05 'ONY One',sans-serif;max-width:30%}
+.exp-duo-cap{position:absolute;right:clamp(16px,4vw,64px);bottom:clamp(16px,3vw,44px);margin:0;font:400 clamp(16px,2.2vw,32px)/1.1 'ONY One',sans-serif;text-align:right;max-width:46%;transition:opacity .25s ease}
+.exp-duo-digit{position:absolute;left:clamp(16px,4vw,64px);bottom:clamp(16px,3vw,44px);display:grid;grid-template-columns:repeat(5,1fr);gap:3px;width:clamp(44px,5vw,70px)}
+.exp-duo-digit i{aspect-ratio:1;border-radius:50%;background:#fff;opacity:.08;transition:opacity .25s ease}
 .exp-duo-digit i.on{opacity:1}
-.exp-duo-target{position:absolute;width:clamp(54px,6vw,84px);aspect-ratio:1;margin:calc(clamp(54px,6vw,84px) / -2) 0 0 calc(clamp(54px,6vw,84px) / -2);border-radius:50%;border:2px dashed currentColor;opacity:.75;pointer-events:none;transition:opacity .3s ease,transform .3s ease,background .3s ease}
-.exp-duo-target.done{opacity:1;background:color-mix(in srgb,currentColor 35%,transparent);transform:scale(.8)}
-.exp-duo-target[data-who="dsg"]{color:#8b5cf6}
-.exp-duo-target[data-who="you"]{color:#f0561a}
-.exp-duo-cursor{position:absolute;left:0;top:0;pointer-events:none;will-change:transform}
+.exp-duo-lbl{position:absolute;left:clamp(16px,4vw,64px);bottom:calc(clamp(16px,3vw,44px) + clamp(44px,5vw,70px) * 1.45 + 8px);font:400 12px/1 'ONY One',sans-serif;opacity:.5;letter-spacing:.06em;text-transform:uppercase}
+.fg-frame{position:absolute;left:50%;top:50%;width:52%;height:66%;transform:translate(-50%,-50%);background:#ececec;border-radius:14px;overflow:visible;box-shadow:0 0 0 1px #333}
+.fg-obj{position:absolute;opacity:0;transform:scale(.6);transition:opacity .35s ease,transform .35s ease,filter .35s ease,left .35s ease,top .35s ease,width .35s ease,height .35s ease,background .35s ease;border-radius:8px;outline:1.5px solid transparent}
+.fg-obj.in{opacity:1;transform:scale(1)}
+.fg-obj.sel{outline-color:#8b5cf6}
+.fg-obj.sel::after{content:"";position:absolute;inset:-4px;border:1px solid #8b5cf6;pointer-events:none}
+.fg-obj.drag{cursor:none}
+.fg-pin{position:absolute;margin:-12px 0 0 -12px;min-width:24px;height:24px;padding:0 9px 0 0;border-radius:12px 12px 12px 0;background:#f0561a;color:#000;font:400 13px/24px 'ONY One',sans-serif;white-space:nowrap;pointer-events:none;animation:fgPop .25s ease-out;z-index:5}
+.fg-pin::before{content:attr(data-who);display:inline-block;width:24px;text-align:center;font-size:11px}
+.fg-pin.me{background:#8b5cf6;color:#fff}
+.fg-pin.fade{opacity:.35;transition:opacity 1s}
+@keyframes fgPop{from{transform:scale(.3);opacity:0}to{transform:scale(1);opacity:1}}
+.fg-pop{position:absolute;z-index:20;width:clamp(190px,17vw,250px);background:#fff;color:#000;border-radius:14px;padding:10px;display:none;box-shadow:0 14px 40px rgba(0,0,0,.5);cursor:default}
+.fg-pop.on{display:block}
+.fg-pop .rx{display:flex;gap:6px;margin-bottom:8px}
+.fg-pop button{font:400 14px/1 'ONY One',sans-serif;border:0;border-radius:999px;background:#eee;color:#000;padding:8px 10px;cursor:pointer;text-align:left}
+.fg-pop .rx button{font-size:18px;padding:5px 9px}
+.fg-pop .ps{display:flex;flex-wrap:wrap;gap:5px}
+.fg-pop input{width:100%;box-sizing:border-box;margin-top:7px;border:1.5px solid #ccc;border-radius:999px;padding:8px 11px;font:400 14px/1 'ONY One',sans-serif;outline:0}
+.fg-pop button:hover{background:#f0561a;color:#fff}
+.fg-meter{position:absolute;right:-1px;top:-1px;width:30%;padding:8px 10px 10px;background:#111;color:#fff;border-radius:0 14px 0 12px;font:400 11px/1.1 'ONY One',sans-serif;letter-spacing:.04em;text-transform:uppercase;display:none;z-index:6;transition:box-shadow .3s}
+.fg-meter.on{display:block;animation:fgPop .3s ease-out}
+.fg-meter b{display:block;height:8px;margin-top:6px;border-radius:4px;background:#333;overflow:hidden}
+.fg-meter b i{display:block;height:100%;width:0;background:linear-gradient(90deg,#ffb968,#8b5cf6);transition:width .3s}
+.fg-meter.hot{box-shadow:0 0 18px 4px rgba(139,92,246,.9),0 0 46px 10px rgba(139,92,246,.55);animation:fgHot .5s ease-in-out infinite alternate}
+@keyframes fgHot{to{box-shadow:0 0 30px 8px rgba(255,90,40,.95),0 0 70px 16px rgba(139,92,246,.7)}}
+.fg-slot{position:absolute;right:6px;top:6px;width:30%;height:34px;border:2px dashed #8b5cf6;border-radius:0 10px 0 8px;display:none;z-index:4}
+.fg-slot.on{display:block;animation:fgBlink .8s steps(2) infinite}
+@keyframes fgBlink{50%{opacity:.25}}
+.fg-tool{position:absolute;right:clamp(16px,4vw,64px);top:clamp(20px,6vw,90px);padding:9px 14px;background:#f0561a;color:#000;border-radius:10px;font:400 14px/1.1 'ONY One',sans-serif;display:none;z-index:7;cursor:none;text-transform:uppercase}
+.fg-tool.on{display:block;animation:fgPop .3s ease-out}
+.exp-duo-cursor{position:absolute;left:0;top:0;pointer-events:none;will-change:transform;z-index:30}
 .exp-duo-cursor svg{display:block;width:34px;height:34px}
-.exp-duo-cursor span{position:absolute;left:22px;top:26px;padding:6px 14px 8px;border-radius:999px;font:400 clamp(15px,1.7vw,22px)/1 'ONY One',sans-serif;white-space:nowrap}
-.exp-duo-cursor[data-who="dsg"] svg{color:#8b5cf6}.exp-duo-cursor[data-who="dsg"] span{background:#8b5cf6;color:#fff}
-.exp-duo-cursor[data-who="you"] svg{color:#f0561a}.exp-duo-cursor[data-who="you"] span{background:#f0561a;color:#000}
+.exp-duo-cursor span.n{position:absolute;left:22px;top:26px;padding:6px 14px 8px;border-radius:999px;font:400 clamp(14px,1.5vw,20px)/1 'ONY One',sans-serif;white-space:nowrap}
+.exp-duo-cursor[data-who="dsg"] svg{color:#8b5cf6}.exp-duo-cursor[data-who="dsg"] span.n{background:#8b5cf6;color:#fff}
+.exp-duo-cursor[data-who="you"] svg{color:#f0561a}.exp-duo-cursor[data-who="you"] span.n{background:#f0561a;color:#000}
+.exp-duo-cursor .say{position:absolute;left:36px;top:-34px;padding:7px 13px;background:#fff;color:#000;border-radius:14px 14px 14px 2px;font:400 clamp(13px,1.3vw,18px)/1.1 'ONY One',sans-serif;white-space:nowrap;opacity:0;transition:opacity .2s}
+.exp-duo-cursor .say.on{opacity:1}
+.exp-duo-cursor.rage svg{filter:drop-shadow(0 0 8px #ff3b1f)}
+.exp-puff{position:absolute;width:14px;height:14px;margin:-7px;border-radius:50%;background:rgba(200,200,200,.5);pointer-events:none;animation:fgPuff .9s ease-out forwards;z-index:25}
+@keyframes fgPuff{to{transform:translate(var(--dx),-60px) scale(2.6);opacity:0}}
+.fg-end{position:absolute;inset:0;z-index:40;background:rgba(0,0,0,.88);display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:18px;padding:20px;cursor:default}
+.fg-end.on{display:flex}
+.fg-end h4{margin:0;font:400 clamp(26px,4vw,56px)/1.05 'ONY One',sans-serif}
+.fg-end p{margin:0;font:400 clamp(15px,1.6vw,22px)/1.3 'ONY One',sans-serif;opacity:.7;max-width:640px}
+.fg-end div{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+.fg-end button{font:400 clamp(15px,1.5vw,20px)/1 'ONY One',sans-serif;border:0;border-radius:999px;padding:14px 26px;cursor:pointer;background:#fff;color:#000}
+.fg-end button.hl{background:#f0561a}
 @media (max-width:640px){
   .experience-gallery-item{width:200px;height:320px}
 }
@@ -789,15 +829,25 @@ touch-action: none;
     </div>
   </div>
 
-  <!-- === ЧЁРНЫЙ БЛОК «Быстрый запуск» (заглушка-рыба) === -->
+  <!-- === ЧЁРНЫЙ БЛОК «Быстрый запуск» — «Фигма»-сценка (рыба) === -->
   <div class="exp-duo" id="expDuo">
     <h3 class="exp-duo-title">Быстрый запуск</h3>
+    <p class="exp-duo-cap" id="expDuoCap"></p>
+    <div class="exp-duo-lbl">правок</div>
     <div class="exp-duo-digit" id="expDuoDigit" aria-hidden="true"></div>
-    <p class="exp-duo-cap" id="expDuoCap">Макет передан в разработку</p>
-    <div class="exp-duo-target" data-who="dsg" id="expDuoTA"></div>
-    <div class="exp-duo-target" data-who="you" id="expDuoTB"></div>
-    <div class="exp-duo-cursor" data-who="dsg" id="expDuoCA"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 3l7.5 18 2.6-7.4L21 10.9z"/></svg><span>dsg#</span></div>
-    <div class="exp-duo-cursor" data-who="you" id="expDuoCB"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 3l7.5 18 2.6-7.4L21 10.9z"/></svg><span>Вы</span></div>
+    <div class="fg-frame" id="fgFrame">
+      <div class="fg-slot" id="fgSlot"></div>
+      <div class="fg-meter" id="fgMeter">Задолбанность клиентом<b><i id="fgMeterFill"></i></b></div>
+    </div>
+    <div class="fg-tool" id="fgTool">+ Задолбанность клиентом</div>
+    <div class="fg-pop" id="fgPop">
+      <div class="rx"><button data-rx="👍">👍</button><button data-rx="🔥">🔥</button><button data-rx="😍">😍</button><button data-rx="🤔">🤔</button></div>
+      <div class="ps"><button data-p="air">Больше воздуха</button><button data-p="bright">Ярче!</button><button data-p="big">Крупнее</button><button data-p="color">Другой цвет</button></div>
+      <input id="fgInp" type="text" maxlength="40" placeholder="Свой комментарий + Enter" autocomplete="off">
+    </div>
+    <div class="exp-duo-cursor" data-who="dsg" id="expDuoCA"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 3l7.5 18 2.6-7.4L21 10.9z"/></svg><span class="n">dsg#</span><span class="say" id="expSay"></span></div>
+    <div class="exp-duo-cursor" data-who="you" id="expDuoCB"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 3l7.5 18 2.6-7.4L21 10.9z"/></svg><span class="n" id="expYouN">Вы</span></div>
+    <div class="fg-end" id="fgEnd"><h4 id="fgEndH">Правок: 0</h4><p>Терпение закончилось. Хорошо, что в жизни правки я принимаю спокойнее.</p><div><button id="fgAgain">Ещё раз</button><button class="hl" id="fgContact">Связаться</button></div></div>
   </div>
 
   <div class="experience-gallery"><div class="experience-gallery-track" id="expGalleryTrack"></div></div>
@@ -1165,88 +1215,219 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   })();
 
-  // === Чёрный блок «Быстрый запуск»: dsg# (авто) и «Вы» (за мышью) проходят шаги вместе: у каждого
-  // своя мишень, шаг засчитан, когда оба на своих; нет мыши — «Вы» играет сам. Тексты — рыба ===
+  // === Чёрный блок «Быстрый запуск» — «Фигма»: дизайнер dsg# рисует макет, «Вы» наблюдаете и
+  // комментируете; >5 правок одного объекта — режим правок у «Вас», дизайнер командует и просит
+  // добавить «задолбанность клиентом»; шкала на пределе — дым, агрессия, комментарии от дизайнера.
+  // Без действий пользователя «Вы» комментирует сам. Все тексты — рыба ===
   (function(){
-    const box = document.getElementById('expDuo');
-    if (!box) return;
-    const dg = document.getElementById('expDuoDigit'), cap = document.getElementById('expDuoCap');
-    const tA = document.getElementById('expDuoTA'), tB = document.getElementById('expDuoTB');
-    const cA = document.getElementById('expDuoCA'), cB = document.getElementById('expDuoCB');
+    const box = document.getElementById('expDuo'); if (!box) return;
+    const $ = function(id){ return document.getElementById(id); };
+    const frame = $('fgFrame'), cap = $('expDuoCap'), dg = $('expDuoDigit'), pop = $('fgPop'), inp = $('fgInp');
+    const meter = $('fgMeter'), fill = $('fgMeterFill'), slot = $('fgSlot'), tool = $('fgTool'), endEl = $('fgEnd');
+    const cA = $('expDuoCA'), cB = $('expDuoCB'), say = $('expSay'), youN = $('expYouN');
     const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
     const G = {0:'01110100011001110101110011000101110',1:'00100011000010000100001000010001110',2:'01110100010000100010001000100011111',3:'11110000010000101110000010000111110',4:'00010001100101010010111110001000010',5:'11111100001111000001000011000101110',6:'00110010001000011110100011000101110',7:'11111000010001000100010000100001000',8:'01110100011000101110100011000101110',9:'01110100011000101111000010001001100'};
     for (let i = 0; i < 35; i++) dg.appendChild(document.createElement('i'));
-    const dots = dg.children;
-    function showDigit(n){ const g = G[n]; for (let i = 0; i < 35; i++){ dots[i].classList.toggle('on', g[i] === '1'); } }
-    const STEPS = [
-      { cap: 'Макет передан в разработку', a: [.33,.40], b: [.67,.62] },
-      { cap: 'Компонент собран и проверен', a: [.30,.68], b: [.70,.34] },
-      { cap: 'Нажмите вместе: запуск MVP', a: [.40,.30], b: [.60,.70], click: true },
-      { cap: 'Если нужно быстро запустить, то сделаем MVP', a: [.5,.32], b: [.5,.7], final: true }
+    function showDigit(n){ const g = G[Math.min(9, n)]; for (let i = 0; i < 35; i++) dg.children[i].classList.toggle('on', g[i] === '1'); }
+    const DEFS = [
+      { id: 'nav',  x: 0,  y: 0,  w: 100, h: 9,  bg: '#1d1d1d' },
+      { id: 'hero', x: 6,  y: 14, w: 88,  h: 34, bg: '#8b8bf0' },
+      { id: 'ttl',  x: 6,  y: 54, w: 54,  h: 8,  bg: '#222' },
+      { id: 'txt',  x: 6,  y: 66, w: 74,  h: 5,  bg: '#9a9a9a' },
+      { id: 'btn',  x: 6,  y: 78, w: 24,  h: 11, bg: '#f0561a' }
     ];
-    let clickAt = 0, step = 0, holdT = 0, pausedUntil = 0, W = 0, H = 0, raf = 0, last = 0, visible = false, mouse = null, mouseAt = 0;
-    const A = { x: 0, y: 0 }, B = { x: 0, y: 0 };
+    const COLORS = ['#f0561a', '#2fbf71', '#e8c53a', '#4a90e2', '#d94fa3'];
+    const PRESET_TXT = { air: 'Больше воздуха', bright: 'Ярче!', big: 'Крупнее', color: 'Другой цвет' };
+    const REPLY = ['Хм, понял', 'Сейчас поправлю', 'Окей, попробую', 'Так лучше?', 'Принято'];
+    const RAGE = ['ПЕРЕДЕЛАЙ', 'ЕЩЁ РАЗ', 'Это не то', 'Правки правок!', 'Срочно!!', 'Почему так?'];
+    const objs = {};
+    let alive = 0, B = {}, A = {}, W = 0, H = 0, raf = 0, visible = false, last = 0;
+    let pending = [], edits = 0, annoy = 0, swapped = false, placed = false, rage = false, editMode = false;
+    let humanAt = 0, human = false, dragging = null, popPt = null, hot = false;
+    const sleep = function(ms){ return new Promise(function(r){ setTimeout(r, ms); }); };
+    const rand = function(a){ return a[Math.floor(Math.random() * a.length)]; };
+
     function size(){ const r = box.getBoundingClientRect(); W = r.width; H = r.height; }
-    function place(el, p){ el.style.left = (p[0] * 100) + '%'; el.style.top = (p[1] * 100) + '%'; }
-    function load(i){
-      const st = STEPS[i % STEPS.length];
-      tA.classList.remove('done'); tB.classList.remove('done');
-      place(tA, st.a); place(tB, st.b);
-      cap.style.opacity = 0; setTimeout(function(){ cap.textContent = st.cap; cap.style.opacity = 1; }, 220);
-      showDigit((i % STEPS.length) + 1);
-      holdT = 0;
+    function buildObjs(){
+      frame.querySelectorAll('.fg-obj,.fg-pin').forEach(function(e){ e.remove(); });
+      DEFS.forEach(function(d){
+        const el = document.createElement('div'); el.className = 'fg-obj'; el.dataset.id = d.id;
+        el.style.cssText = 'left:' + d.x + '%;top:' + d.y + '%;width:' + d.w + '%;height:' + d.h + '%;background:' + d.bg;
+        frame.appendChild(el); objs[d.id] = { el: el, d: d, n: 0, s: 1, hue: 0, dx: 0, dy: 0, ci: -1 };
+      });
     }
-    function frame(ts){
-      const dt = Math.min(0.04, (ts - (last || ts)) / 1000); last = ts;
-      const st = STEPS[step % STEPS.length];
-      const aT = { x: st.a[0] * W, y: st.a[1] * H }, bT = { x: st.b[0] * W, y: st.b[1] * H };
-      const now = performance.now();
-      if (now < pausedUntil){ // пауза после шага: курсоры плывут к центру
-        A.x += (W * .42 - A.x) * dt * 3; A.y += (H * .5 - A.y) * dt * 3; B.x += (W * .58 - B.x) * dt * 3; B.y += (H * .5 - B.y) * dt * 3;
-      } else {
-        // dsg# идёт к своей мишени (с небольшим «дыханием»)
-        const k = Math.min(1, dt * 2.4);
-        A.x += (aT.x + Math.sin(ts / 420) * 4 - A.x) * k; A.y += (aT.y + Math.cos(ts / 380) * 4 - A.y) * k;
-        const human = mouse && now - mouseAt < 3000;
-        const tx = human ? mouse.x : bT.x, ty = human ? mouse.y : bT.y; // нет мыши 3с — «Вы» играет сам
-        const kb = human ? Math.min(1, dt * 14) : Math.min(1, dt * 1.6);
-        B.x += (tx - B.x) * kb; B.y += (ty - B.y) * kb;
-        const r = W * .038;
-        const okA = Math.hypot(A.x - aT.x, A.y - aT.y) < r, okB = Math.hypot(B.x - bT.x, B.y - bT.y) < r;
-        tA.classList.toggle('done', okA); tB.classList.toggle('done', okB);
-        // шаг «нажмите вместе»: мало встать на мишени — «Вы» должны ещё и кликнуть (в автоигре кликает сам)
-        let go = okA && okB;
-        if (go && st.click){
-          if (!human && !st.autoAt) st.autoAt = now + 700;
-          go = human ? (now - clickAt < 600) : now > st.autoAt;
-        }
-        if (go && st.final) go = false; // финальный экран — просто показываем, затем цикл
-        holdT = go ? holdT + dt : Math.max(0, holdT - dt * 2);
-        if (st.final && !st.fin){ st.fin = now + 2600; }
-        if (st.final && now > st.fin){ st.fin = 0; holdT = 1; }
-        if (holdT > 0.55){
-          STEPS.forEach(function(x){ x.autoAt = 0; });
-          step++; pausedUntil = now + (step % STEPS.length === 0 ? 1800 : 900);
-          setTimeout(function(){ load(step); }, step % STEPS.length === 0 ? 1700 : 800);
-        }
+    function setT(o){ o.el.style.transform = 'translate(' + o.dx + 'px,' + o.dy + 'px) scale(' + o.s + ')'; o.el.style.filter = 'hue-rotate(' + o.hue + 'deg) saturate(' + (1 + o.n * 0.08) + ')'; }
+    function rectOf(el){ const b = box.getBoundingClientRect(), r = el.getBoundingClientRect(); return { x: r.left - b.left, y: r.top - b.top, w: r.width, h: r.height }; }
+    function objAt(x, y){
+      let best = null, bd = 1e9;
+      DEFS.forEach(function(d){ const r = rectOf(objs[d.id].el); const cx = Math.max(r.x, Math.min(x, r.x + r.w)), cy = Math.max(r.y, Math.min(y, r.y + r.h)); const dd = Math.hypot(x - cx, y - cy); if (dd < bd){ bd = dd; best = d.id; } });
+      return best;
+    }
+    function go(c, x, y){ c.tx = x; c.ty = y; }
+    function arrive(c){ return new Promise(function(res){ const t0 = performance.now(); (function chk(){ if (Math.hypot(c.x - c.tx, c.y - c.ty) < 10 || performance.now() - t0 > 2200) res(); else setTimeout(chk, 40); })(); }); }
+    function talk(text, ms){ say.textContent = text; say.classList.add('on'); clearTimeout(talk.t); talk.t = setTimeout(function(){ say.classList.remove('on'); }, ms || 1700); }
+    function status(t){ cap.style.opacity = 0; setTimeout(function(){ cap.textContent = t; cap.style.opacity = 1; }, 180); }
+    function setAnnoy(v){
+      annoy = Math.max(0, Math.min(100, v)); fill.style.width = annoy + '%';
+      const h = annoy >= 82; meter.classList.toggle('hot', h && placed); hot = h;
+    }
+    function addPin(x, y, text, mine){
+      const pn = document.createElement('div'); pn.className = 'fg-pin' + (mine ? ' me' : ''); pn.dataset.who = mine ? 'D' : 'В';
+      pn.textContent = text; pn.style.left = x + 'px'; pn.style.top = y + 'px';
+      box.appendChild(pn); setTimeout(function(){ pn.classList.add('fade'); }, 3500); setTimeout(function(){ pn.remove(); }, 9000);
+    }
+    function puff(x, y){ const e = document.createElement('div'); e.className = 'exp-puff'; e.style.left = x + 'px'; e.style.top = y + 'px'; e.style.setProperty('--dx', (Math.random() * 40 - 20) + 'px'); box.appendChild(e); setTimeout(function(){ e.remove(); }, 950); }
+    function applyEdit(id, kind){
+      const o = objs[id]; o.n++; edits++; showDigit(edits);
+      if (kind === 'air'){ o.s = Math.max(.7, o.s - .05); o.dy += 4; }
+      else if (kind === 'big'){ o.s = Math.min(1.35, o.s + .06); }
+      else if (kind === 'bright'){ o.hue += 0; o.el.style.background = o.d.bg; o.el.style.opacity = 1; o.s = Math.min(1.3, o.s + .02); }
+      else { o.ci = (o.ci + 1) % COLORS.length; o.el.style.background = COLORS[o.ci]; }
+      if (kind === 'bright') o.hue = (o.hue + 18) % 360;
+      setT(o); return o;
+    }
+    // комментарий: пин → дизайнер читает → применяет или реагирует
+    function queueComment(x, y, kind, text){
+      const id = objAt(x, y); addPin(x, y, text, false);
+      pending.push({ id: id, kind: kind, x: x, y: y });
+    }
+    async function handle(c, tok){
+      const o = objs[c.id], r = rectOf(o.el);
+      go(A, c.x + 14, c.y + 14); await arrive(A); if (tok !== alive) return;
+      status('Дизайнер читает комментарий…'); talk(rand(REPLY)); await sleep(900); if (tok !== alive) return;
+      o.el.classList.add('sel'); go(A, r.x + r.w * .8, r.y + r.h * .8); await sleep(350);
+      applyEdit(c.id, c.kind); setAnnoy(annoy + (placed ? 9 : 5)); await sleep(500); if (tok !== alive) return;
+      o.el.classList.remove('sel');
+      if (o.n > 5 && !swapped){ swapped = true; await swapSeq(tok); }
+    }
+    async function swapSeq(tok){
+      editMode = true; youN.textContent = 'Вы · правки'; status('Теперь правит наблюдатель'); const fr = rectOf(frame);
+      go(A, fr.x + fr.w * .5, fr.y + fr.h * .3); talk('Так, стоп. Давай ты, а я командую.', 2200); await sleep(2400); if (tok !== alive) return;
+      const b = objs.btn; talk('Кнопку левее!', 1300); await sleep(1400); b.dx -= 0; talk('Нет, ещё левее… теперь ниже', 1800); await sleep(1900);
+      talk('Добавь в углу индикатор: «задолбанность клиентом»', 4200);
+      slot.classList.add('on'); tool.classList.add('on'); status('Перетащите индикатор в угол макета');
+      go(A, fr.x + fr.w * .78, fr.y + 22);
+      const t0 = performance.now();
+      while (!placed && tok === alive){
+        if (!human || performance.now() - humanAt > 4500){ await botDrag(tok); break; }
+        await sleep(200);
       }
+    }
+    async function botDrag(tok){
+      const tr = rectOf(tool), sr = rectOf(slot);
+      go(B, tr.x + tr.w / 2, tr.y + tr.h / 2); await arrive(B); if (tok !== alive) return;
+      dragging = { bot: true }; tool.classList.add('drag');
+      go(B, sr.x + sr.w / 2, sr.y + sr.h / 2); tool.style.transform = ''; await arrive(B); if (tok !== alive) return;
+      drop();
+    }
+    function drop(){
+      dragging = null; tool.classList.remove('on', 'drag'); slot.classList.remove('on'); meter.classList.add('on'); placed = true; editMode = false; youN.textContent = 'Вы';
+      talk('Вот. Теперь следи за ним.', 2200); status('Клиент вносит правки…'); setAnnoy(annoy + 6);
+    }
+    async function drawAll(tok){
+      status('Дизайнер собирает макет');
+      for (let i = 0; i < DEFS.length; i++){
+        if (tok !== alive) return;
+        const o = objs[DEFS[i].id], r = rectOf(o.el);
+        go(A, r.x + 4, r.y + 4); await arrive(A);
+        o.el.classList.add('sel', 'in'); go(A, r.x + r.w - 4, r.y + r.h - 4); await sleep(650);
+        o.el.classList.remove('sel');
+        while (pending.length && tok === alive) await handle(pending.shift(), tok);
+      }
+      status('Макет готов. Кликните по нему — оставьте комментарий');
+    }
+    async function endScreen(){
+      alive++; pop.classList.remove('on');
+      $('fgEndH').textContent = 'Правок: ' + edits; endEl.classList.add('on');
+    }
+    function reset(){
+      alive++; const tok = alive;
+      pending = []; edits = 0; swapped = placed = rage = editMode = false; dragging = null; hot = false;
+      endEl.classList.remove('on'); pop.classList.remove('on'); meter.classList.remove('on', 'hot'); slot.classList.remove('on'); tool.classList.remove('on');
+      cA.classList.remove('rage'); youN.textContent = 'Вы'; setAnnoy(0); showDigit(0); size(); buildObjs();
+      A.x = A.tx = W * .1; A.y = A.ty = H * .15; B.x = B.tx = W * .88; B.y = B.ty = H * .8;
+      story(tok);
+    }
+    async function story(tok){
+      await drawAll(tok); let tick = 0, botAt = 0;
+      while (tok === alive){
+        await sleep(160); tick++;
+        if (!visible) continue;
+        const now = performance.now();
+        if (pending.length){ await handle(pending.shift(), tok); continue; }
+        if (placed){
+          setAnnoy(annoy + 0.16 * (rage ? 2.2 : 1) * (annoy > 90 ? 1.5 : 1) * 1.0);
+          if (annoy >= 82 && !rage){ rage = true; cA.classList.add('rage'); talk('Так. Всё. Я больше не могу.', 2200); status('Дизайнер в ярости'); }
+          if (rage){
+            puff(A.x + 8, A.y + 6);
+            if (tick % 7 === 0){ const fr = rectOf(frame); const id = rand(DEFS).id, r = rectOf(objs[id].el); addPin(r.x + Math.random() * r.w, r.y + Math.random() * r.h, rand(RAGE), true); setAnnoy(annoy + 1.5); }
+            go(A, B.x + 40 + Math.sin(now / 130) * 18, B.y - 36 + Math.cos(now / 110) * 14); // «заёбывает» наблюдателя
+          }
+          if (annoy >= 100){ await endScreen(); return; }
+        }
+        // нет действий пользователя ~3.5 с — «Вы» комментирует сам (всегда по одному объекту: быстрее дойти до правок)
+        if (!editMode && (!human || now - humanAt > 3500) && now > botAt && !pending.length){
+          botAt = now + (rage ? 1800 : 2600);
+          const r = rectOf(objs.hero.el), x = r.x + r.w * (.2 + Math.random() * .6), y = r.y + r.h * (.2 + Math.random() * .6);
+          go(B, x, y); await arrive(B); if (tok !== alive) return;
+          const k = rand(['air', 'big', 'color', 'bright']); queueComment(x, y, k, PRESET_TXT[k]);
+          human = false;
+        }
+        if (tick % 40 === 0 && !placed) status(swapped ? 'Перетащите индикатор в угол макета' : 'Макет готов. Кликните по нему — оставьте комментарий');
+      }
+    }
+
+    // ----- курсоры -----
+    function frameLoop(ts){
+      const dt = Math.min(0.04, (ts - (last || ts)) / 1000); last = ts;
+      const ka = Math.min(1, dt * (rage ? 9 : 4.2)), kb = human && !dragging?.bot ? Math.min(1, dt * 22) : Math.min(1, dt * 4);
+      A.x += (A.tx - A.x) * ka; A.y += (A.ty - A.y) * ka; B.x += (B.tx - B.x) * kb; B.y += (B.ty - B.y) * kb;
       cA.style.transform = 'translate(' + A.x.toFixed(1) + 'px,' + A.y.toFixed(1) + 'px)';
       cB.style.transform = 'translate(' + B.x.toFixed(1) + 'px,' + B.y.toFixed(1) + 'px)';
-      raf = visible ? requestAnimationFrame(frame) : 0;
+      if (dragging){ tool.style.left = (B.x - tool.offsetWidth / 2) + 'px'; tool.style.top = (B.y - 12) + 'px'; tool.style.right = 'auto'; }
+      raf = visible ? requestAnimationFrame(frameLoop) : 0;
     }
+    function rel(e){ const r = box.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; }
     box.addEventListener('pointermove', function(e){
-      if (e.pointerType === 'touch') return;
-      const r = box.getBoundingClientRect(); mouse = { x: e.clientX - r.left, y: e.clientY - r.top }; mouseAt = performance.now();
+      if (e.pointerType === 'touch' && !dragging) return;
+      const p = rel(e); B.tx = p.x; B.ty = p.y; human = true; humanAt = performance.now();
     });
-    box.addEventListener('pointerdown', function(){ clickAt = performance.now(); });
-    box.addEventListener('pointerleave', function(){ mouseAt = 0; });
+    function closePop(){ pop.classList.remove('on'); popPt = null; }
+    box.addEventListener('pointerdown', function(e){
+      if (pop.contains(e.target) || endEl.contains(e.target)) return;
+      const p = rel(e); human = true; humanAt = performance.now(); B.tx = p.x; B.ty = p.y; if (e.pointerType === 'touch'){ B.x = p.x; B.y = p.y; }
+      if (editMode && !placed && tool.classList.contains('on') && tool.contains(e.target)){ dragging = { bot: false }; tool.classList.add('drag'); return; }
+      const fr = rectOf(frame);
+      if (p.x >= fr.x && p.x <= fr.x + fr.w && p.y >= fr.y && p.y <= fr.y + fr.h && !editMode && objs.nav.el.classList.contains('in')){
+        popPt = p; pop.style.left = Math.min(W - pop.offsetWidth - 10, p.x + 14) + 'px'; pop.style.top = Math.min(H - 190, p.y + 14) + 'px'; pop.classList.add('on'); inp.value = '';
+      } else closePop();
+    });
+    window.addEventListener('pointerup', function(){
+      if (dragging && !dragging.bot){
+        const sr = rectOf(slot); if (Math.hypot(B.x - (sr.x + sr.w / 2), B.y - (sr.y + sr.h / 2)) < 90) drop(); else { dragging = null; tool.classList.remove('drag'); tool.style.left = tool.style.top = ''; tool.style.right = ''; }
+      }
+    });
+    pop.addEventListener('click', function(e){
+      const b = e.target.closest('button'); if (!b || !popPt) return;
+      if (b.dataset.rx){ addPin(popPt.x, popPt.y, b.dataset.rx, false); setAnnoy(annoy - 4); talk('Спасибо :)', 1500); }
+      else if (b.dataset.p) queueComment(popPt.x, popPt.y, b.dataset.p, PRESET_TXT[b.dataset.p]);
+      closePop();
+    });
+    inp.addEventListener('keydown', function(e){
+      if (e.key !== 'Enter' || !popPt || !inp.value.trim()) return;
+      const k = rand(['air', 'big', 'color', 'bright']); queueComment(popPt.x, popPt.y, k, inp.value.trim().slice(0, 40)); closePop();
+    });
+    window.addEventListener('keydown', function(e){ if (e.key === 'Escape') closePop(); });
+    $('fgAgain').addEventListener('click', reset);
+    $('fgContact').addEventListener('click', function(){ const t = document.querySelector('.experience-offer'); if (t) t.scrollIntoView({ behavior: 'smooth', block: 'center' }); });
     window.addEventListener('resize', size);
-    size(); load(0);
-    A.x = W * .15; A.y = H * .2; B.x = W * .85; B.y = H * .8;
-    if (reduced){ showDigit(1); return; }
-    if ('IntersectionObserver' in window){
-      new IntersectionObserver(function(en){ visible = en[0].isIntersecting; if (visible && !raf){ last = 0; size(); raf = requestAnimationFrame(frame); } }, { threshold: .15 }).observe(box);
-    } else { visible = true; raf = requestAnimationFrame(frame); }
+    size(); buildObjs(); showDigit(0); A.x = A.tx = W * .1; A.y = A.ty = H * .15; B.x = B.tx = W * .88; B.y = B.ty = H * .8;
+    if (reduced){ DEFS.forEach(function(d){ objs[d.id].el.classList.add('in'); }); status('Макет собран'); return; }
+    let started = false;
+    new IntersectionObserver(function(en){
+      visible = en[0].isIntersecting;
+      if (visible){ if (!started){ started = true; reset(); } if (!raf){ last = 0; raf = requestAnimationFrame(frameLoop); } }
+    }, { threshold: .25 }).observe(box);
   })();
 
   // === HERO HEIGHT ===
