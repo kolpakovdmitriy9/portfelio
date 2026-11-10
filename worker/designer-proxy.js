@@ -39,7 +39,7 @@ export default {
     if (!comment) return new Response('Empty', { status: 400, headers: cors });
 
     const user = `Объект: ${object}. Правок этого объекта уже: ${edits}. Раздражение: ${Math.round(annoy)}. rage=${rage}.\nКомментарий заказчика: «${comment}»`;
-    let txt = '';
+    let txt = '', usedModel = '';
     if (env.AI) {
       // Бесплатный вариант: Cloudflare Workers AI. Каталог моделей меняется (модели снимают с поддержки),
       // поэтому пробуем по очереди несколько кандидатов; CF_MODEL — первым, если задан.
@@ -49,8 +49,10 @@ export default {
       for (const model of CANDIDATES) {
         try {
           const r = await env.AI.run(model, { messages: [{ role: 'system', content: SYSTEM }, { role: 'user', content: user }], max_tokens: 120 });
-          const t = (r && (r.response || r.result || (r.choices && r.choices[0] && r.choices[0].message && r.choices[0].message.content) || '')) + '';
-          if (t) { txt = t; break; }
+          let v = r && (r.response !== undefined && r.response !== null ? r.response : (r.result || (r.choices && r.choices[0] && r.choices[0].message && r.choices[0].message.content) || ''));
+          if (v && typeof v === 'object') v = JSON.stringify(v); // некоторые модели сразу отдают распарсенный JSON-объект
+          const t = String(v || '');
+          if (t) { txt = t; usedModel = model; break; }
         } catch (e) { errs.push(model.split('/').pop() + ': ' + String(e && e.message || e).slice(0, 70)); }
       }
       if (!txt) return new Response('Upstream error (AI): ' + errs.join(' | ').slice(0, 400), { status: 502, headers: cors });
@@ -69,6 +71,7 @@ export default {
       const m = JSON.parse(txt.slice(txt.indexOf('{'), txt.lastIndexOf('}') + 1));
       out = { reply: String(m.reply || out.reply).slice(0, 60), action: ACTIONS.includes(m.action) ? m.action : 'none' };
     } catch {}
+    out.model = usedModel || 'anthropic'; out.raw = txt.slice(0, 160); // диагностика, клиент игнорирует
     return new Response(JSON.stringify(out), { headers: { ...cors, 'Content-Type': 'application/json' } });
   }
 };
