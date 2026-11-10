@@ -339,8 +339,17 @@ height: clamp(180px, 45vw, 440px);
 .fg-sel i{position:absolute;width:8px;height:8px;background:#fff;border:1px solid #0d99ff;box-sizing:border-box;margin:-4px 0 0 -4px}
 .fg-sel i:nth-child(1){left:0;top:0}.fg-sel i:nth-child(2){left:100%;top:0}.fg-sel i:nth-child(3){left:0;top:100%}.fg-sel i:nth-child(4){left:100%;top:100%}
 .fg-sel b{position:absolute;left:50%;top:calc(100% + 8px);transform:translateX(-50%);padding:3px 8px;background:#0d99ff;color:#fff;border-radius:4px;font:500 12px/1.2 Inter,-apple-system,'Segoe UI',Arial,sans-serif;white-space:nowrap}
-.fg-tools{position:absolute;left:50%;bottom:clamp(14px,2.6vw,36px);transform:translateX(-50%);display:flex;gap:2px;padding:4px;background:#2c2c2c;border-radius:10px;z-index:9;pointer-events:none}
-.fg-tools span{width:32px;height:32px;display:grid;place-items:center;border-radius:6px;color:#fff;opacity:.85}
+.fg-tools{position:absolute;left:50%;bottom:clamp(10px,1.6vw,22px);transform:translateX(-50%);display:flex;gap:2px;padding:4px;background:#2c2c2c;border-radius:10px;z-index:37;pointer-events:auto}
+.fg-tools span{position:relative;width:34px;height:34px;display:grid;place-items:center;border-radius:6px;color:#fff;opacity:.85;cursor:pointer}
+.fg-tools span:hover{background:#444;opacity:1}
+.fg-tools span.on:hover{background:#0d99ff}
+.fg-tools span::after{content:attr(data-h);position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);padding:5px 9px;background:#000;border:1px solid #444;border-radius:6px;font:400 11px/1 'ONY One',sans-serif;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .15s}
+.fg-tools span:hover::after{opacity:1}
+.fg-tools.hint{animation:fgToolHint .7s ease-in-out infinite alternate}
+@keyframes fgToolHint{from{box-shadow:0 0 0 0 rgba(13,153,255,.0)}to{box-shadow:0 0 0 5px rgba(13,153,255,.55),0 0 24px rgba(13,153,255,.6)}}
+.fg-rules{position:absolute;left:clamp(16px,4vw,64px);top:calc(clamp(18px,3vw,50px) + clamp(70px,8vw,120px));margin:0;max-width:22%;font:400 12px/1.5 'ONY One',sans-serif;opacity:.6;list-style:none;padding:0}
+.fg-rules li{margin-bottom:6px}.fg-rules b{font-weight:400;color:#2fbf71}.fg-rules b.r{color:#ff4b3a}
+@media(max-width:900px){.fg-rules{display:none}}
 .fg-tools span svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
 .fg-tools span.on{background:#0d99ff;opacity:1}
  .fg-obj.t{display:flex;align-items:center;overflow:hidden;white-space:nowrap;font-family:'ONY One',sans-serif;color:#111;border-radius:6px}
@@ -870,20 +879,20 @@ touch-action: none;
     <p class="exp-duo-cap" id="expDuoCap"></p>
     <div class="exp-duo-lbl">правок</div>
     <div class="exp-duo-digit" id="expDuoDigit" aria-hidden="true"></div>
+    <ul class="fg-rules"><li><b>Правка</b> → идеальность растёт, но дизайнер злится</li><li><b>Похвала</b> (👍🔥😍) → злость падает</li><li><b class="r">Злость 100%</b> — проигрыш</li><li>Дошёл до красного — «делай сам»: правьте инструментами внизу</li></ul>
     <div class="fg-qual" id="fgQual">Идеальность <span id="fgQualV">0%</span><b><i id="fgQualFill"></i></b></div>
     <div class="fg-rage" id="fgRage"></div>
     <div class="fg-frame" id="fgFrame">
-      <div class="fg-slot" id="fgSlot"></div>
       <div class="fg-meter" id="fgMeter">Задолбанность клиентом<b><i id="fgMeterFill"></i></b></div>
     </div>
     <div class="fg-sel" id="fgSel"><i></i><i></i><i></i><i></i><b id="fgSelLbl">0 × 0</b></div>
-    <div class="fg-tools" id="fgTools" aria-hidden="true">
-      <span data-t="move"><svg viewBox="0 0 24 24"><path d="M5 3l14 8-6 2-2 6z"/></svg></span>
-      <span data-t="frame"><svg viewBox="0 0 24 24"><path d="M7 3v18M17 3v18M3 7h18M3 17h18"/></svg></span>
-      <span data-t="rect"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="1"/></svg></span>
-      <span data-t="text"><svg viewBox="0 0 24 24"><path d="M5 6V4h14v2M12 4v16M9 20h6"/></svg></span>
+    <div class="fg-tools" id="fgTools">
+      <span data-t="comment" data-h="Комментарий (клик по карточке)"><svg viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/></svg></span>
+      <span data-t="move" data-h="Двигать: перетащите объект"><svg viewBox="0 0 24 24"><path d="M5 3l14 8-6 2-2 6z"/></svg></span>
+      <span data-t="frame" data-h="Размер: клик увеличивает"><svg viewBox="0 0 24 24"><path d="M7 3v18M17 3v18M3 7h18M3 17h18"/></svg></span>
+      <span data-t="rect" data-h="Цвет: клик по объекту"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="1"/></svg></span>
+      <span data-t="text" data-h="Текст / другое фото: клик"><svg viewBox="0 0 24 24"><path d="M5 6V4h14v2M12 4v16M9 20h6"/></svg></span>
     </div>
-    <div class="fg-tool" id="fgTool">+ Задолбанность клиентом</div>
     <div class="fg-pop" id="fgPop">
       <div class="rx" title="Похвалить дизайнера"><button data-rx="👍">👍</button><button data-rx="🔥">🔥</button><button data-rx="😍">😍</button><button data-rx="🤔">🤔</button></div>
       <div class="ps"><button data-p="air">Больше воздуха</button><button data-p="bright">Ярче!</button><button data-p="big">Крупнее</button><button data-p="color">Другой цвет</button></div>
@@ -1267,7 +1276,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const box = document.getElementById('expDuo'); if (!box) return;
     const $ = function(id){ return document.getElementById(id); };
     const frame = $('fgFrame'), cap = $('expDuoCap'), dg = $('expDuoDigit'), pop = $('fgPop'), inp = $('fgInp');
-    const meter = $('fgMeter'), fill = $('fgMeterFill'), slot = $('fgSlot'), tool = $('fgTool'), endEl = $('fgEnd');
+    const meter = $('fgMeter'), fill = $('fgMeterFill'), endEl = $('fgEnd');
     const cA = $('expDuoCA'), cB = $('expDuoCB'), say = $('expSay'), youN = $('expYouN');
     const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
     const G = {0:'01110100011001110101110011000101110',1:'00100011000010000100001000010001110',2:'01110100010000100010001000100011111',3:'11110000010000101110000010000111110',4:'00010001100101010010111110001000010',5:'11111100001111000001000011000101110',6:'00110010001000011110100011000101110',7:'11111000010001000100010000100001000',8:'01110100011000101110100011000101110',9:'01110100011000101111000010001001100'};
@@ -1302,8 +1311,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const RAGE = ['ПЕРЕДЕЛАЙ', 'ЕЩЁ РАЗ', 'Это не то', 'Правки правок!', 'Срочно!!', 'Почему так?'];
     const objs = {};
     let alive = 0, B = {}, A = {}, W = 0, H = 0, raf = 0, visible = false, last = 0;
-    let pending = [], edits = 0, annoy = 0, swapped = false, placed = false, rage = false, editMode = false;
-    let quality = 0, streak = 0, humanAt = 0, human = false, dragging = null, popPt = null, popObj = 'photo', hot = false;
+    let pending = [], edits = 0, annoy = 0, placed = false, rage = false, editMode = false, utool = 'comment', ownN = 0, udrag = null;
+    let quality = 0, streak = 0, humanAt = 0, human = false, popPt = null, popObj = 'photo', hot = false;
     // Нейросеть-«дизайнер»: URL Cloudflare Worker (см. worker/README.md). Пусто — сценка на заготовленных репликах.
     const DESIGNER_API = window.EXP_DESIGNER_API || 'https://designer-proxy.12deman58.workers.dev';
     let aiCalls = 0;
@@ -1342,25 +1351,25 @@ document.addEventListener('DOMContentLoaded', () => {
     function arrive(c){ return new Promise(function(res){ const t0 = performance.now(); (function chk(){ if (Math.hypot(c.x - c.tx, c.y - c.ty) < 10 || performance.now() - t0 > 2200) res(); else setTimeout(chk, 40); })(); }); }
     function talk(text, ms){ say.textContent = text; say.classList.add('on'); clearTimeout(talk.t); talk.t = setTimeout(function(){ say.classList.remove('on'); }, ms || 1700); }
     function status(t){ cap.style.opacity = 0; setTimeout(function(){ cap.textContent = t; cap.style.opacity = 1; }, 180); }
-    function mood(){ return annoy < 25 ? '🙂' : annoy < 50 ? '😐' : annoy < 72 ? '😠' : '🤬'; }
+    function mood(){ return annoy < 30 ? '🙂' : annoy < 60 ? '😐' : annoy < 80 ? '😠' : '🤬'; }
     function setAnnoy(v){
       annoy = Math.max(0, Math.min(100, v)); fill.style.width = annoy + '%';
-      const h = annoy >= 82; meter.classList.toggle('hot', h && placed); hot = h;
+      const h = annoy >= 80; meter.classList.toggle('hot', h && placed); hot = h;
       cA.querySelector('.n').textContent = 'dsg# ' + mood();
       // GTA-подобная красная рамка по краям + глитч: растут с бешенством дизайнера
-      $('fgRage').style.opacity = String(Math.max(0, Math.min(1, (annoy - 45) / 45)));
-      box.classList.toggle('rage1', annoy >= 55); box.classList.toggle('rage2', annoy >= 78);
+      $('fgRage').style.opacity = String(Math.max(0, Math.min(1, (annoy - 68) / 28)));
+      box.classList.toggle('rage1', annoy >= 80); box.classList.toggle('rage2', annoy >= 92);
     }
     function setQuality(v){ quality = Math.max(0, Math.min(100, v)); $('fgQualFill').style.width = quality + '%'; $('fgQualV').textContent = Math.round(quality) + '%'; }
     // похвала: успокаивает дизайнера; подряд идущие похвалы работают сильнее; в хорошем настроении он сам улучшает карточку
     async function praise(power, x, y, tok){
       streak++; setAnnoy(annoy - power - Math.min(8, streak * 2));
       talk(rand(['Спасибо!', 'Ооо, приятно :)', 'Вот это я понимаю', 'Продолжайте в том же духе']), 1800);
-      if (annoy < 65 && Math.random() < .75){
+      if (!editMode && annoy < 70){
         const id = rand(EDITABLE), act = rand(ACTS[id]);
         await sleep(700); if (tok !== undefined && tok !== alive) return;
         showSel(objs[id], false); go(A, rectOf(objs[id].el).x + 20, rectOf(objs[id].el).y + 20); await sleep(500);
-        applyEdit(id, act[0], {}); setQuality(quality + 5); talk('Я тут ещё чуть улучшил', 1800); await sleep(600); hideSel();
+        applyEdit(id, act[0], {}); setQuality(quality + 6); talk('Я тут ещё чуть улучшил', 1800); await sleep(600); hideSel();
       }
     }
     function addPin(x, y, text, mine){
@@ -1435,41 +1444,38 @@ document.addEventListener('DOMContentLoaded', () => {
       if (c.intent) c.kind = c.intent.kind; // явная просьба из текста важнее выбора модели
       if (c.kind === 'auto') c.kind = rand((ACTS[c.id] || ACTS.photo))[0];
       talk(ai && ai.reply && String(ai.reply).trim().length > 3 ? String(ai.reply).trim() : rand(REPLY), 2300); /* короткое («?») — заготовка */ await sleep(900); if (tok !== alive) return;
-      setTool('move'); showSel(o, false); go(A, r.x + r.w, r.y + r.h); await sleep(350);
+      setTool(utool); showSel(o, false); go(A, r.x + r.w, r.y + r.h); await sleep(350);
       const calm = annoy; streak = 0;
       applyEdit(c.id, c.kind, c.intent || {});
-      setQuality(quality + (calm < 50 ? 7 : calm < 80 ? 3 : 1)); // чем злее дизайнер, тем меньше пользы от правок
-      setAnnoy(annoy + (o.n > 3 ? 12 : 8)); await sleep(500); if (tok !== alive) return;
+      setQuality(quality + (calm < 40 ? 7 : calm < 70 ? 4 : 2)); // чем злее дизайнер, тем меньше пользы от правок
+      setAnnoy(annoy + 9); await sleep(500); if (tok !== alive) return;
       hideSel();
-      if (!swapped && (o.n > 8 || annoy >= 62)){ swapped = true; await swapSeq(tok, o.n > 8 ? 'obj' : 'rage'); }
     }
-    async function swapSeq(tok, why){
-      editMode = true; youN.textContent = 'Вы · правки'; status('Теперь правит наблюдатель'); const fr = rectOf(frame);
-      go(A, fr.x + fr.w * .5, fr.y + fr.h * .3); talk(why === 'rage' ? 'Всё, я устал от правок. Давай ты, а я командую.' : 'Так, стоп. Давай ты, а я командую.', 2400); await sleep(2400); if (tok !== alive) return;
-      const b = objs.btn; talk('Кнопку левее!', 1300); await sleep(1400); b.dx -= 0; talk('Нет, ещё левее… теперь ниже', 1800); await sleep(1900);
-      talk('Добавь в углу индикатор: «задолбанность клиентом»', 4200);
-      slot.classList.add('on'); tool.classList.add('on'); status('Перетащите индикатор в угол макета');
-      go(A, fr.x + fr.w * .78, fr.y + 22);
-      const t0 = performance.now();
-      while (!placed && tok === alive){
-        if (!human || performance.now() - humanAt > 4500){ await botDrag(tok); break; }
-        await sleep(200);
+    // «делай сам»: дизайнер срывается и отдаёт правки пользователю — нужно 3 своих правки инструментами внизу
+    function startForced(tok){
+      editMode = true; ownN = 0; youN.textContent = 'Вы · сами'; closePop(); pending = []; const fr = rectOf(frame);
+      go(A, fr.x + fr.w * .5, fr.y + fr.h * .25); talk('Всё! Хватит правок. Делай сам!', 2600);
+      status('Делай сам: выберите инструмент внизу и правьте карточку (0/3)'); tools.classList.add('hint'); utool = utool === 'comment' ? 'move' : utool; setTool(utool);
+    }
+    function ownEdit(id){
+      const o = objs[id]; showSel(o, false); setTimeout(hideSel, 520);
+      setQuality(quality + (editMode ? 6 : 3)); setAnnoy(annoy - (editMode ? 14 : 4)); streak = 0;
+      if (editMode){
+        ownN++; status('Делай сам: правьте карточку инструментами внизу (' + Math.min(3, ownN) + '/3)');
+        if (ownN >= 3){ editMode = false; tools.classList.remove('hint'); youN.textContent = 'Вы'; if (annoy > 60) setAnnoy(60); talk('Ладно, дальше я. Только хвали меня.', 2400); status('Дизайнер остыл. Хвалите 👍🔥😍 или правьте'); }
+        else talk(rand(['Вот! Так держать', 'Ещё!', 'Видишь, не так сложно']), 1400);
       }
     }
-    async function botDrag(tok){
-      const tr = rectOf(tool), sr = rectOf(slot);
-      go(B, tr.x + tr.w / 2, tr.y + tr.h / 2); await arrive(B); if (tok !== alive) return;
-      dragging = { bot: true }; tool.classList.add('drag');
-      go(B, sr.x + sr.w / 2, sr.y + sr.h / 2); tool.style.transform = ''; await arrive(B); if (tok !== alive) return;
-      drop();
-    }
-    function drop(){
-      dragging = null; tool.classList.remove('on', 'drag'); slot.classList.remove('on'); meter.classList.add('on'); placed = true; editMode = false; youN.textContent = 'Вы';
-      talk('Вот. Теперь следи за ним.', 2200); status('Клиент вносит правки…'); setAnnoy(annoy + 6);
+    function userTool(e, p){
+      const id = objAt(p.x, p.y), o = objs[id]; if (!o) return false;
+      if (utool === 'move'){ udrag = { id: id, sx: p.x, sy: p.y, dx: o.dx, dy: o.dy, moved: false }; return true; }
+      const K = { frame: 'size', rect: id === 'photo' ? 'bg' : 'color', text: id === 'photo' ? 'swap' : (POOLS[id] ? 'text' : 'color') };
+      if (!K[utool]) return false;
+      applyEdit(id, K[utool], {}); ownEdit(id); return true;
     }
     const selEl = $('fgSel'), selLbl = $('fgSelLbl'), tools = $('fgTools');
     let selTimer = 0;
-    function setTool(t){ Array.prototype.forEach.call(tools.children, function(e){ e.classList.toggle('on', e.dataset.t === t); }); }
+    function setTool(t){ if (!t) t = utool; Array.prototype.forEach.call(tools.children, function(e){ e.classList.toggle('on', e.dataset.t === t); }); }
     function updLabel(){ selLbl.textContent = Math.round(selEl.offsetWidth) + ' × ' + Math.round(selEl.offsetHeight); }
     function showSel(o, grow){
       const r = rectOf(o.el); clearInterval(selTimer);
@@ -1490,10 +1496,10 @@ document.addEventListener('DOMContentLoaded', () => {
         setTool(toolFor(DEFS[i]));
         go(A, r.x, r.y); await arrive(A); if (tok !== alive) return;
         o.el.classList.add('in'); showSel(o, true); go(A, r.x + r.w, r.y + r.h); await sleep(780);
-        hideSel(); setTool('move'); streak = 0; setQuality(0); box.classList.remove('rage1', 'rage2'); $('fgRage').style.opacity = 0;
+        hideSel(); setTool(utool); streak = 0; setQuality(0); box.classList.remove('rage1', 'rage2'); $('fgRage').style.opacity = 0;
         while (pending.length && tok === alive) await handle(pending.shift(), tok);
       }
-      setTool('move'); status('Кликните по карточке: правка или похвала. Дизайнер не любит одни правки');
+      setTool(utool); placed = true; meter.classList.add('on'); status('Кликните по карточке: правка (идеальность↑, злость↑) или похвала 👍 (злость↓)');
     }
     async function endScreen(win){
       alive++; pop.classList.remove('on'); box.classList.remove('rage1', 'rage2'); $('fgRage').style.opacity = 0;
@@ -1503,9 +1509,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     function reset(){
       alive++; const tok = alive;
-      pending = []; edits = 0; swapped = placed = rage = editMode = false; dragging = null; hot = false;
-      endEl.classList.remove('on'); pop.classList.remove('on'); meter.classList.remove('on', 'hot'); slot.classList.remove('on'); tool.classList.remove('on');
-      cA.classList.remove('rage'); youN.textContent = 'Вы'; hideSel(); setTool('move'); setAnnoy(0); showDigit(0); size(); buildObjs();
+      pending = []; edits = 0; placed = rage = editMode = false; udrag = null; ownN = 0; hot = false; tools.classList.remove('hint');
+      endEl.classList.remove('on'); pop.classList.remove('on'); meter.classList.remove('on', 'hot');
+      cA.classList.remove('rage'); youN.textContent = 'Вы'; hideSel(); setTool(utool); setAnnoy(0); showDigit(0); size(); buildObjs();
       A.x = A.tx = W * .1; A.y = A.ty = H * .15; B.x = B.tx = W * .88; B.y = B.ty = H * .8;
       story(tok);
     }
@@ -1518,8 +1524,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (quality >= 100 && annoy < 100){ await endScreen(true); return; }
         if (pending.length){ await handle(pending.shift(), tok); continue; }
         if (placed){
-          if (annoy >= 60 || rage) setAnnoy(annoy + 0.09 * (rage ? 2.2 : 1) * (annoy > 90 ? 1.5 : 1));
-          if (annoy >= 82 && !rage){ rage = true; cA.classList.add('rage'); talk('Так. Всё. Я больше не могу.', 2200); status('Дизайнер в ярости'); }
+          if (rage || editMode) setAnnoy(annoy + 0.07);
+          if (rage && annoy < 70 && !editMode){ rage = false; cA.classList.remove('rage'); }
+          if (!editMode && annoy >= 90){ startForced(tok); }
+          if (annoy >= 80 && !rage){ rage = true; cA.classList.add('rage'); talk('Так. Всё. Я больше не могу.', 2200); status('Дизайнер в ярости'); }
           if (rage){
             puff(A.x + 8, A.y + 6);
             if (tick % 7 === 0){ const fr = rectOf(frame); const id = rand(EDITABLE), r = rectOf(objs[id].el); addPin(r.x + Math.random() * r.w, r.y + Math.random() * r.h, rand(RAGE), true); setAnnoy(annoy + 1.5); }
@@ -1529,46 +1537,47 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         // нет действий пользователя ~3.5 с — «Вы» комментирует сам (всегда по одному объекту: быстрее дойти до правок)
         if (!editMode && (!human || now - humanAt > 3500) && now > botAt && !pending.length){
-          botAt = now + (rage ? 1800 : 2600);
+          botAt = now + (rage ? 2600 : 4200);
           const tid = Math.random() < .7 ? 'photo' : rand(EDITABLE), r = rectOf(objs[tid].el), x = r.x + r.w * (.2 + Math.random() * .6), y = r.y + r.h * (.2 + Math.random() * .6);
           go(B, x, y); await arrive(B); if (tok !== alive) return;
           const act = rand(ACTS[tid]); queueComment(x, y, act[0], act[1], tid);
           human = false;
         }
-        if (tick % 40 === 0 && !placed) status(swapped ? 'Перетащите индикатор в угол макета' : 'Кликните по карточке: правка или похвала. Дизайнер не любит одни правки');
+        
       }
     }
 
     // ----- курсоры -----
     function frameLoop(ts){
       const dt = Math.min(0.04, (ts - (last || ts)) / 1000); last = ts;
-      const ka = Math.min(1, dt * (rage ? 9 : 4.2)), kb = human && !dragging?.bot ? Math.min(1, dt * 22) : Math.min(1, dt * 4);
+      const ka = Math.min(1, dt * (rage ? 9 : 4.2)), kb = human ? Math.min(1, dt * 22) : Math.min(1, dt * 4);
       A.x += (A.tx - A.x) * ka; A.y += (A.ty - A.y) * ka; B.x += (B.tx - B.x) * kb; B.y += (B.ty - B.y) * kb;
       cA.style.transform = 'translate(' + A.x.toFixed(1) + 'px,' + A.y.toFixed(1) + 'px)';
       cB.style.transform = 'translate(' + B.x.toFixed(1) + 'px,' + B.y.toFixed(1) + 'px)';
-      if (dragging){ tool.style.left = (B.x - tool.offsetWidth / 2) + 'px'; tool.style.top = (B.y - 12) + 'px'; tool.style.right = 'auto'; }
       raf = visible ? requestAnimationFrame(frameLoop) : 0;
     }
     function rel(e){ const r = box.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; }
     box.addEventListener('pointermove', function(e){
-      if (e.pointerType === 'touch' && !dragging) return;
+      if (e.pointerType === 'touch' && !udrag) return;
       const p = rel(e); B.tx = p.x; B.ty = p.y; human = true; humanAt = performance.now();
+      if (udrag){ const o = objs[udrag.id]; o.dx = udrag.dx + (p.x - udrag.sx); o.dy = udrag.dy + (p.y - udrag.sy); if (Math.hypot(p.x - udrag.sx, p.y - udrag.sy) > 6) udrag.moved = true; o.el.style.transition = 'none'; setT(o); }
     });
     function closePop(){ pop.classList.remove('on'); popPt = null; }
     box.addEventListener('pointerdown', function(e){
-      if (pop.contains(e.target) || endEl.contains(e.target)) return;
+      if (pop.contains(e.target) || endEl.contains(e.target) || tools.contains(e.target)) return;
       const p = rel(e); human = true; humanAt = performance.now(); B.tx = p.x; B.ty = p.y; if (e.pointerType === 'touch'){ B.x = p.x; B.y = p.y; }
-      if (editMode && !placed && tool.classList.contains('on') && tool.contains(e.target)){ dragging = { bot: false }; tool.classList.add('drag'); return; }
       const fr = rectOf(frame);
-      if (p.x >= fr.x && p.x <= fr.x + fr.w && p.y >= fr.y && p.y <= fr.y + fr.h && !editMode && objs.card.el.classList.contains('in')){
+      if (p.x >= fr.x && p.x <= fr.x + fr.w && p.y >= fr.y && p.y <= fr.y + fr.h && objs.card.el.classList.contains('in')){
+        if (utool !== 'comment'){ userTool(e, p); return; }
+        if (editMode){ talk('Не-не, сам! Инструменты внизу', 1800); return; }
         popPt = p; popObj = objAt(p.x, p.y); pop.querySelector('.ps').innerHTML = (ACTS[popObj] || ACTS.photo).map(function(a){ return '<button data-p="' + a[0] + '">' + a[1] + '</button>'; }).join(''); pop.style.left = Math.min(W - pop.offsetWidth - 10, p.x + 14) + 'px'; pop.style.top = Math.min(H - 190, p.y + 14) + 'px'; pop.classList.add('on'); inp.value = '';
       } else closePop();
     });
     window.addEventListener('pointerup', function(){
-      if (dragging && !dragging.bot){
-        const sr = rectOf(slot); if (Math.hypot(B.x - (sr.x + sr.w / 2), B.y - (sr.y + sr.h / 2)) < 90) drop(); else { dragging = null; tool.classList.remove('drag'); tool.style.left = tool.style.top = ''; tool.style.right = ''; }
-      }
+      if (!udrag) return; const o = objs[udrag.id], u = udrag; udrag = null; o.el.style.transition = '';
+      if (u.moved){ o.n++; edits++; showDigit(edits); ownEdit(u.id); } else { o.dx = u.dx; o.dy = u.dy; setT(o); }
     });
+    tools.addEventListener('click', function(e){ const t = e.target.closest('span[data-t]'); if (!t) return; utool = t.dataset.t; setTool(utool); closePop(); });
     pop.addEventListener('click', function(e){
       const b = e.target.closest('button'); if (!b || !popPt) return;
       if (b.dataset.rx){ addPin(popPt.x, popPt.y, b.dataset.rx, false); if (b.dataset.rx === '🤔'){ setAnnoy(annoy + 4); talk('Что-то не так?', 1500); } else praise(b.dataset.rx === '😍' ? 12 : 8, popPt.x, popPt.y, alive); }
