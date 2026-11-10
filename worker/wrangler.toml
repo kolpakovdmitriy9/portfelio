@@ -7,4 +7,4 @@ binding = "AI"
 
 [vars]
 # Адрес сайта, с которого разрешены запросы (без слеша в конце). Поменяй, если сайт на другом домене.
-ALLOWED_ORIGIN = "https://kolpakovdmitriy9.github.io"
+ALLOWED_ORIGIN = "https://portfelio.12deman58.workers.dev"
