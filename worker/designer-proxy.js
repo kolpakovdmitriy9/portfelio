@@ -39,16 +39,27 @@ export default {
     if (!comment) return new Response('Empty', { status: 400, headers: cors });
 
     const user = `Объект: ${object}. Правок этого объекта уже: ${edits}. Раздражение: ${Math.round(annoy)}. rage=${rage}.\nКомментарий заказчика: «${comment}»`;
-    const r = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json', 'x-api-key': env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01' },
-      body: JSON.stringify({ model: env.MODEL || 'claude-haiku-5-5', max_tokens: 120, system: SYSTEM, messages: [{ role: 'user', content: user }] })
-    });
-    if (!r.ok) return new Response('Upstream error', { status: 502, headers: cors });
-    const j = await r.json();
+    let txt = '';
+    if (env.AI) {
+      // Бесплатный вариант: Cloudflare Workers AI, ключ не нужен (binding "AI" в wrangler.toml)
+      try {
+        const r = await env.AI.run(env.CF_MODEL || '@cf/meta/llama-3.1-8b-instruct', {
+          messages: [{ role: 'system', content: SYSTEM }, { role: 'user', content: user }], max_tokens: 120
+        });
+        txt = (r && (r.response || r.result || '')) + '';
+      } catch { return new Response('Upstream error', { status: 502, headers: cors }); }
+    } else {
+      const r = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', 'x-api-key': env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01' },
+        body: JSON.stringify({ model: env.MODEL || 'claude-haiku-5-5', max_tokens: 120, system: SYSTEM, messages: [{ role: 'user', content: user }] })
+      });
+      if (!r.ok) return new Response('Upstream error', { status: 502, headers: cors });
+      const j = await r.json();
+      txt = (j.content && j.content[0] && j.content[0].text) || '';
+    }
     let out = { reply: 'Хм, понял', action: 'none' };
     try {
-      const txt = (j.content && j.content[0] && j.content[0].text) || '';
       const m = JSON.parse(txt.slice(txt.indexOf('{'), txt.lastIndexOf('}') + 1));
       out = { reply: String(m.reply || out.reply).slice(0, 60), action: ACTIONS.includes(m.action) ? m.action : 'none' };
     } catch {}
