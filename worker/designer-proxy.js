@@ -41,13 +41,19 @@ export default {
     const user = `Объект: ${object}. Правок этого объекта уже: ${edits}. Раздражение: ${Math.round(annoy)}. rage=${rage}.\nКомментарий заказчика: «${comment}»`;
     let txt = '';
     if (env.AI) {
-      // Бесплатный вариант: Cloudflare Workers AI, ключ не нужен (binding "AI" в wrangler.toml)
-      try {
-        const r = await env.AI.run(env.CF_MODEL || '@cf/meta/llama-3.1-8b-instruct', {
-          messages: [{ role: 'system', content: SYSTEM }, { role: 'user', content: user }], max_tokens: 120
-        });
-        txt = (r && (r.response || r.result || '')) + '';
-      } catch (e) { return new Response('Upstream error (AI): ' + String(e && e.message || e).slice(0, 200), { status: 502, headers: cors }); }
+      // Бесплатный вариант: Cloudflare Workers AI. Каталог моделей меняется (модели снимают с поддержки),
+      // поэтому пробуем по очереди несколько кандидатов; CF_MODEL — первым, если задан.
+      const CANDIDATES = [env.CF_MODEL, '@cf/meta/llama-3.3-70b-instruct-fp8-fast', '@cf/meta/llama-4-scout-17b-16e-instruct',
+        '@cf/mistralai/mistral-small-3.1-24b-instruct', '@cf/google/gemma-3-12b-it', '@cf/meta/llama-3.2-3b-instruct', '@cf/meta/llama-3.1-8b-instruct'].filter(Boolean);
+      const errs = [];
+      for (const model of CANDIDATES) {
+        try {
+          const r = await env.AI.run(model, { messages: [{ role: 'system', content: SYSTEM }, { role: 'user', content: user }], max_tokens: 120 });
+          const t = (r && (r.response || r.result || (r.choices && r.choices[0] && r.choices[0].message && r.choices[0].message.content) || '')) + '';
+          if (t) { txt = t; break; }
+        } catch (e) { errs.push(model.split('/').pop() + ': ' + String(e && e.message || e).slice(0, 70)); }
+      }
+      if (!txt) return new Response('Upstream error (AI): ' + errs.join(' | ').slice(0, 400), { status: 502, headers: cors });
     } else {
       const r = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
