@@ -329,9 +329,14 @@ height: clamp(180px, 45vw, 440px);
 .exp-duo-digit i{aspect-ratio:1;border-radius:50%;background:#fff;opacity:.08;transition:opacity .25s ease}
 .exp-duo-digit i.on{opacity:1}
 .exp-duo-lbl{position:absolute;left:clamp(16px,4vw,64px);bottom:calc(clamp(16px,3vw,44px) + clamp(44px,5vw,70px) * 1.45 + 8px);font:400 12px/1 'ONY One',sans-serif;opacity:.5;letter-spacing:.06em;text-transform:uppercase}
-.fg-frame{position:absolute;left:50%;top:50%;width:52%;height:66%;transform:translate(-50%,-50%);background:#ececec;border-radius:14px;overflow:visible;box-shadow:0 0 0 1px #333}
+.fg-frame{container-type:inline-size;position:absolute;left:50%;top:50%;width:52%;height:66%;transform:translate(-50%,-50%);background:#ececec;border-radius:14px;overflow:visible;box-shadow:0 0 0 1px #333}
 .fg-obj{position:absolute;opacity:0;transform:scale(.6);transition:opacity .35s ease,transform .35s ease,filter .35s ease,left .35s ease,top .35s ease,width .35s ease,height .35s ease,background .35s ease;border-radius:8px;outline:1.5px solid transparent}
 .fg-obj.in{opacity:1;transform:scale(1)}
+ .fg-obj.t{display:flex;align-items:center;overflow:hidden;white-space:nowrap;font-family:'ONY One',sans-serif;color:#111;border-radius:6px}
+.fg-obj.t.c{justify-content:center;color:#fff}
+.fg-obj.card{box-shadow:0 10px 30px rgba(0,0,0,.18)}
+.fg-obj.ph{overflow:hidden}
+.fg-obj.ph img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;transition:transform .45s ease,object-position .45s ease;pointer-events:none}
 .fg-obj.sel{outline-color:#8b5cf6}
 .fg-obj.sel::after{content:"";position:absolute;inset:-4px;border:1px solid #8b5cf6;pointer-events:none}
 .fg-obj.drag{cursor:none}
@@ -1229,25 +1234,41 @@ document.addEventListener('DOMContentLoaded', () => {
     const G = {0:'01110100011001110101110011000101110',1:'00100011000010000100001000010001110',2:'01110100010000100010001000100011111',3:'11110000010000101110000010000111110',4:'00010001100101010010111110001000010',5:'11111100001111000001000011000101110',6:'00110010001000011110100011000101110',7:'11111000010001000100010000100001000',8:'01110100011000101110100011000101110',9:'01110100011000101111000010001001100'};
     for (let i = 0; i < 35; i++) dg.appendChild(document.createElement('i'));
     function showDigit(n){ const g = G[Math.min(9, n)]; for (let i = 0; i < 35; i++) dg.children[i].classList.toggle('on', g[i] === '1'); }
+    const IMGS = ['images/work-6.webp', 'images/work-7.webp', 'images/work-8.webp', 'images/work-9.png', 'images/work-10.webp'];
+    // «карточка товара»: рамка-карточка + фото, бейдж, название, цена, кнопка. fs — размер шрифта в cqw (от ширины рамки)
     const DEFS = [
-      { id: 'nav',  x: 0,  y: 0,  w: 100, h: 9,  bg: '#1d1d1d' },
-      { id: 'hero', x: 6,  y: 14, w: 88,  h: 34, bg: '#8b8bf0' },
-      { id: 'ttl',  x: 6,  y: 54, w: 54,  h: 8,  bg: '#222' },
-      { id: 'txt',  x: 6,  y: 66, w: 74,  h: 5,  bg: '#9a9a9a' },
-      { id: 'btn',  x: 6,  y: 78, w: 24,  h: 11, bg: '#f0561a' }
+      { id: 'card',  type: 'deco',  x: 22, y: 6,  w: 56, h: 88, bg: '#ffffff' },
+      { id: 'photo', type: 'photo', x: 25, y: 10, w: 50, h: 46, bg: '#e9e6f7' },
+      { id: 'badge', type: 'text',  x: 27, y: 12.5, w: 13, h: 6.5, bg: '#e5262b', c: 1, fs: 1.8, text: '-20%' },
+      { id: 'title', type: 'text',  x: 25, y: 60, w: 50, h: 8, fs: 3.1, text: 'Кроссовки Air Run' },
+      { id: 'price', type: 'text',  x: 25, y: 70, w: 28, h: 8, fs: 3.8, text: '4 990 ₽' },
+      { id: 'btn',   type: 'text',  x: 25, y: 81, w: 50, h: 9, bg: '#f0561a', c: 1, fs: 2.5, text: 'В корзину' }
     ];
-    const COLORS = ['#f0561a', '#2fbf71', '#e8c53a', '#4a90e2', '#d94fa3'];
-    const PRESET_TXT = { air: 'Больше воздуха', bright: 'Ярче!', big: 'Крупнее', color: 'Другой цвет' };
+    const COLORS = ['#f0561a', '#2fbf71', '#e8c53a', '#4a90e2', '#d94fa3', '#8b5cf6', '#14b8a6', '#111111', '#e5262b'];
+    const POOLS = {
+      title: ['Кроссовки Air Run', 'Худи «Утро»', 'Рюкзак City 20L', 'Лампа «Луна»', 'Кофеварка Mini', 'Футболка Basic'],
+      price: ['4 990 ₽', '3 490 ₽', '12 900 ₽', '990 ₽', '7 250 ₽', '1 590 ₽'],
+      btn: ['В корзину', 'Купить', 'Оформить', 'Хочу!', 'Заказать'],
+      badge: ['-20%', 'NEW', 'HIT', '-50%', 'ХИТ', '-10%']
+    };
+    const ACTS = {
+      photo: [['zoom', 'Приблизить'], ['swap', 'Другое фото'], ['bg', 'Цвет фона'], ['round', 'Скруглить']],
+      badge: [['text', 'Другой текст'], ['color', 'Другой цвет'], ['size', 'Крупнее']],
+      title: [['size', 'Крупнее'], ['text', 'Другой текст'], ['color', 'Цвет текста']],
+      price: [['text', 'Другая цена'], ['size', 'Крупнее'], ['color', 'Цвет']],
+      btn:   [['color', 'Другой цвет'], ['round', 'Скруглить'], ['text', 'Другой текст']]
+    };
+    const EDITABLE = ['photo', 'badge', 'title', 'price', 'btn'];
     const REPLY = ['Хм, понял', 'Сейчас поправлю', 'Окей, попробую', 'Так лучше?', 'Принято'];
     const RAGE = ['ПЕРЕДЕЛАЙ', 'ЕЩЁ РАЗ', 'Это не то', 'Правки правок!', 'Срочно!!', 'Почему так?'];
     const objs = {};
     let alive = 0, B = {}, A = {}, W = 0, H = 0, raf = 0, visible = false, last = 0;
     let pending = [], edits = 0, annoy = 0, swapped = false, placed = false, rage = false, editMode = false;
-    let humanAt = 0, human = false, dragging = null, popPt = null, hot = false;
+    let humanAt = 0, human = false, dragging = null, popPt = null, popObj = 'photo', hot = false;
     // Нейросеть-«дизайнер»: URL Cloudflare Worker (см. worker/README.md). Пусто — сценка на заготовленных репликах.
     const DESIGNER_API = window.EXP_DESIGNER_API || 'https://designer-proxy.12deman58.workers.dev';
     let aiCalls = 0;
-    const NAMES = { nav: 'шапка', hero: 'баннер', ttl: 'заголовок', txt: 'текст', btn: 'кнопка' };
+    const NAMES = { card: 'карточка', photo: 'фото товара', badge: 'бейдж скидки', title: 'название', price: 'цена', btn: 'кнопка «В корзину»' };
     function askDesigner(comment, id){
       if (!DESIGNER_API || aiCalls >= 12) return Promise.resolve(null);
       aiCalls++;
@@ -1263,16 +1284,19 @@ document.addEventListener('DOMContentLoaded', () => {
     function buildObjs(){
       frame.querySelectorAll('.fg-obj,.fg-pin').forEach(function(e){ e.remove(); });
       DEFS.forEach(function(d){
-        const el = document.createElement('div'); el.className = 'fg-obj'; el.dataset.id = d.id;
-        el.style.cssText = 'left:' + d.x + '%;top:' + d.y + '%;width:' + d.w + '%;height:' + d.h + '%;background:' + d.bg;
-        frame.appendChild(el); objs[d.id] = { el: el, d: d, n: 0, s: 1, hue: 0, dx: 0, dy: 0, ci: -1 };
+        const el = document.createElement('div'); el.className = 'fg-obj' + (d.type === 'text' ? ' t' + (d.c ? ' c' : '') : '') + (d.type === 'photo' ? ' ph' : '') + (d.type === 'deco' ? ' card' : ''); el.dataset.id = d.id;
+        el.style.cssText = 'left:' + d.x + '%;top:' + d.y + '%;width:' + d.w + '%;height:' + d.h + '%;' + (d.bg ? 'background:' + d.bg + ';' : '') + (d.type === 'deco' ? 'border-radius:16px;' : '') + (d.fs ? 'font-size:' + d.fs + 'cqw;' : '');
+        const o = { el: el, d: d, n: 0, dx: 0, dy: 0, fs: 1, zoom: 1, img: 0, imgEl: null };
+        if (d.type === 'photo'){ const im = document.createElement('img'); im.src = IMGS[0]; im.alt = ''; im.draggable = false; el.appendChild(im); o.imgEl = im; el.style.borderRadius = '10px'; }
+        if (d.type === 'text'){ el.textContent = d.text; el.style.padding = '0 ' + (d.c ? '0' : '2%'); }
+        frame.appendChild(el); objs[d.id] = o;
       });
     }
-    function setT(o){ o.el.style.transform = 'translate(' + o.dx + 'px,' + o.dy + 'px) scale(' + o.s + ')'; o.el.style.filter = 'hue-rotate(' + o.hue + 'deg) saturate(' + (1 + o.n * 0.08) + ')'; }
+    function setT(o){ o.el.style.transform = 'translate(' + o.dx + 'px,' + o.dy + 'px)'; }
     function rectOf(el){ const b = box.getBoundingClientRect(), r = el.getBoundingClientRect(); return { x: r.left - b.left, y: r.top - b.top, w: r.width, h: r.height }; }
     function objAt(x, y){
       let best = null, bd = 1e9;
-      DEFS.forEach(function(d){ const r = rectOf(objs[d.id].el); const cx = Math.max(r.x, Math.min(x, r.x + r.w)), cy = Math.max(r.y, Math.min(y, r.y + r.h)); const dd = Math.hypot(x - cx, y - cy); if (dd < bd){ bd = dd; best = d.id; } });
+      EDITABLE.forEach(function(id){ const d = { id: id }; const r = rectOf(objs[d.id].el); const cx = Math.max(r.x, Math.min(x, r.x + r.w)), cy = Math.max(r.y, Math.min(y, r.y + r.h)); const dd = Math.hypot(x - cx, y - cy); if (dd < bd){ bd = dd; best = d.id; } });
       return best;
     }
     function go(c, x, y){ c.tx = x; c.ty = y; }
@@ -1291,44 +1315,70 @@ document.addEventListener('DOMContentLoaded', () => {
     function puff(x, y){ const e = document.createElement('div'); e.className = 'exp-puff'; e.style.left = x + 'px'; e.style.top = y + 'px'; e.style.setProperty('--dx', (Math.random() * 40 - 20) + 'px'); box.appendChild(e); setTimeout(function(){ e.remove(); }, 950); }
     function applyEdit(id, kind, extra){
       const o = objs[id]; o.n++; edits++; showDigit(edits);
-      if (kind === 'air'){ o.s = Math.max(.7, o.s - .05); o.dy += 4; }
-      else if (kind === 'big'){ o.s = Math.min(1.35, o.s + .06); }
-      else if (kind === 'bright'){ o.hue += 0; o.el.style.background = o.d.bg; o.el.style.opacity = 1; o.s = Math.min(1.3, o.s + .02); }
-      else if (kind === 'none'){ /* дизайнер отказался — правка без изменений */ }
-      else if (kind === 'small'){ o.s = Math.max(.6, o.s - .08); }
-      else if (kind === 'move' && extra){ o.dx += extra.dx || 0; o.dy += extra.dy || 0; }
-      else if (kind === 'color' && extra && extra.color){ o.el.style.background = extra.color; }
-      else { o.ci = (o.ci + 1) % COLORS.length; o.el.style.background = COLORS[o.ci]; }
-      if (kind === 'bright') o.hue = (o.hue + 18) % 360;
-      setT(o); return o;
+      const t = o.d.type, ex = extra || {};
+      const R = rand;
+      if (kind === 'none') { /* дизайнер отказался */ }
+      else if (kind === 'move'){ o.dx += ex.dx || 0; o.dy += ex.dy || 0; setT(o); }
+      else if (kind === 'swap' && o.imgEl){ o.img = (o.img + 1) % IMGS.length; o.imgEl.src = IMGS[o.img]; }
+      else if (kind === 'zoom' && o.imgEl){
+        o.zoom = Math.max(.7, Math.min(2.2, o.zoom + (ex.down ? -.2 : .22)));
+        o.imgEl.style.transform = 'scale(' + o.zoom.toFixed(2) + ')'; o.imgEl.style.objectPosition = R(['50% 50%', '30% 40%', '70% 60%', '50% 25%', '60% 75%']);
+      }
+      else if (kind === 'round'){ o.el.style.borderRadius = R(['0px', '8px', '18px', '32px', '999px']); }
+      else if (kind === 'size' || kind === 'small'){
+        if (o.imgEl){ o.zoom = Math.max(.7, Math.min(2.2, o.zoom + (kind === 'small' ? -.2 : .22))); o.imgEl.style.transform = 'scale(' + o.zoom.toFixed(2) + ')'; }
+        else { o.fs = Math.max(.6, Math.min(1.7, o.fs * (kind === 'small' ? .85 : 1.18))); o.el.style.fontSize = (o.d.fs * o.fs).toFixed(2) + 'cqw'; }
+      }
+      else if (kind === 'text' && POOLS[id]){
+        o.el.textContent = ex.text || R(POOLS[id].filter(function(v){ return v !== o.el.textContent; }));
+      }
+      else if (kind === 'bg' || kind === 'color'){
+        const col = ex.color || R(COLORS);
+        if (t === 'photo') o.el.style.background = col;
+        else if (id === 'title' || id === 'price') o.el.style.color = col;
+        else { o.el.style.background = col; o.el.style.color = /^#(fff|ffffff|e8c53a|f5c518)/i.test(col) ? '#111' : '#fff'; }
+      }
+      else { const alt = (ACTS[id] || [['size']])[0][0]; return applyEdit2(o, alt); }
+      return o;
     }
-    // Свободный текст: понимаем конкретные цвета, сдвиги и «меньше» без нейросети (она может не ответить)
-    const COLOR_WORDS = [['зелен|зелён','#2fbf71'],['красн','#e5262b'],['син|голуб','#3b82f6'],['жёлт|желт','#f5c518'],['оранж','#f0561a'],['фиолет|пурпур','#8b5cf6'],['розов','#ec5fa5'],['чёрн|черн','#111111'],['бел','#ffffff'],['сер','#9a9a9a'],['бирюз','#14b8a6']];
+    function applyEdit2(o, k){ o.n--; edits--; return applyEdit(o.d.id, k); }
+    // Свободный текст: понимаем объект, цвет, цену, название, сдвиги и размер без нейросети
+    const COLOR_WORDS = [['зелен|зелён','#2fbf71'],['красн','#e5262b'],['син|голуб','#3b82f6'],['жёлт|желт','#f5c518'],['оранж','#f0561a'],['фиолет|пурпу','#8b5cf6'],['розов','#ec5fa5'],['чёрн|черн','#111111'],['бел','#ffffff'],['сер','#9a9a9a'],['бирюз','#14b8a6']];
+    const TARGET_WORDS = [['фото|картин|изображ|товар','photo'],['заголов|назван','title'],['цен|стоимост|руб','price'],['кнопк','btn'],['скидк|бейдж|метк|ярлык','badge']];
     function parseIntent(text){
-      const t = String(text || '').toLowerCase();
-      for (let i = 0; i < COLOR_WORDS.length; i++) if (new RegExp(COLOR_WORDS[i][0]).test(t)) return { kind: 'color', color: COLOR_WORDS[i][1] };
-      if (/влев|левее|лево/.test(t)) return { kind: 'move', dx: -28, dy: 0 };
-      if (/впра|правее|право/.test(t)) return { kind: 'move', dx: 28, dy: 0 };
-      if (/выше|вверх/.test(t)) return { kind: 'move', dx: 0, dy: -18 };
-      if (/ниже|вниз/.test(t)) return { kind: 'move', dx: 0, dy: 18 };
-      if (/меньше|уменьш|поменьше|мельче/.test(t)) return { kind: 'small' };
-      return null;
+      const t = String(text || '').toLowerCase(), out = {};
+      for (let i = 0; i < TARGET_WORDS.length; i++) if (new RegExp(TARGET_WORDS[i][0]).test(t)){ out.target = TARGET_WORDS[i][1]; break; }
+      let m;
+      if ((m = t.match(/(?:назови|название|заголовок)\s+(.{2,24})$/))){ out.kind = 'text'; out.text = text.trim().slice(text.toLowerCase().indexOf(m[1])).slice(0, 24); out.target = 'title'; return out; }
+      if ((m = t.match(/(?:цен\w*|стоит|поставь)\D{0,12}(\d[\d\s]{1,8})/))){ out.kind = 'text'; out.text = m[1].replace(/\s+/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + ' ₽'; out.target = 'price'; return out; }
+      for (let i = 0; i < COLOR_WORDS.length; i++) if (new RegExp(COLOR_WORDS[i][0]).test(t)){ out.kind = 'color'; out.color = COLOR_WORDS[i][1]; return out; }
+      if (/друго\S*\s+(фото|картин)|смен\S*\s+(фото|картин)|замен\S*\s+(фото|картин)/.test(t)){ out.kind = 'swap'; out.target = 'photo'; return out; }
+      if (/скругл/.test(t)){ out.kind = 'round'; return out; }
+      if (/влев|левее|лево/.test(t)){ out.kind = 'move'; out.dx = -28; out.dy = 0; return out; }
+      if (/впра|правее|право/.test(t)){ out.kind = 'move'; out.dx = 28; out.dy = 0; return out; }
+      if (/выше|вверх/.test(t)){ out.kind = 'move'; out.dx = 0; out.dy = -18; return out; }
+      if (/ниже|вниз/.test(t)){ out.kind = 'move'; out.dx = 0; out.dy = 18; return out; }
+      if (/меньше|уменьш|поменьше|мельче|отдал/.test(t)){ out.kind = (out.target === 'photo' || !out.target) ? 'zoom' : 'small'; out.down = true; return out; }
+      if (/крупн|больше|увелич|приблиз|покрупнее/.test(t)){ out.kind = (out.target === 'photo' || !out.target) ? 'zoom' : 'size'; return out; }
+      return out.target ? out : null;
     }
     // комментарий: пин → дизайнер читает → применяет или реагирует
-    function queueComment(x, y, kind, text){
-      const id = objAt(x, y); addPin(x, y, text, false);
-      pending.push({ id: id, kind: kind, x: x, y: y, intent: parseIntent(text), ai: askDesigner(text, id) });
+    function queueComment(x, y, kind, text, forcedId){
+      const intent = parseIntent(text);
+      const id = forcedId || (intent && intent.target) || objAt(x, y); addPin(x, y, text, false);
+      pending.push({ id: id, kind: kind, x: x, y: y, intent: intent && intent.kind ? intent : null, ai: askDesigner(text, id) });
     }
     async function handle(c, tok){
       const o = objs[c.id], r = rectOf(o.el);
       go(A, c.x + 14, c.y + 14); await arrive(A); if (tok !== alive) return;
       status('Дизайнер читает комментарий…');
       const ai = await Promise.race([c.ai, sleep(2500).then(function(){ return null; })]); if (tok !== alive) return;
-      if (ai && ai.action) c.kind = ai.action;
+      if (ai && ai.action && c.kind === 'auto'){ const AM = { big: 'size', color: 'color', bright: 'bg', air: 'round', none: 'none' }; c.kind = AM[ai.action] || 'color'; }
       if (c.intent) c.kind = c.intent.kind; // явная просьба из текста важнее выбора модели
+      if (c.kind === 'auto') c.kind = rand((ACTS[c.id] || ACTS.photo))[0];
       talk(ai && ai.reply && String(ai.reply).trim().length > 3 ? String(ai.reply).trim() : rand(REPLY), 2300); // слишком короткое («?») — заготовка await sleep(900); if (tok !== alive) return;
       o.el.classList.add('sel'); go(A, r.x + r.w * .8, r.y + r.h * .8); await sleep(350);
-      applyEdit(c.id, c.kind, c.intent); setAnnoy(annoy + (placed ? 9 : 5)); await sleep(500); if (tok !== alive) return;
+      applyEdit(c.id, c.kind, c.intent || {}); setAnnoy(annoy + (placed ? 9 : 5)); await sleep(500); if (tok !== alive) return;
       o.el.classList.remove('sel');
       if (o.n > 5 && !swapped){ swapped = true; await swapSeq(tok); }
     }
@@ -1392,7 +1442,7 @@ document.addEventListener('DOMContentLoaded', () => {
           if (annoy >= 82 && !rage){ rage = true; cA.classList.add('rage'); talk('Так. Всё. Я больше не могу.', 2200); status('Дизайнер в ярости'); }
           if (rage){
             puff(A.x + 8, A.y + 6);
-            if (tick % 7 === 0){ const fr = rectOf(frame); const id = rand(DEFS).id, r = rectOf(objs[id].el); addPin(r.x + Math.random() * r.w, r.y + Math.random() * r.h, rand(RAGE), true); setAnnoy(annoy + 1.5); }
+            if (tick % 7 === 0){ const fr = rectOf(frame); const id = rand(EDITABLE), r = rectOf(objs[id].el); addPin(r.x + Math.random() * r.w, r.y + Math.random() * r.h, rand(RAGE), true); setAnnoy(annoy + 1.5); }
             go(A, B.x + 40 + Math.sin(now / 130) * 18, B.y - 36 + Math.cos(now / 110) * 14); // «заёбывает» наблюдателя
           }
           if (annoy >= 100){ await endScreen(); return; }
@@ -1400,9 +1450,9 @@ document.addEventListener('DOMContentLoaded', () => {
         // нет действий пользователя ~3.5 с — «Вы» комментирует сам (всегда по одному объекту: быстрее дойти до правок)
         if (!editMode && (!human || now - humanAt > 3500) && now > botAt && !pending.length){
           botAt = now + (rage ? 1800 : 2600);
-          const r = rectOf(objs.hero.el), x = r.x + r.w * (.2 + Math.random() * .6), y = r.y + r.h * (.2 + Math.random() * .6);
+          const tid = Math.random() < .7 ? 'photo' : rand(EDITABLE), r = rectOf(objs[tid].el), x = r.x + r.w * (.2 + Math.random() * .6), y = r.y + r.h * (.2 + Math.random() * .6);
           go(B, x, y); await arrive(B); if (tok !== alive) return;
-          const k = rand(['air', 'big', 'color', 'bright']); queueComment(x, y, k, PRESET_TXT[k]);
+          const act = rand(ACTS[tid]); queueComment(x, y, act[0], act[1], tid);
           human = false;
         }
         if (tick % 40 === 0 && !placed) status(swapped ? 'Перетащите индикатор в угол макета' : 'Макет готов. Кликните по нему — оставьте комментарий');
@@ -1430,8 +1480,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const p = rel(e); human = true; humanAt = performance.now(); B.tx = p.x; B.ty = p.y; if (e.pointerType === 'touch'){ B.x = p.x; B.y = p.y; }
       if (editMode && !placed && tool.classList.contains('on') && tool.contains(e.target)){ dragging = { bot: false }; tool.classList.add('drag'); return; }
       const fr = rectOf(frame);
-      if (p.x >= fr.x && p.x <= fr.x + fr.w && p.y >= fr.y && p.y <= fr.y + fr.h && !editMode && objs.nav.el.classList.contains('in')){
-        popPt = p; pop.style.left = Math.min(W - pop.offsetWidth - 10, p.x + 14) + 'px'; pop.style.top = Math.min(H - 190, p.y + 14) + 'px'; pop.classList.add('on'); inp.value = '';
+      if (p.x >= fr.x && p.x <= fr.x + fr.w && p.y >= fr.y && p.y <= fr.y + fr.h && !editMode && objs.card.el.classList.contains('in')){
+        popPt = p; popObj = objAt(p.x, p.y); pop.querySelector('.ps').innerHTML = (ACTS[popObj] || ACTS.photo).map(function(a){ return '<button data-p="' + a[0] + '">' + a[1] + '</button>'; }).join(''); pop.style.left = Math.min(W - pop.offsetWidth - 10, p.x + 14) + 'px'; pop.style.top = Math.min(H - 190, p.y + 14) + 'px'; pop.classList.add('on'); inp.value = '';
       } else closePop();
     });
     window.addEventListener('pointerup', function(){
@@ -1442,12 +1492,12 @@ document.addEventListener('DOMContentLoaded', () => {
     pop.addEventListener('click', function(e){
       const b = e.target.closest('button'); if (!b || !popPt) return;
       if (b.dataset.rx){ addPin(popPt.x, popPt.y, b.dataset.rx, false); setAnnoy(annoy - 4); talk('Спасибо :)', 1500); }
-      else if (b.dataset.p) queueComment(popPt.x, popPt.y, b.dataset.p, PRESET_TXT[b.dataset.p]);
+      else if (b.dataset.p) queueComment(popPt.x, popPt.y, b.dataset.p, b.textContent, popObj);
       closePop();
     });
     inp.addEventListener('keydown', function(e){
       if (e.key !== 'Enter' || !popPt || !inp.value.trim()) return;
-      const k = rand(['air', 'big', 'color', 'bright']); queueComment(popPt.x, popPt.y, k, inp.value.trim().slice(0, 40)); closePop();
+      queueComment(popPt.x, popPt.y, 'auto', inp.value.trim().slice(0, 40), null); closePop();
     });
     window.addEventListener('keydown', function(e){ if (e.key === 'Escape') closePop(); });
     $('fgAgain').addEventListener('click', reset);
