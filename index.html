@@ -1923,12 +1923,7 @@ document.addEventListener('DOMContentLoaded', () => {
         gx.fillStyle = q.col; gx.fillText(q.txt, q.x, q.y - 16 * k - e * 30 * k);
       });
       gx.globalAlpha = 1; gx.textAlign = 'left';
-      if (g.state === 'end'){
-        gx.fillStyle = 'rgba(0,0,0,.78)'; const bh = 110 * k; gx.fillRect(0, cy - bh / 2, W, bh);
-        gx.fillStyle = '#fff'; gx.textAlign = 'center'; gx.font = '500 ' + (34 * k) + 'px ' + FONT; gx.fillText(g.msg, cx, cy + 4 * k);
-        gx.fillStyle = 'rgba(255,255,255,.6)'; gx.font = '500 ' + (18 * k) + 'px ' + FONT; gx.fillText('новый раунд сейчас начнётся', cx, cy + 34 * k); gx.textAlign = 'left';
-      }
-      hudT.textContent = 'Змейка ' + g.sn.len + ' / ' + GOAL;
+      hudT.textContent = g.state === 'end' ? g.msg : 'Змейка ' + g.sn.len + ' / ' + GOAL;
       hudB.style.width = g.ink + '%';
     }
     let raf = 0;
