@@ -585,7 +585,7 @@ touch-action: none;
 .dial-icon--asset{border:none}
 .dial-icon--asset svg{width:100%;height:100%}
 .dial-icon--logo{border:none;background:#fff;overflow:hidden}
-.dial-icon--logo img{width:91.46%;height:91.46%;border-radius:50%;object-fit:cover;display:block}
+.dial-icon--logo video,.dial-icon--logo img{width:91.46%;height:91.46%;border-radius:50%;object-fit:cover;display:block}
 /* число набрано Regular без трекинга — в макете межбуквенное задано только тексту */
 .dial-count{color:var(--dial-accent);font-family:'ONY Track Moscow',sans-serif;font-size:var(--dial-num);font-weight:var(--dial-regular);line-height:1;font-variant-numeric:tabular-nums;white-space:nowrap}
 /* цифра — барабан: колонка 0…9 (+довесок до нужного значения) едет вверх и приземляется на цель.
@@ -651,6 +651,14 @@ touch-action: none;
 .mm-ring{position:absolute;inset:0;width:100%;height:100%;overflow:visible;transform:rotate(-90deg);pointer-events:none}
 .mm-ring circle{fill:none;stroke:currentColor;stroke-width:3}
 .mm-stick.mm-own,.mm-stick.mm-own *{cursor:none!important}
+.mm-frames{position:absolute;inset:0;pointer-events:none;z-index:4}
+.mm-stick.mm-own{user-select:none;-webkit-user-select:none}
+.mm-fr{position:absolute;box-sizing:border-box;border:1.5px solid var(--c);background:color-mix(in srgb,var(--c) 12%,transparent);pointer-events:none;font-family:Arial,sans-serif}
+.mm-fr .nm{position:absolute;left:0;bottom:100%;margin-bottom:calc(5px*var(--fk,1));font-size:calc(12px*var(--fk,1));line-height:1;color:var(--c);white-space:nowrap}
+.mm-fr .sz{display:none;position:absolute;left:50%;top:100%;transform:translateX(-50%);margin-top:calc(8px*var(--fk,1));padding:calc(4px*var(--fk,1)) calc(8px*var(--fk,1));border-radius:calc(4px*var(--fk,1));background:var(--c);color:#fff;font-size:calc(12px*var(--fk,1));font-weight:600;line-height:1.2;white-space:nowrap}
+.mm-fr .h{display:none;position:absolute;width:calc(8px*var(--fk,1));height:calc(8px*var(--fk,1));box-sizing:border-box;background:#fff;border:1.5px solid var(--c);transform:translate(-50%,-50%)}
+.mm-fr .tl{left:0;top:0}.mm-fr .tr{left:100%;top:0}.mm-fr .bl{left:0;top:100%}.mm-fr .br{left:100%;top:100%}
+.mm-fr.sel .sz,.mm-fr.sel .h{display:block}
 .mm-title{position:absolute;left:0;right:0;margin:0;text-align:center;font-family:'ONY Track Moscow',sans-serif;font-weight:400;letter-spacing:0;color:#000;pointer-events:none;white-space:nowrap}
 .mm-sub{position:absolute;left:0;right:0;margin:0;text-align:center;font-family:Arial,sans-serif;font-weight:400;color:#0b0b0b;pointer-events:none;white-space:nowrap}
 .mm-cur{position:absolute;left:0;top:0;opacity:0;touch-action:none;cursor:grab;will-change:transform;z-index:5;padding:6px;font-family:'PP Neue Montreal','Helvetica Neue',Arial,sans-serif}
@@ -793,7 +801,7 @@ touch-action: none;
 
         <article class="dial-slide">
           <div class="dial-mark">
-            <span class="dial-icon dial-icon--logo"><img src="files/logo-rivgosh.png" alt="Рив Гош"></span>
+            <span class="dial-icon dial-icon--logo"><video src="https://github.com/kolpakovdmitriy9/newbring.github.io/raw/refs/heads/master/lovelllas.hyperesources/video.mp4" muted playsinline preload="auto" aria-hidden="true"></video></span>
             <span class="dial-count">17</span>
           </div>
           <div class="dial-copy">
@@ -864,7 +872,7 @@ touch-action: none;
       <div class="mm-grid" id="mmGrid" aria-hidden="true"></div>
       <div class="mm-c" data-i="0" aria-label="Рив Гош"><img src="files/logo-rivgosh.png" alt="" draggable="false"></div>
       <div class="mm-c" data-i="1" aria-label="Пятёрочка"><img src="files/logo-5.png" alt="" draggable="false"></div>
-      <div class="mm-c" data-i="2" aria-label="Видео"><video id="mmVideo" src="https://github.com/kolpakovdmitriy9/newbring.github.io/raw/refs/heads/master/lovelllas.hyperesources/video.mp4" muted loop playsinline preload="none"></video><svg class="mm-ring" id="mmRing" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="48.5" opacity=".25"/><circle id="mmRingFill" cx="50" cy="50" r="48.5" pathLength="1" stroke-linecap="round" stroke-dasharray="1" stroke-dashoffset="1"/></svg></div>
+      <div class="mm-c" data-i="2" aria-label="Видео"><video id="mmVideo" src="https://github.com/kolpakovdmitriy9/newbring.github.io/raw/refs/heads/master/lovelllas.hyperesources/video.mp4" muted loop playsinline preload="auto"></video><svg class="mm-ring" id="mmRing" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="48.5" opacity=".25"/><circle id="mmRingFill" cx="50" cy="50" r="48.5" pathLength="1" stroke-linecap="round" stroke-dasharray="1" stroke-dashoffset="1"/></svg></div>
       <h2 class="mm-title" id="mmTitle">ОПЫТ РАБОТЫ</h2>
       <p class="mm-sub" id="mmSub">рассказываю и показываю</p>
       <div class="mm-cur" data-who="dsg" id="mmCurA"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 3l7.5 18 2.6-7.4L21 10.9z"/></svg><span class="n">dsg#</span></div>
@@ -1607,6 +1615,7 @@ document.addEventListener('DOMContentLoaded', () => {
       sub.style.fontSize = (32 * k) + 'px'; sub.style.lineHeight = (32 * k) + 'px';
       lbl.style.fontSize = (40 * k) + 'px'; lbl.style.lineHeight = (48 * k) + 'px';
       lbl.style.left = (cx - 720 * k + 55 * k) + 'px'; lbl.style.top = (oy + 55 * k) + 'px';
+      stick.style.setProperty('--fk', Math.max(k, .75));
       curs.forEach(function(el){ el.style.scale = k; el.style.transformOrigin = '0 0'; });
       cells.forEach(function(d){ if (d.el){ d.el.style.width = d.el.style.height = dia + 'px'; } });
       P = -1; update();
@@ -1634,19 +1643,42 @@ document.addEventListener('DOMContentLoaded', () => {
         d.el.style.opacity = t; d.el.style.transform = 'translate(' + (dotX(d.c) - dia / 2) + 'px,' + (dotY(d.r) - dia / 2) + 'px)';
       });
       CU = cu; ring.style.opacity = 1 - clamp(m / .35, 0, 1); ring.style.color = fg;
+      if (cu < .02 && frames.length) clearFrames();
       curs.forEach(function(el, i){ el.style.opacity = cu; el.style.pointerEvents = (!canOwn && i === 1 && cu > .5) ? 'auto' : 'none'; });
       stick.classList.toggle('mm-own', cu > .5 && canOwn);
       placeCurs();
       if (vid){ if (near && vid.paused) vid.play().catch(function(){}); else if (!near && !vid.paused) vid.pause(); }
     }
-    // Фиолетовый курсор (dsg#) ходит по точкам сам, оранжевый («Вы») ведёт пользователь:
-    // в этом блоке он заменяет обычный курсор. На тач-экранах оранжевый можно перетаскивать.
+    // Оба курсора рисуют фреймы, как в Фигме: фиолетовый (dsg#) ходит сам и время от времени «тянет» рамку,
+    // оранжевый («Вы») ведёт пользователь — в этом блоке он заменяет обычный курсор; зажать кнопку и вести = нарисовать фрейм.
+    // Под рамкой — размер в пикселях. Нарисованные фреймы остаются. На тач-экранах оранжевый можно только перетаскивать.
     const canOwn = matchMedia('(hover: hover) and (pointer: fine)').matches;
     const TIP = 11.5;                                    // остриё стрелки от угла элемента (до масштаба k)
     const ring = document.getElementById('mmRing'), ringFill = document.getElementById('mmRingFill');
-    let CU = 0, mouse = null;
-    const auto = { x: 0, y: 0, tx: 0, ty: 0, next: 0, init: false };
+    let CU = 0, mouse = null, own = null;
+    const auto = { x: 0, y: 0, tx: 0, ty: 0, next: 0, fa: 0, ph: 'wander', init: false };
     const drag = { x: 0, y: 0, init: false };
+    const layer = document.createElement('div'); layer.className = 'mm-frames'; layer.setAttribute('aria-hidden', 'true');
+    stick.insertBefore(layer, curs[0]);
+    const frames = [], COL = { me: '#f0561a', dsg: '#8b5cf6' };
+    let fSeq = 2136140070;
+    function mkFrame(who, x, y){
+      const el = document.createElement('div'); el.className = 'mm-fr sel'; el.style.setProperty('--c', COL[who]);
+      el.innerHTML = '<span class="nm">Frame ' + (fSeq++) + '</span><span class="sz"></span><i class="h tl"></i><i class="h tr"></i><i class="h bl"></i><i class="h br"></i>';
+      layer.appendChild(el);
+      frames.forEach(function(f){ if (f.who === who) f.el.classList.remove('sel'); });     // выделен только последний фрейм автора
+      const f = { who: who, el: el, x0: x, y0: y, sz: el.querySelector('.sz') };
+      frames.push(f); setFrame(f, x, y);
+      if (frames.length > 14){ frames.shift().el.remove(); }
+      return f;
+    }
+    function setFrame(f, x1, y1){
+      const l = Math.min(f.x0, x1), t = Math.min(f.y0, y1), w = Math.abs(x1 - f.x0), h = Math.abs(y1 - f.y0);
+      f.el.style.left = l + 'px'; f.el.style.top = t + 'px'; f.el.style.width = w + 'px'; f.el.style.height = h + 'px';
+      f.w = w; f.h = h; f.sz.textContent = Math.round(w / k) + ' × ' + Math.round(h / k);
+    }
+    function endFrame(f){ if (f.w < 10 * k || f.h < 10 * k){ f.el.remove(); const i = frames.indexOf(f); if (i >= 0) frames.splice(i, 1); } }
+    function clearFrames(){ frames.forEach(function(f){ f.el.remove(); }); frames.length = 0; own = null; auto.ph = 'wander'; auto.fr = null; auto.fa = 0; }
     function placeCurs(){
       if (!W) return;
       if (!auto.init){ auto.x = auto.tx = cx - 238 * k + TIP * k; auto.y = auto.ty = oy + 307 * k + TIP * k; auto.init = true; }
@@ -1657,28 +1689,51 @@ document.addEventListener('DOMContentLoaded', () => {
         el.style.transform = 'translate(' + (clamp(q.x, 0, W) - TIP * k) + 'px,' + (clamp(q.y, 0, H) - TIP * k) + 'px)';
       });
     }
-    let raf = 0;
-    function loop(now){
-      raf = 0; if (!near) return;
-      if (CU > .02){
-        if (now > auto.next){                            // новая цель — случайная точка числа «12»
+    function stepAuto(now){
+      if (!auto.fa) auto.fa = now + 1800;
+      if (auto.ph === 'wander'){
+        if (now > auto.next){                            // случайная точка числа «12»
           const d = cells[Math.floor(Math.random() * cells.length)];
           auto.tx = dotX(d.c) + (Math.random() - .5) * pitch * .6; auto.ty = dotY(d.r) + (Math.random() - .5) * pitch * .6;
           auto.next = now + 900 + Math.random() * 1400;
         }
+        if (now > auto.fa){                              // пора нарисовать фрейм
+          const w = (140 + Math.random() * 260) * k, h = (100 + Math.random() * 220) * k, mx = W * .06;
+          const top = oy + 60 * k, bot = Math.min(H, oy + 741 * k) - 70 * k - h;
+          auto.sx = mx + Math.random() * Math.max(1, W - 2 * mx - w); auto.sy = top + Math.random() * Math.max(1, bot - top);
+          auto.rw = w; auto.rh = h; auto.tx = auto.sx; auto.ty = auto.sy; auto.ph = 'goto';
+        }
         auto.x += (auto.tx - auto.x) * .05; auto.y += (auto.ty - auto.y) * .05;
-        placeCurs();
+      } else if (auto.ph === 'goto'){
+        auto.x += (auto.tx - auto.x) * .09; auto.y += (auto.ty - auto.y) * .09;
+        if (Math.hypot(auto.tx - auto.x, auto.ty - auto.y) < 3){ auto.x = auto.sx; auto.y = auto.sy; auto.fr = mkFrame('dsg', auto.x, auto.y); auto.t0 = now; auto.ph = 'draw'; }
+      } else {
+        const e = ease(clamp((now - auto.t0) / 850, 0, 1));
+        auto.x = auto.sx + auto.rw * e; auto.y = auto.sy + auto.rh * e; setFrame(auto.fr, auto.x, auto.y);
+        if (e >= 1){ endFrame(auto.fr); auto.fr = null; auto.ph = 'wander'; auto.fa = now + 3500 + Math.random() * 3000; auto.next = 0; }
       }
+    }
+    let raf = 0;
+    function loop(now){
+      raf = 0; if (!near) return;
+      if (CU > .02){ stepAuto(now); placeCurs(); }
       if (vid && vid.duration){ ringFill.style.strokeDashoffset = String(1 - vid.currentTime / vid.duration); }
       raf = requestAnimationFrame(loop);
     }
     function kick(){ if (!raf && near) raf = requestAnimationFrame(loop); }
+    stick.addEventListener('pointerdown', function(e){
+      if (e.pointerType === 'touch' || e.button !== 0 || CU < .5) return;
+      const r = stick.getBoundingClientRect(); mouse = { x: e.clientX - r.left, y: e.clientY - r.top };
+      own = mkFrame('me', mouse.x, mouse.y); stick.setPointerCapture(e.pointerId); placeCurs(); e.preventDefault();
+    });
     stick.addEventListener('pointermove', function(e){
       const r = stick.getBoundingClientRect();
       if (drag.st){ drag.x = drag.st.ox + e.clientX - drag.st.x; drag.y = drag.st.oy + e.clientY - drag.st.y; placeCurs(); return; }
-      if (canOwn){ mouse = { x: e.clientX - r.left, y: e.clientY - r.top }; placeCurs(); }
+      if (canOwn){ mouse = { x: e.clientX - r.left, y: e.clientY - r.top }; if (own) setFrame(own, mouse.x, mouse.y); placeCurs(); }
     });
-    stick.addEventListener('pointerleave', function(){ mouse = null; });
+    const upFrame = function(){ if (own){ endFrame(own); own = null; } };
+    stick.addEventListener('pointerup', upFrame); stick.addEventListener('pointercancel', upFrame);
+    stick.addEventListener('pointerleave', function(){ if (!own) mouse = null; });
     if (!canOwn){
       const el = curs[1];
       el.style.pointerEvents = 'auto';
@@ -1698,21 +1753,17 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     });
     // === Переход «циферблат → Опыт работы» ===
-    // Последний слайд циферблата: иконка «Рив Гош» растёт, встаёт в центр, уезжает на своё место слева,
-    // из-под неё выезжают Пятёрочка и видео, потом проявляется заголовок. Всё — функции от одного числа E (0…1)
+    // Последний слайд циферблата: иконка-видео растёт, встаёт в центр, уезжает вправо на своё место, из-под неё
+    // раскрываются Пятёрочка и «Рив Гош», потом проявляется заголовок. Всё — функции от одного числа E (0…1)
     // (прогресс закреплённого «выходного» отрезка циферблата), скролл вверх проигрывает переход обратно.
     const dialStage = document.getElementById('dialStage');
     const lastSlide = dialStage && dialStage.querySelector('.dial-slide:last-child');
     const dIcon = lastSlide && lastSlide.querySelector('.dial-icon'), dCount = lastSlide && lastSlide.querySelector('.dial-count'), dCopy = lastSlide && lastSlide.querySelector('.dial-copy');
-    const trOK = !!(dialStage && dIcon) && !matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const dVid = dIcon && dIcon.querySelector('video');
+    const trOK = !!(dialStage && dIcon && vid) && !matchMedia('(prefers-reduced-motion: reduce)').matches;
     let Es = null, lastT = 0, trQ = false;
     const c01 = function(v){ return clamp(v, 0, 1); };
     const smooth = function(t){ return t * t * (3 - 2 * t); };
-    let fly = null;
-    if (trOK){
-      fly = document.createElement('div'); fly.className = 'logo-flyer'; fly.setAttribute('aria-hidden', 'true');
-      fly.innerHTML = '<div class="lf-logo"><img src="files/logo-rivgosh.png" alt=""></div>'; document.body.appendChild(fly);
-    }
     function trFrame(now){
       trQ = false;
       if (!trOK || !W) return;
@@ -1722,46 +1773,47 @@ document.addEventListener('DOMContentLoaded', () => {
       if (Es === null) Es = Et;
       Es += (Et - Es) * (1 - Math.exp(-dt * 9)); if (Math.abs(Et - Es) < .0004) Es = Et;
       const E = Es;
-      // деления кольца циферблата расходятся и гаснут, когда логотип вырос
+      // деления кольца циферблата расходятся и гаснут, когда иконка выросла
       const re = smooth(c01((E - .28) / .20)), rK = 1 + .55 * re, rO = 1 - smooth(c01((re - .35) / .65));
       if (window.__ringK !== rK || window.__ringO !== rO){ window.__ringK = rK; window.__ringO = rO; if (window.__dialWake) window.__dialWake(); }
       const f = ease(c01(E / .10));
       [dCount, dCopy].forEach(function(el){ if (!el) return; el.style.opacity = (1 - f).toFixed(3); el.style.transform = f > 0 ? 'translate3d(0,' + (-34 * f).toFixed(1) + 'px,0)' : ''; });
       const was = trActive; trActive = E < .9995;
       if (!trActive){
-        if (was){ fly.style.display = 'none'; stick.style.overflow = ''; title.style.opacity = sub.style.opacity = title.style.transform = sub.style.transform = ''; circ.forEach(function(el){ el.style.opacity = ''; }); dIcon.style.visibility = ''; P = -1; update(); }
-        if (E <= 0) dIcon.style.visibility = '';
+        if (was){ stick.style.overflow = ''; title.style.opacity = sub.style.opacity = title.style.transform = sub.style.transform = ''; circ.forEach(function(el){ el.style.opacity = ''; }); dIcon.style.visibility = ''; P = -1; update(); }
         if (Es !== Et) trSchedule(); else lastT = 0;
         return;
       }
+      near = true;
       const T = Math.max(0, wrap.getBoundingClientRect().top);          // блок ещё подъезжает снизу — гасим его сдвиг
       const rowW = 3 * S - 2 * ov, sx = function(i){ return cx - rowW / 2 + i * (S - ov) + S / 2; };
-      const f1 = { x: sx(0), y: sy0 }, f2 = { x: sx(1), y: sy0 }, f3 = { x: sx(2), y: sy0 }, C = f2;
+      const f1 = { x: sx(0) }, f2 = { x: sx(1) }, f3 = { x: sx(2) }, C = f2;
       const mv = ease(c01((E - .10) / .20)), g = ease(c01((E - .16) / .24)), TL0 = .40, TL = .24;
       const pL = ease(c01((E - TL0) / TL)), pB = ease(c01((E - .50) / .26)), pA = ease(c01((E - .62) / .26));
-      const sB = lerp(C.x, f1.x, ease(c01((.50 - TL0) / TL)));
+      const sB = lerp(C.x, f3.x, ease(c01((.50 - TL0) / TL)));          // где видео в тот момент, когда из-под него выезжает Пятёрочка
       dIcon.style.visibility = E > .001 ? 'hidden' : '';
       const s0 = dIcon.getBoundingClientRect();
-      const ax = lerp(s0.left + s0.width / 2, C.x, mv), ay = lerp(s0.top + s0.height / 2, C.y, mv), w = lerp(s0.width, S, g);
-      const fx = lerp(ax, f1.x, pL), fy = lerp(ay, f1.y, pL);
-      if (E > .001 && pL < 1){ fly.style.display = 'block'; fly.style.width = fly.style.height = w.toFixed(1) + 'px'; fly.style.transform = 'translate3d(' + (fx - w / 2).toFixed(1) + 'px,' + (fy - w / 2).toFixed(1) + 'px,0)'; } else fly.style.display = 'none';
+      const ax = lerp(s0.left + s0.width / 2, C.x, mv), ay = lerp(s0.top + s0.height / 2, sy0, mv), w = lerp(s0.width, S, g);
       stick.style.overflow = 'visible'; stick.style.background = 'transparent';
       const fade = function(e0, d){ return ease(c01((E - e0) / (d * .62))); };
-      const c2x = lerp(sB, f2.x, pB), c3x = c2x + (f3.x - f2.x) * pA;
-      const put = function(el, x, o, z){
-        el.style.width = el.style.height = S + 'px'; el.style.padding = (S * .0427) + 'px'; el.style.background = '#fff';
+      const put = function(el, x, y, size, o, z){
+        el.style.width = el.style.height = size + 'px'; el.style.padding = (size * .0427) + 'px'; el.style.background = '#fff';
         el.style.opacity = o.toFixed(3); el.style.zIndex = z;
-        el.style.transform = 'translate(' + (x - S / 2) + 'px,' + (sy0 - S / 2 - T) + 'px)';
+        el.style.transform = 'translate(' + (x - size / 2) + 'px,' + (y - size / 2 - T) + 'px)';
       };
-      put(circ[0], f1.x, pL >= 1 ? 1 : 0, pB < 1 ? 6 : 1);
-      put(circ[1], c2x, fade(.50, .26), 2);
-      put(circ[2], c3x, fade(.62, .26), 3);
+      put(circ[2], lerp(ax, f3.x, pL), lerp(ay, sy0, pL), lerp(w, S, pL), E > .001 ? 1 : 0, 3);   // видео: растёт в центре, потом вправо
+      const c2x = lerp(sB, f2.x, pB), c1x = c2x + (f1.x - f2.x) * pA;
+      put(circ[1], c2x, sy0, S, fade(.50, .26), 2);                       // Пятёрочка — из-под видео
+      put(circ[0], c1x, sy0, S, fade(.62, .26), 1);                       // «Рив Гош» — из-под Пятёрочки
+      ring.style.opacity = 1; ring.style.color = '#000';
+      if (E > .001){ if (vid.paused) vid.play().catch(function(){}); } else { if (!vid.paused) vid.pause(); if (vid.currentTime) vid.currentTime = 0; }
       const t = ease(c01((E - .88) / .12));
       title.style.top = (oy + 403 * k - T) + 'px'; sub.style.top = (oy + 571 * k - T) + 'px';
       title.style.opacity = sub.style.opacity = t.toFixed(3);
       title.style.transform = sub.style.transform = 'translateY(' + ((1 - t) * 40 * k).toFixed(1) + 'px)';
       lbl.style.opacity = 0; cells.forEach(function(d){ if (d.el) d.el.style.opacity = 0; });
       curs.forEach(function(el){ el.style.opacity = 0; });
+      kick();
       if (Es !== Et) trSchedule(); else lastT = 0;
     }
     function trSchedule(){ if (!trQ){ trQ = true; requestAnimationFrame(trFrame); } }
