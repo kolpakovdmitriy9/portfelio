@@ -1938,12 +1938,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const t = clamp((1.15 - dd) / .5, 0, 1); d.dm = (d.dm || 0) + (t - (d.dm || 0)) * (1 - Math.exp(-dtg * (t > (d.dm || 0) ? 14 : 4)));
         d.el.style.setProperty('--g', Math.round(255 * (1 - d.dm)));
       });
-      // мягкая тень вокруг каждой секции: затемняет текст и точки только рядом со змейкой, чтобы она читалась
-      for (let i = n - 1; i >= 0; i--){
-        const x = dotX(pos[i].c), y = dotY(pos[i].r), rr = dia * 1.35, gr = gx.createRadialGradient(x, y, dia * .3, x, y, rr);
-        gr.addColorStop(0, 'rgba(0,0,0,.92)'); gr.addColorStop(.55, 'rgba(0,0,0,.7)'); gr.addColorStop(1, 'rgba(0,0,0,0)');
-        gx.fillStyle = gr; gx.beginPath(); gx.arc(x, y, rr, 0, 7); gx.fill();
-      }
       for (let i = n - 1; i >= 0; i--){
         const kk = n > 1 ? i / (n - 1) : 0, x = dotX(pos[i].c), y = dotY(pos[i].r), rad = .5 * dia;
         gx.beginPath(); gx.arc(x, y, rad, 0, 7);
