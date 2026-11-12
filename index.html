@@ -638,6 +638,23 @@ touch-action: none;
   .dial-ring{width:150vmin;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)}
   .dial-slides{width:min(80vw,340px)}
 }
+
+/* === переход «Опыт работы» → число 12 из кругов (скролл-сцена, sticky) === */
+.mm{position:relative;width:100vw;margin:0 0 90px calc(50% - 50vw);height:360vh;font-family:'ONY One',sans-serif}
+.mm-stick{position:sticky;top:0;height:100vh;overflow:hidden;background:#fff;color:#0b0b0b}
+.mm-lbl{position:absolute;left:clamp(16px,4vw,64px);top:clamp(18px,3vw,50px);font:400 clamp(16px,1.9vw,28px)/1.15 'ONY One',sans-serif;color:#fff;opacity:0;pointer-events:none}
+.mm-grid{position:absolute;inset:0;pointer-events:none}
+.mm-grid i{position:absolute;left:0;top:0;border-radius:50%;background:#fff;opacity:0;will-change:transform,opacity}
+.mm-c{position:absolute;left:0;top:0;border-radius:50%;box-sizing:border-box;background:#fff;overflow:visible;will-change:transform,width,height;cursor:default}
+.mm-c img,.mm-c video{display:block;width:100%;height:100%;border-radius:50%;object-fit:cover;background:#0b0b0b}
+.mm-title{position:absolute;left:0;right:0;margin:0;text-align:center;font-size:clamp(40px,9.72vw,140px);font-family:'ONY Track Moscow',sans-serif;font-weight:400;letter-spacing:-.02em;line-height:1;color:#0b0b0b;pointer-events:none}
+.mm-sub{position:absolute;left:0;right:0;margin:0;text-align:center;font-size:clamp(16px,2.22vw,32px);line-height:1.2;color:#0b0b0b;pointer-events:none}
+.mm-cur{position:absolute;left:0;top:0;opacity:0;touch-action:none;cursor:grab;will-change:transform;z-index:5;padding:6px}
+.mm-cur.drag{cursor:grabbing}
+.mm-cur svg{display:block;width:34px;height:34px;pointer-events:none}
+.mm-cur span.n{position:absolute;left:12px;top:36px;padding:6px 14px 8px;border-radius:999px;font:400 clamp(14px,1.5vw,20px)/1 'ONY One',sans-serif;white-space:nowrap;pointer-events:none}
+.mm-cur[data-who="dsg"] svg{color:#8b5cf6}.mm-cur[data-who="dsg"] span.n{background:#8b5cf6;color:#fff}
+.mm-cur[data-who="you"] svg{color:#f0561a}.mm-cur[data-who="you"] span.n{background:#f0561a;color:#000}
 </style>
 </head>
 <body>
@@ -873,35 +890,20 @@ touch-action: none;
     </div>
   </div>
 
-  <!-- === ЧЁРНЫЙ БЛОК «Быстрый запуск» — «Фигма»-сценка (рыба) === -->
-  <div class="exp-duo" id="expDuo">
-    <h3 class="exp-duo-title">Быстрый запуск</h3>
-    <p class="exp-duo-cap" id="expDuoCap"></p>
-    <div class="exp-duo-lbl">правок</div>
-    <div class="exp-duo-digit" id="expDuoDigit" aria-hidden="true"></div>
-    <ul class="fg-rules"><li><b>Правка</b> → идеальность растёт, но дизайнер злится</li><li><b>Похвала</b> (👍🔥😍) → злость падает</li><li><b class="r">Злость 100%</b> — проигрыш</li><li>Дошёл до красного — «делай сам»: правьте инструментами внизу</li></ul>
-    <div class="fg-qual" id="fgQual">Идеальность <span id="fgQualV">0%</span><b><i id="fgQualFill"></i></b></div>
-    <div class="fg-rage" id="fgRage"></div>
-    <div class="fg-frame" id="fgFrame">
-      <div class="fg-meter" id="fgMeter">Задолбанность клиентом<b><i id="fgMeterFill"></i></b></div>
+  <!-- === ПЕРЕХОД «Опыт работы» → «Быстрый запуск»: три круга при скролле уменьшаются и становятся точками числа 12 === -->
+  <section class="mm" id="expMorph" aria-label="Быстрый запуск">
+    <div class="mm-stick" id="mmStick">
+      <div class="mm-lbl" id="mmLbl">Быстрый<br>запуск</div>
+      <div class="mm-grid" id="mmGrid" aria-hidden="true"></div>
+      <div class="mm-c" data-i="0" aria-label="Рив Гош"><img src="files/logo-rivgosh.png" alt="" draggable="false"></div>
+      <div class="mm-c" data-i="1" aria-label="Пятёрочка"><img src="files/logo-5.png" alt="" draggable="false"></div>
+      <div class="mm-c" data-i="2" aria-label="Видео"><video id="mmVideo" src="https://github.com/kolpakovdmitriy9/newbring.github.io/raw/refs/heads/master/lovelllas.hyperesources/video.mp4" muted loop playsinline preload="none"></video></div>
+      <h2 class="mm-title" id="mmTitle">ОПЫТ РАБОТЫ</h2>
+      <p class="mm-sub" id="mmSub">рассказываю и показываю</p>
+      <div class="mm-cur" data-who="dsg" id="mmCurA"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 3l7.5 18 2.6-7.4L21 10.9z"/></svg><span class="n">dsg#</span></div>
+      <div class="mm-cur" data-who="you" id="mmCurB"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 3l7.5 18 2.6-7.4L21 10.9z"/></svg><span class="n">Origin</span></div>
     </div>
-    <div class="fg-sel" id="fgSel"><i></i><i></i><i></i><i></i><b id="fgSelLbl">0 × 0</b></div>
-    <div class="fg-tools" id="fgTools">
-      <span data-t="comment" data-h="Комментарий (клик по карточке)"><svg viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/></svg></span>
-      <span data-t="move" data-h="Двигать: перетащите объект"><svg viewBox="0 0 24 24"><path d="M5 3l14 8-6 2-2 6z"/></svg></span>
-      <span data-t="frame" data-h="Размер: клик увеличивает"><svg viewBox="0 0 24 24"><path d="M7 3v18M17 3v18M3 7h18M3 17h18"/></svg></span>
-      <span data-t="rect" data-h="Цвет: клик по объекту"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="1"/></svg></span>
-      <span data-t="text" data-h="Текст / другое фото: клик"><svg viewBox="0 0 24 24"><path d="M5 6V4h14v2M12 4v16M9 20h6"/></svg></span>
-    </div>
-    <div class="fg-pop" id="fgPop">
-      <div class="rx" title="Похвалить дизайнера"><button data-rx="👍">👍</button><button data-rx="🔥">🔥</button><button data-rx="😍">😍</button><button data-rx="🤔">🤔</button></div>
-      <div class="ps"><button data-p="air">Больше воздуха</button><button data-p="bright">Ярче!</button><button data-p="big">Крупнее</button><button data-p="color">Другой цвет</button></div>
-      <input id="fgInp" type="text" maxlength="40" placeholder="Свой комментарий + Enter" autocomplete="off">
-    </div>
-    <div class="exp-duo-cursor" data-who="dsg" id="expDuoCA"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 3l7.5 18 2.6-7.4L21 10.9z"/></svg><span class="n">dsg#</span><span class="say" id="expSay"></span></div>
-    <div class="exp-duo-cursor" data-who="you" id="expDuoCB"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 3l7.5 18 2.6-7.4L21 10.9z"/></svg><span class="n" id="expYouN">Вы</span></div>
-    <div class="fg-end" id="fgEnd"><h4 id="fgEndH">Правок: 0</h4><p>Терпение закончилось. Хорошо, что в жизни правки я принимаю спокойнее.</p><div><button id="fgAgain">Ещё раз</button><button class="hl" id="fgContact">Связаться</button></div></div>
-  </div>
+  </section>
 
   <div class="experience-gallery"><div class="experience-gallery-track" id="expGalleryTrack"></div></div>
 
@@ -1604,6 +1606,91 @@ document.addEventListener('DOMContentLoaded', () => {
       visible = en[0].isIntersecting;
       if (visible){ if (!started){ started = true; reset(); } if (!raf){ last = 0; raf = requestAnimationFrame(frameLoop); } }
     }, { threshold: .25 }).observe(box);
+  })();
+
+
+  // === Скролл-сцена: три круга (логотипы + видео) уменьшаются и встают верхним рядом цифры «2» в числе «12» ===
+  (function(){
+    const wrap = document.getElementById('expMorph'); if (!wrap) return;
+    const stick = document.getElementById('mmStick'), grid = document.getElementById('mmGrid');
+    const circ = Array.prototype.slice.call(wrap.querySelectorAll('.mm-c')), title = document.getElementById('mmTitle'), sub = document.getElementById('mmSub'), lbl = document.getElementById('mmLbl');
+    const curs = [document.getElementById('mmCurA'), document.getElementById('mmCurB')], vid = document.getElementById('mmVideo');
+    // шрифт точек 5×7: «1» и «2», между ними пустой столбец → 11 колонок
+    const G1 = '00100011000010000100001000010001110', G2 = '01110100010000100010001000100011111';
+    const cells = [];
+    for (let r = 0; r < 7; r++) for (let c = 0; c < 11; c++){
+      const on = c < 5 ? G1[r * 5 + c] === '1' : c > 5 ? G2[r * 5 + (c - 6)] === '1' : false;
+      if (on) cells.push({ c: c, r: r, el: null });
+    }
+    const slots = [[7, 0], [8, 0], [9, 0]]; // верхний ряд «2»: сюда садятся круги
+    cells.forEach(function(d){
+      d.logo = slots.findIndex(function(sl){ return sl[0] === d.c && sl[1] === d.r; });
+      if (d.logo < 0){ d.el = document.createElement('i'); grid.appendChild(d.el); d.rnd = Math.random(); }
+    });
+    let W = 0, H = 0, S = 0, ov = 0, pitch = 0, dia = 0, cx = 0, cy = 0, curOff = [{ x: 0, y: 0 }, { x: 0, y: 0 }], P = -1, near = false;
+    const clamp = function(v, a, b){ return Math.max(a, Math.min(b, v)); };
+    const ease = function(t){ t = clamp(t, 0, 1); return t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; };
+    const lerp = function(a, b, t){ return a + (b - a) * t; };
+    function layout(){
+      W = stick.clientWidth; H = stick.clientHeight;
+      S = clamp(W * .1625, 72, 234); ov = S * 36 / 234;
+      pitch = Math.min(H * .36 / 7, W * .8 / 11); dia = pitch * .8;
+      cx = W / 2; cy = H * .34;
+      const bottom = cy + Math.max(S / 2, 3.5 * pitch + dia / 2);
+      title.style.top = (bottom + H * .035) + 'px';
+      sub.style.top = (bottom + H * .035 + title.offsetHeight + 6) + 'px';
+      cells.forEach(function(d){ if (d.el){ d.el.style.width = d.el.style.height = dia + 'px'; } });
+      P = -1; update();
+    }
+    const dotX = function(c){ return cx + (c - 5) * pitch; }, dotY = function(r){ return cy + (r - 3) * pitch; };
+    function update(){
+      const r = wrap.getBoundingClientRect(), range = r.height - innerHeight;
+      near = r.bottom > -200 && r.top < innerHeight + 200;
+      const p = clamp(-r.top / range, 0, 1); if (p === P) return; P = p;
+      const dark = ease((p - .1) / .35), m = ease((p - .22) / .5), cu = ease((p - .72) / .2);
+      const v = Math.round(255 * (1 - dark)), bg = 'rgb(' + v + ',' + v + ',' + v + ')', fg = 'rgb(' + (255 - v) + ',' + (255 - v) + ',' + (255 - v) + ')';
+      stick.style.background = bg; title.style.color = fg; sub.style.color = fg; lbl.style.opacity = dark;
+      const rowW = 3 * S - 2 * ov;
+      circ.forEach(function(el, i){
+        const sx = cx - rowW / 2 + i * (S - ov) + S / 2, sy = cy, tx = dotX(slots[i][0]), ty = dotY(slots[i][1]);
+        const size = lerp(S, dia, m), x = lerp(sx, tx, m), y = lerp(sy, ty, m);
+        el.style.width = el.style.height = size + 'px'; el.style.padding = (size * .0427) + 'px'; el.style.background = bg;
+        el.style.transform = 'translate(' + (x - size / 2) + 'px,' + (y - size / 2) + 'px)'; el.style.zIndex = 1 + i;
+      });
+      cells.forEach(function(d){
+        if (!d.el) return;
+        const t = ease((m - .45 - d.rnd * .3) / .25);
+        d.el.style.opacity = t; d.el.style.transform = 'translate(' + (dotX(d.c) - dia / 2) + 'px,' + (dotY(d.r) - dia / 2) + 'px) scale(' + (.2 + .8 * t) + ')';
+      });
+      curs.forEach(function(el, i){
+        const bx = i === 0 ? cx - 6.3 * pitch : cx + 5.4 * pitch, by = i === 0 ? cy + 1.6 * pitch : cy + 2.9 * pitch;
+        el.style.opacity = cu; el.style.pointerEvents = cu > .5 ? 'auto' : 'none';
+        el.style.transform = 'translate(' + clamp(bx + curOff[i].x, 0, W - 100) + 'px,' + clamp(by + curOff[i].y, 0, H - 70) + 'px)';
+      });
+      if (vid){ if (near && vid.paused) vid.play().catch(function(){}); else if (!near && !vid.paused) vid.pause(); }
+    }
+    // курсоры можно двигать
+    curs.forEach(function(el, i){
+      let st = null;
+      el.addEventListener('pointerdown', function(e){ st = { x: e.clientX, y: e.clientY, ox: curOff[i].x, oy: curOff[i].y }; el.setPointerCapture(e.pointerId); el.classList.add('drag'); e.preventDefault(); });
+      el.addEventListener('pointermove', function(e){ if (!st) return; curOff[i].x = st.ox + e.clientX - st.x; curOff[i].y = st.oy + e.clientY - st.y; P = -1; update(); });
+      const end = function(){ st = null; el.classList.remove('drag'); };
+      el.addEventListener('pointerup', end); el.addEventListener('pointercancel', end);
+    });
+    // наведение на логотип (когда он стал точкой): рябь по точкам и подпрыгивание
+    circ.forEach(function(el, i){
+      el.addEventListener('pointerenter', function(){
+        if (P < .85 || !el.animate) return;
+        el.animate([{ scale: 1 }, { scale: 1.9 }, { scale: 1 }], { duration: 520, easing: 'cubic-bezier(.3,1.6,.5,1)' });
+        const x0 = dotX(slots[i][0]), y0 = dotY(slots[i][1]);
+        cells.forEach(function(d){ if (!d.el) return; const dd = Math.hypot(dotX(d.c) - x0, dotY(d.r) - y0) / pitch;
+          d.el.animate([{ scale: 1 }, { scale: 1.45 }, { scale: 1 }], { duration: 420, delay: dd * 55, easing: 'ease-out' }); });
+      });
+    });
+    window.addEventListener('scroll', function(){ requestAnimationFrame(update); }, { passive: true });
+    window.addEventListener('resize', layout);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(layout);
+    layout();
   })();
 
   // === HERO HEIGHT ===
