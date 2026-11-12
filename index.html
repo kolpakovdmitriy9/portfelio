@@ -646,7 +646,7 @@ touch-action: none;
 .mm-stick{position:sticky;top:0;height:100vh;overflow:hidden;background:#fff;color:#000}
 .mm-lbl{position:absolute;left:0;top:0;margin:0;font-weight:500;color:#fff;opacity:0;pointer-events:none;white-space:nowrap}
 .mm-grid{position:absolute;inset:0;pointer-events:none}
-.mm-grid i{position:absolute;left:0;top:0;border-radius:50%;background:#fff;opacity:0;will-change:transform,opacity}
+.mm-grid i{position:absolute;left:0;top:0;border-radius:50%;background:rgb(var(--g,255) var(--g,255) var(--g,255));opacity:0;will-change:transform,opacity}
 .mm-c{position:absolute;left:0;top:0;border-radius:50%;box-sizing:border-box;background:#fff;overflow:visible;will-change:transform,width,height;cursor:default}
 .mm-c img,.mm-c video{display:block;width:100%;height:100%;border-radius:50%;object-fit:cover;background:#0b0b0b}
 .mm-c[data-i="1"] img{background:#fff}
@@ -1927,9 +1927,15 @@ document.addEventListener('DOMContentLoaded', () => {
         gx.beginPath(); gx.arc(dotX(q.c), dotY(q.r), dia * (.1 + .12 * q.a), 0, 7);
         gx.fillStyle = 'rgba(255,255,255,' + (.07 + .5 * q.a).toFixed(3) + ')'; gx.fill();
       });
+      // точки числа под змейкой и рядом с ней плавно темнеют — змейка выходит на первый план
+      cells.forEach(function(d){
+        if (!d.el) return;
+        let dd = 9; for (let i = 0; i < n; i++){ const e = Math.hypot(d.c - pos[i].c, d.r - pos[i].r); if (e < dd) dd = e; }
+        const t = clamp(1.5 - dd, 0, 1); d.dm = (d.dm || 0) + (t - (d.dm || 0)) * (1 - Math.exp(-dtg * (t > (d.dm || 0) ? 14 : 4)));
+        d.el.style.setProperty('--g', Math.round(255 - 215 * d.dm));
+      });
       for (let i = n - 1; i >= 0; i--){
         const kk = n > 1 ? i / (n - 1) : 0, x = dotX(pos[i].c), y = dotY(pos[i].r), rad = .5 * dia;
-        gx.beginPath(); gx.arc(x, y, rad + ro, 0, 7); gx.fillStyle = '#000'; gx.fill();
         gx.beginPath(); gx.arc(x, y, rad, 0, 7);
         const L = Math.round(100 - kk * 52); gx.fillStyle = 'hsl(0,0%,' + L + '%)'; gx.fill();   // голова белая, хвост серый
       }
