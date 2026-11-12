@@ -1712,7 +1712,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (now > auto.fa){                              // пора нарисовать фрейм
           const w = (140 + Math.random() * 260) * k, h = (100 + Math.random() * 220) * k, mx = W * .06;
           const top = oy + 60 * k, bot = Math.min(H, oy + 741 * k) - 70 * k - h;
-          auto.sx = mx + Math.random() * Math.max(1, W - 2 * mx - w); auto.sy = top + Math.random() * Math.max(1, bot - top);
+          for (let t = 0; t < 12; t++){
+            auto.sx = mx + Math.random() * Math.max(1, W - 2 * mx - w); auto.sy = top + Math.random() * Math.max(1, bot - top);
+            if (auto.sx + w < tz.x0 || auto.sx > tz.x1 || auto.sy + h < tz.y0 || auto.sy > tz.y1) break;
+          }
           auto.rw = w; auto.rh = h; auto.tx = auto.sx; auto.ty = auto.sy; auto.ph = 'goto';
         }
         auto.x += (auto.tx - auto.x) * .05; auto.y += (auto.ty - auto.y) * .05;
@@ -1736,12 +1739,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const inkS0 = document.getElementById('mmInkS0'), inkS1 = document.getElementById('mmInkS1');
     const hudT = hud.querySelector('.t'), hudO = hud.querySelector('.tug .o');
     const gB = { c0: 0, c1: 0, r0: 0, r1: 0 }; let gdpr = 1, g = null;
+    const gT = { c0: 0, r0: 0, c1: 0, r1: 0 }, tz = { x0: 0, y0: 0, x1: 0, y1: 0 };   // запретная зона текста: в клетках и в пикселях
+    const inTxt = function(c, r){ return c >= gT.c0 && c < gT.c1 && r >= gT.r0 && r < gT.r1; };
     const FONT = "'PP Neue Montreal','Helvetica Neue',Arial,sans-serif";
     function gLayout(){
       gdpr = Math.min(2, window.devicePixelRatio || 1);
       gcv.width = Math.round(W * gdpr); gcv.height = Math.round(H * gdpr);
       gB.c0 = Math.ceil(5.5 + (pitch / 2 - cx) / pitch); gB.c1 = Math.floor(5.5 + (W - pitch / 2 - cx) / pitch);
       gB.r0 = Math.ceil(4.5 + (pitch / 2 - cy) / pitch); gB.r1 = Math.floor(4.5 + (H - pitch / 2 - cy) / pitch);
+      // запретная зона под текст «ОПЫТ РАБОТЫ / рассказываю и показываю»: сюда не заходит змейка и нельзя рисовать фреймы
+      (function(){
+        const sr = stick.getBoundingClientRect(), rg = document.createRange(); let x0 = cx, x1 = cx;
+        [title, sub].forEach(function(el){ rg.selectNodeContents(el); const b = rg.getBoundingClientRect(); if (b.width){ x0 = Math.min(x0, b.left - sr.left); x1 = Math.max(x1, b.right - sr.left); } });
+        const m = pitch * .6;
+        tz.x0 = x0 - m; tz.x1 = x1 + m; tz.y0 = oy + 458 * k - m; tz.y1 = oy + 658 * k + m;
+        const a = gCell(tz.x0, tz.y0), b = gCell(tz.x1, tz.y1);
+        gT.c0 = a.c; gT.r0 = a.r; gT.c1 = b.c + 1; gT.r1 = b.r + 1;
+      })();
       hud.style.left = (cx + 720 * k - 55 * k) + 'px'; hud.style.top = (oy + 55 * k) + 'px';
       hud.style.fontSize = (40 * k) + 'px'; hud.style.lineHeight = (48 * k) + 'px';
       hud.style.setProperty('--hk', k);
@@ -1790,6 +1804,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const c = h.c + d[0], r = h.r + d[1];
         if (c < gB.c0 || c > gB.c1 || r < gB.r0 || r > gB.r1) return false;
         if (n > 1 && d[0] === -s.d[0] && d[1] === -s.d[1]) return false;
+        if (inTxt(c, r)) return false;
         return !s.cells.some(function(q, i){ return i < n - 1 && q.c === c && q.r === r; });
       };
       let d = s.d; s.turn--;
@@ -1809,7 +1824,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
     function gValid(f, who){
-      if (!inBounds(f)) return false;
+      if (!inBounds(f) || ovl(f, gT, 0)) return false;
       const m = who === 'dsg' ? 1 : 0;
       return !g.fr.some(function(o){ return o !== f && !o.dead && ovl(f, o, m); });
     }
@@ -1830,7 +1845,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function gFit(a, b){
       for (let i = 0; i < 80; i++){
         const f = gMkRect(a, b);
-        if (inBounds(f) && !g.fr.some(function(o){ return !o.dead && ovl(f, o, 0); }) && !g.sn.cells.some(function(q){ return inFr(f, q.c, q.r); })) return f;
+        if (inBounds(f) && !ovl(f, gT, 0) && !g.fr.some(function(o){ return !o.dead && ovl(f, o, 0); }) && !g.sn.cells.some(function(q){ return inFr(f, q.c, q.r); })) return f;
         const dc = b.c - a.c, dr = b.r - a.r; if (!dc && !dr) return f;
         if (Math.abs(dc) >= Math.abs(dr) && dc) b = { c: b.c - Math.sign(dc), r: b.r }; else if (dr) b = { c: b.c, r: b.r - Math.sign(dr) }; else b = { c: b.c - Math.sign(dc), r: b.r };
       }
@@ -1844,6 +1859,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function gDown(e){
       if (!g || g.state !== 'play') return;
       const r = stick.getBoundingClientRect(); mouse = { x: e.clientX - r.left, y: e.clientY - r.top };
+      { const a0 = gCell(mouse.x, mouse.y); if (inTxt(a0.c, a0.r)){ gFx(mouse.x, mouse.y, 'здесь текст', '#ff6b6b', performance.now()); return; } }
       g.drag = { a: gCell(mouse.x, mouse.y), el: gEl('me') }; g.drag.sz = g.drag.el.querySelector('.sz');
       stick.setPointerCapture(e.pointerId); gDragView(); e.preventDefault();
     }
