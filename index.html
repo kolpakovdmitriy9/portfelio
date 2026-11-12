@@ -1639,7 +1639,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const dark = ease((p - .06) / .3), m = ease((p - .12) / .38), df = clamp((p - .52) / .26, 0, 1), cu = ease((p - .82) / .14);
       const v = Math.round(255 * (1 - dark)), bg = 'rgb(' + v + ',' + v + ',' + v + ')', fg = 'rgb(' + (255 - v) + ',' + (255 - v) + ',' + (255 - v) + ')';
       stick.style.background = bg; title.style.color = fg; sub.style.color = fg; lbl.style.opacity = dark;
-      title.style.opacity = sub.style.opacity = (1 - .9 * cu).toFixed(3);   // когда начинается игра, заголовок уходит в прозрачность и не закрывает поле
+      title.style.opacity = sub.style.opacity = '';   // заголовок остаётся целиком; под змейкой он темнеет только вокруг неё (тень рисуется на её слое)
       title.style.top = (oy + lerp(403, 458, m) * k) + 'px'; sub.style.top = (oy + lerp(571, 626, m) * k) + 'px';
       const rowW = 3 * S - 2 * ov;
       circ.forEach(function(el, i){
@@ -1729,7 +1729,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // пользователь строит оранжевые (−1 сегмент). Цель пользователя — убрать змейку, фиолетового — вырастить до GOAL ===
     const START = 6, GOAL = 14, LIFE = 9000, TICK = 190;
     const gcv = document.createElement('canvas'); gcv.className = 'mm-snake'; gcv.setAttribute('aria-hidden', 'true');
-    stick.insertBefore(gcv, title);
+    stick.insertBefore(gcv, curs[0]);   // слой змейки поверх заголовка: тень вокруг неё затемняет текст только рядом
     const gx = gcv.getContext('2d');
     const hud = document.createElement('div'); hud.className = 'mm-hud'; hud.setAttribute('aria-hidden', 'true');
     hud.innerHTML = '<span class="t"></span><i class="tug"><b class="o"></b><b class="p"></b></i><i class="bar"><b></b></i>'; stick.appendChild(hud);
@@ -1910,7 +1910,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       // подсветка поля из точек: свет догоняет змейку и медленно гаснет за ней (плавное нарастание и затухание по времени)
       const dtg = Math.min(.05, Math.max(.001, (now - (g.gT || now)) / 1000)); g.gT = now;
-      const R = 4, tgt = {}; g.gl = g.gl || {};
+      const R = 3, tgt = {}; g.gl = g.gl || {};
       if (!g.nk){ g.nk = {}; cells.forEach(function(d){ g.nk[d.c + ',' + d.r] = 1; }); }
       pos.forEach(function(s){
         const c0 = Math.round(s.c), r0 = Math.round(s.r);
@@ -1925,10 +1925,10 @@ document.addEventListener('DOMContentLoaded', () => {
       Object.keys(tgt).forEach(function(key){ if (!g.gl[key]) g.gl[key] = { c: tgt[key].c, r: tgt[key].r, a: 0 }; });
       Object.keys(g.gl).forEach(function(key){
         const q = g.gl[key], t = tgt[key] ? tgt[key].a : 0;
-        q.a += (t - q.a) * (1 - Math.exp(-dtg * (t > q.a ? 9 : 2.2)));
+        q.a += (t - q.a) * (1 - Math.exp(-dtg * (t > q.a ? 12 : 7)));
         if (q.a < .012 && !t){ delete g.gl[key]; return; }
-        gx.beginPath(); gx.arc(dotX(q.c), dotY(q.r), dia * (.1 + .12 * q.a), 0, 7);
-        gx.fillStyle = 'rgba(255,255,255,' + (.07 + .5 * q.a).toFixed(3) + ')'; gx.fill();
+        gx.beginPath(); gx.arc(dotX(q.c), dotY(q.r), dia * (.08 + .08 * q.a), 0, 7);
+        gx.fillStyle = 'rgba(255,255,255,' + (.04 + .3 * q.a).toFixed(3) + ')'; gx.fill();
       });
       // точки числа под змейкой и рядом с ней плавно темнеют — змейка выходит на первый план
       cells.forEach(function(d){
@@ -1937,6 +1937,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const t = clamp((1.15 - dd) / .5, 0, 1); d.dm = (d.dm || 0) + (t - (d.dm || 0)) * (1 - Math.exp(-dtg * (t > (d.dm || 0) ? 14 : 4)));
         d.el.style.setProperty('--g', Math.round(255 * (1 - d.dm)));
       });
+      // мягкая тень вокруг каждой секции: затемняет текст и точки только рядом со змейкой, чтобы она читалась
+      for (let i = n - 1; i >= 0; i--){
+        const x = dotX(pos[i].c), y = dotY(pos[i].r), rr = dia * 1.35, gr = gx.createRadialGradient(x, y, dia * .3, x, y, rr);
+        gr.addColorStop(0, 'rgba(0,0,0,.92)'); gr.addColorStop(.55, 'rgba(0,0,0,.7)'); gr.addColorStop(1, 'rgba(0,0,0,0)');
+        gx.fillStyle = gr; gx.beginPath(); gx.arc(x, y, rr, 0, 7); gx.fill();
+      }
       for (let i = n - 1; i >= 0; i--){
         const kk = n > 1 ? i / (n - 1) : 0, x = dotX(pos[i].c), y = dotY(pos[i].r), rad = .5 * dia;
         gx.beginPath(); gx.arc(x, y, rad, 0, 7);
