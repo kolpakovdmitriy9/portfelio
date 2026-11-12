@@ -1763,42 +1763,27 @@ document.addEventListener('DOMContentLoaded', () => {
     const dIcon = lastSlide && lastSlide.querySelector('.dial-icon'), dCount = lastSlide && lastSlide.querySelector('.dial-count'), dCopy = lastSlide && lastSlide.querySelector('.dial-copy');
     const dVid = dIcon && dIcon.querySelector('video');
     const trOK = !!(dialStage && dIcon && vid) && !matchMedia('(prefers-reduced-motion: reduce)').matches;
-    // Раскрытие кругов идёт по ВРЕМЕНИ (а не по колесу мыши — так оно не дёргается): как только скролл дошёл до начала
-    // отрезка, экран фиксируется, анимация играет до конца (DUR секунд), потом скролл снова свободен.
-    // Если вернуться наверх — анимация проигрывается в обратную сторону. Заголовок и стыковка с чёрным экраном — по скроллу.
+    let Es = null, lastT = 0, trQ = false;
     const c01 = function(v){ return clamp(v, 0, 1); };
     const smooth = function(t){ return t * t * (3 - 2 * t); };
-    let a = 0, locked = false, lockY = 0, lastT = 0, trQ = false;
-    const DUR = 3.0, START = .02;
-    const lockOn = function(e){ if (locked) e.preventDefault(); };
-    window.addEventListener('wheel', lockOn, { passive: false });
-    window.addEventListener('touchmove', lockOn, { passive: false });
-    window.addEventListener('keydown', function(e){ if (locked && [' ', 'PageDown', 'PageUp', 'ArrowDown', 'ArrowUp', 'Home', 'End'].indexOf(e.key) >= 0) e.preventDefault(); });
-    window.addEventListener('scroll', function(){ if (locked && Math.abs(window.scrollY - lockY) > 1) window.scrollTo(0, lockY); }, { passive: true });
     function trFrame(now){
       trQ = false;
       if (!trOK || !W) return;
       const vh = innerHeight, EXIT = .95 * vh, sr = dialStage.getBoundingClientRect(), total = sr.height - vh - EXIT;
       const Et = total > 0 ? clamp((-sr.top - total) / EXIT, 0, 1) : 0;
       const dt = lastT ? Math.min(Math.max((now - lastT) / 1000, .001), .05) : .016; lastT = now || 0;
-      const pastStart = Et >= START, backAtTop = Et < START * .5;
-      if (pastStart && a < 1 && !locked){
-        if (Et < .25){ locked = true; lockY = window.scrollY - (Et - START - .006) * EXIT; window.scrollTo(0, lockY); }   // фиксируем экран на начале отрезка
-        else a = 1;                                                    // перепрыгнули (якорь, перезагрузка) — сразу в конец
-      }
-      if (locked){ a = Math.min(1, a + dt / DUR); if (a >= 1) locked = false; }
-      else if (backAtTop && a > 0){ a = Math.max(0, a - dt / (DUR * .8)); }
-      if (Et > .9995){ a = 1; locked = false; }
-      const E = a * .88;                                                // круги раскрываются за время a, заголовок и стык — по скроллу
+      if (Es === null) Es = Et;
+      Es += (Et - Es) * (1 - Math.exp(-dt * 9)); if (Math.abs(Et - Es) < .0004) Es = Et;
+      const E = Es;
       // деления кольца циферблата расходятся и гаснут, когда иконка выросла
       const re = smooth(c01((E - .28) / .20)), rK = 1 + .55 * re, rO = 1 - smooth(c01((re - .35) / .65));
       if (window.__ringK !== rK || window.__ringO !== rO){ window.__ringK = rK; window.__ringO = rO; if (window.__dialWake) window.__dialWake(); }
       const f = ease(c01(E / .10));
       [dCount, dCopy].forEach(function(el){ if (!el) return; el.style.opacity = (1 - f).toFixed(3); el.style.transform = f > 0 ? 'translate3d(0,' + (-34 * f).toFixed(1) + 'px,0)' : ''; });
-      const more = locked || (backAtTop && a > 0);
-      const was = trActive; trActive = Et < .9995;
+      const was = trActive; trActive = E < .9995;
       if (!trActive){
         if (was){ stick.style.overflow = ''; title.style.opacity = sub.style.opacity = title.style.transform = sub.style.transform = ''; circ.forEach(function(el){ el.style.opacity = ''; }); dIcon.style.visibility = ''; P = -1; update(); }
+        if (Es !== Et) trSchedule(); else lastT = 0;
         return;
       }
       near = true;
@@ -1824,14 +1809,14 @@ document.addEventListener('DOMContentLoaded', () => {
       put(circ[0], c1x, sy0, S, fade(.62, .26), 1);                       // «Рив Гош» — из-под Пятёрочки
       ring.style.opacity = 1; ring.style.color = '#000';
       if (E > .001){ if (vid.paused) vid.play().catch(function(){}); } else { if (!vid.paused) vid.pause(); if (vid.currentTime) vid.currentTime = 0; }
-      const t = a >= 1 ? ease(c01((Et - .88) / .12)) : 0;
+      const t = ease(c01((E - .88) / .12));
       title.style.top = (oy + 403 * k - T) + 'px'; sub.style.top = (oy + 571 * k - T) + 'px';
       title.style.opacity = sub.style.opacity = t.toFixed(3);
       title.style.transform = sub.style.transform = 'translateY(' + ((1 - t) * 40 * k).toFixed(1) + 'px)';
       lbl.style.opacity = 0; cells.forEach(function(d){ if (d.el) d.el.style.opacity = 0; });
       curs.forEach(function(el){ el.style.opacity = 0; });
       kick();
-      if (more) trSchedule(); else lastT = 0;
+      if (Es !== Et) trSchedule(); else lastT = 0;
     }
     function trSchedule(){ if (!trQ){ trQ = true; requestAnimationFrame(trFrame); } }
     window.addEventListener('scroll', trSchedule, { passive: true });
