@@ -664,8 +664,12 @@ touch-action: none;
 .mm-sub{position:absolute;left:0;right:0;margin:0;text-align:center;font-family:Arial,sans-serif;font-weight:400;color:#0b0b0b;pointer-events:none;white-space:nowrap}
 .mm-snake{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;opacity:0}
 .mm-hud{position:absolute;margin:0;transform:translateX(-100%);opacity:0;pointer-events:none;white-space:nowrap;text-align:right;color:#fff;font-weight:500;font-family:'PP Neue Montreal','Helvetica Neue',Arial,sans-serif}
-.mm-hud .bar{display:block;margin:calc(8px*var(--hk,1)) 0 0 auto;width:calc(220px*var(--hk,1));height:calc(5px*var(--hk,1));border-radius:99px;background:rgba(255,255,255,.2);overflow:hidden}
-.mm-hud .bar b{display:block;height:100%;width:100%;background:#f0561a}
+.mm-hud .tug{display:flex;margin:calc(10px*var(--hk,1)) 0 0 auto;width:calc(300px*var(--hk,1));height:calc(10px*var(--hk,1));border-radius:99px;overflow:hidden;background:#8b5cf6}
+.mm-hud .tug b{display:block;height:100%}
+.mm-hud .tug .o{width:57%;background:#f0561a;border-right:calc(2px*var(--hk,1)) solid #000;transition:width .35s cubic-bezier(.3,.8,.3,1)}
+.mm-hud .tug .p{flex:1;background:#8b5cf6}
+.mm-hud .bar{display:block;margin:calc(8px*var(--hk,1)) 0 0 auto;width:calc(300px*var(--hk,1));height:calc(3px*var(--hk,1));border-radius:99px;background:rgba(255,255,255,.14);overflow:hidden}
+.mm-hud .bar b{display:block;height:100%;width:100%;background:rgba(255,255,255,.55)}
 .mm-cur{position:absolute;left:0;top:0;opacity:0;touch-action:none;cursor:grab;will-change:transform;z-index:5;padding:6px;font-family:'PP Neue Montreal','Helvetica Neue',Arial,sans-serif}
 .mm-cur.drag{cursor:grabbing}
 .mm-cur svg{display:block;width:30px;height:30px;pointer-events:none}
@@ -1726,8 +1730,8 @@ document.addEventListener('DOMContentLoaded', () => {
     stick.insertBefore(gcv, title);
     const gx = gcv.getContext('2d');
     const hud = document.createElement('div'); hud.className = 'mm-hud'; hud.setAttribute('aria-hidden', 'true');
-    hud.innerHTML = '<span class="t"></span><i class="bar"><b></b></i>'; stick.appendChild(hud);
-    const hudT = hud.querySelector('.t'), hudB = hud.querySelector('.bar b');
+    hud.innerHTML = '<span class="t"></span><i class="tug"><b class="o"></b><b class="p"></b></i><i class="bar"><b></b></i>'; stick.appendChild(hud);
+    const hudT = hud.querySelector('.t'), hudB = hud.querySelector('.bar b'), hudO = hud.querySelector('.tug .o');
     const gB = { c0: 0, c1: 0, r0: 0, r1: 0 }; let gdpr = 1, g = null;
     const FONT = "'PP Neue Montreal','Helvetica Neue',Arial,sans-serif";
     function gLayout(){
@@ -1936,7 +1940,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
       gx.globalAlpha = 1; gx.textAlign = 'left';
       hudT.textContent = g.state === 'end' ? g.msg : 'Змейка ' + g.sn.len + ' / ' + GOAL;
-      hudB.style.width = g.ink + '%';
+      hudB.style.width = g.ink + '%'; hudO.style.width = (100 * (1 - clamp(g.sn.len / GOAL, 0, 1))) + '%';
     }
     let raf = 0;
     function loop(now){
