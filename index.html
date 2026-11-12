@@ -1635,7 +1635,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const r = wrap.getBoundingClientRect(), range = r.height - innerHeight;
       near = r.bottom > -200 && r.top < innerHeight + 200;
       const p = clamp(-r.top / range, 0, 1); if (p === P) return; P = p;
-      const dark = ease((p - .1) / .35), m = ease((p - .22) / .5), cu = ease((p - .72) / .2);
+      // порядок: темнеет и круги встают на место (m) → только потом точки числа заполняются (df) → потом появляются курсоры (cu)
+      const dark = ease((p - .06) / .3), m = ease((p - .12) / .38), df = clamp((p - .52) / .26, 0, 1), cu = ease((p - .82) / .14);
       const v = Math.round(255 * (1 - dark)), bg = 'rgb(' + v + ',' + v + ',' + v + ')', fg = 'rgb(' + (255 - v) + ',' + (255 - v) + ',' + (255 - v) + ')';
       stick.style.background = bg; title.style.color = fg; sub.style.color = fg; lbl.style.opacity = dark;
       title.style.top = (oy + lerp(403, 458, m) * k) + 'px'; sub.style.top = (oy + lerp(571, 626, m) * k) + 'px';
@@ -1648,7 +1649,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
       cells.forEach(function(d){
         if (!d.el) return;
-        const t = ease((m - .45 - d.rnd * .3) / .25);
+        const t = ease((df - d.rnd * .6) / .4);
         d.el.style.opacity = t; d.el.style.transform = 'translate(' + (dotX(d.c) - dia / 2) + 'px,' + (dotY(d.r) - dia / 2) + 'px)';
       });
       CU = cu; ring.style.opacity = 1 - clamp(m / .35, 0, 1); ring.style.color = fg;
