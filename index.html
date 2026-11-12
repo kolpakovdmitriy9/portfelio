@@ -1770,9 +1770,10 @@ document.addEventListener('DOMContentLoaded', () => {
     function gReset(){
       const now = performance.now();
       if (g) gClear();
-      g = { b: gB.c0 + ':' + gB.c1 + ':' + gB.r0 + ':' + gB.r1, sn: { cells: [], d: [1, 0], len: START, turn: 3 }, fr: [], ink: 100, sc: { cut: 0, eat: 0 }, state: 'play', acc: 0, botT: now + 1800, fx: [], drag: null, msgT: 0, msg: '' };
-      const r = clamp(5, gB.r0, gB.r1), hc = clamp(-2, gB.c0 + START, gB.c1);
-      for (let i = 0; i < START; i++) g.sn.cells.push({ c: hc - i, r: r });
+      g = { b: gB.c0 + ':' + gB.c1 + ':' + gB.r0 + ':' + gB.r1, sn: { cells: [], d: [0, 1], len: START, turn: 8 }, fr: [], ink: 100, sc: { cut: 0, eat: 0 }, state: 'play', acc: 0, botT: now + 1800, fx: [], drag: null, msgT: 0, msg: '' };
+      // змейка выползает сверху: голова у верхнего края поля над числом, тело ещё за краем
+      const hc = clamp(3 + Math.floor(Math.random() * 6), gB.c0, gB.c1);
+      for (let i = 0; i < START; i++) g.sn.cells.push({ c: hc, r: gB.r0 - i });
       g.last = now;
     }
     const inFr = function(f, c, r){ return c >= f.c0 && c < f.c1 && r >= f.r0 && r < f.r1; };
@@ -2030,7 +2031,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const dIcon = lastSlide && lastSlide.querySelector('.dial-icon'), dCount = lastSlide && lastSlide.querySelector('.dial-count'), dCopy = lastSlide && lastSlide.querySelector('.dial-copy');
     const dVid = dIcon && dIcon.querySelector('video');
     const trOK = !!(dialStage && dIcon && vid) && !matchMedia('(prefers-reduced-motion: reduce)').matches;
-    let Es = null, lastT = 0, trQ = false;
+    let Es = null, lastT = 0, trQ = false, swapL = false;   // swapL — «защёлка»: подмена иконки кругом включается один раз и не мигает от перемотки видео
     const c01 = function(v){ return clamp(v, 0, 1); };
     const smooth = function(t){ return t * t * (3 - 2 * t); };
     function trFrame(now){
@@ -2060,7 +2061,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const mv = ease(c01((E - .10) / .20)), g = ease(c01((E - .16) / .24)), TL0 = .40, TL = .24;
       const pL = ease(c01((E - TL0) / TL)), pB = ease(c01((E - .50) / .26)), pA = ease(c01((E - .62) / .26));
       const sB = lerp(C.x, f3.x, ease(c01((.50 - TL0) / TL)));          // где видео в тот момент, когда из-под него выезжает Пятёрочка
-      const vReady = vid.readyState > 1 && vid.currentTime > 0; const swap = E > .001 && vReady; dIcon.style.visibility = swap ? 'hidden' : '';
+      const vReady = vid.readyState > 1 && vid.currentTime > 0; if (E <= .001) swapL = false; else if (!swapL && vReady) swapL = true; const swap = swapL; dIcon.style.visibility = swap ? 'hidden' : '';
       const s0 = dIcon.getBoundingClientRect();
       const ax = lerp(s0.left + s0.width / 2, C.x, mv), ay = lerp(s0.top + s0.height / 2, sy0, mv), w = lerp(s0.width, S, g);
       stick.style.overflow = 'visible'; stick.style.background = 'transparent';
