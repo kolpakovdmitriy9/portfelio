@@ -1730,7 +1730,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     // === Игра «змейка»: ползёт по невидимой сетке точек числа «12». Фиолетовый ставит фреймы на её пути (+1 сегмент),
     // пользователь строит оранжевые (−1 сегмент). Цель пользователя — убрать змейку, фиолетового — вырастить до GOAL ===
-    const START = 6, GOAL = 14, LIFE = 9000, TICK = 190;
+    const START = 10, GOAL = 20, LIFE = 9000, TICK = 190;
     const gcv = document.createElement('canvas'); gcv.className = 'mm-snake'; gcv.setAttribute('aria-hidden', 'true');
     stick.insertBefore(gcv, curs[0]);   // слой змейки поверх заголовка: тень вокруг неё затемняет текст только рядом
     const gx = gcv.getContext('2d');
@@ -1908,7 +1908,7 @@ document.addEventListener('DOMContentLoaded', () => {
           g.fr = g.fr.filter(function(f){ if (f.dead) f.el.remove(); return !f.dead; });
           if (g.drag) gDragView();
         }
-      } else if (now - g.msgT > 3500) gReset();
+      }
       // фиолетовый курсор: идёт к углу строящегося фрейма и тянет его, иначе гуляет по числу
       if (cur){ auto.x += (cur.x - auto.x) * (cur.snap ? .22 : 1); auto.y += (cur.y - auto.y) * (cur.snap ? .22 : 1); auto.next = 0; }
       else {
@@ -1922,6 +1922,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const cells2 = g.sn.cells, n = cells2.length, ro = Math.max(1.5, 2.2 * k);
       // плавное движение: между тиками каждый сегмент едет из прежней клетки в нынешнюю (не прыгает с шага на шаг)
       const f = g.state === 'play' ? ease(clamp(g.acc / TICK, 0, 1)) : 1, pos = [];
+      const vis = g.state === 'end' ? 1 - ease(clamp((now - g.msgT) / 900, 0, 1)) : 1;   // в конце раунда змейка просто растворяется, новый раунд не предлагается
       for (let i = 0; i < n; i++){
         const cur = cells2[i], prv = i + 1 < n ? cells2[i + 1] : (g.sn.prev || cur);
         pos.push({ c: prv.c + (cur.c - prv.c) * f, r: prv.r + (cur.r - prv.r) * f });
@@ -1935,7 +1936,7 @@ document.addEventListener('DOMContentLoaded', () => {
         for (let a = -R; a <= R; a++) for (let b = -R; b <= R; b++){
           const c = c0 + a, r = r0 + b; if (c < gB.c0 || c > gB.c1 || r < gB.r0 || r > gB.r1) continue;
           const dd = Math.hypot(c - s.c, r - s.r); if (dd > R) continue;
-          const key = c + ',' + r, al = Math.pow(1 - dd / (R + .5), 1.6);
+          const key = c + ',' + r, al = Math.pow(1 - dd / (R + .5), 1.6) * vis;
           if (g.nk[key]) continue;                       // точки самого числа не подсвечиваем — их темнит змейка
           if (!tgt[key] || tgt[key].a < al) tgt[key] = { c: c, r: r, a: al };
         }
@@ -1952,14 +1953,16 @@ document.addEventListener('DOMContentLoaded', () => {
       cells.forEach(function(d){
         if (!d.el) return;
         let dd = 9; for (let i = 0; i < n; i++){ const e = Math.hypot(d.c - pos[i].c, d.r - pos[i].r); if (e < dd) dd = e; }
-        const t = clamp((1.15 - dd) / .5, 0, 1); d.dm = (d.dm || 0) + (t - (d.dm || 0)) * (1 - Math.exp(-dtg * (t > (d.dm || 0) ? 14 : 4)));
+        const t = clamp((1.15 - dd) / .5, 0, 1) * vis; d.dm = (d.dm || 0) + (t - (d.dm || 0)) * (1 - Math.exp(-dtg * (t > (d.dm || 0) ? 14 : 4)));
         d.el.style.setProperty('--g', Math.round(255 * (1 - d.dm)));
       });
+      gx.globalAlpha = vis;
       for (let i = n - 1; i >= 0; i--){
         const kk = n > 1 ? i / (n - 1) : 0, x = dotX(pos[i].c), y = dotY(pos[i].r), rad = .5 * dia;
         gx.beginPath(); gx.arc(x, y, rad, 0, 7);
         const L = Math.round(100 - kk * 52); gx.fillStyle = 'hsl(0,0%,' + L + '%)'; gx.fill();   // голова белая, хвост серый
       }
+      gx.globalAlpha = 1;
       g.fx = g.fx.filter(function(q){ return now - q.t < 1300; });
       g.fx.forEach(function(q){
         const e = (now - q.t) / 1300; gx.globalAlpha = 1 - e * e;
