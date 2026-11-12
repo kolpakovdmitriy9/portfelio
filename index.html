@@ -653,6 +653,7 @@ touch-action: none;
 .mm-cur.drag{cursor:grabbing}
 .mm-cur svg{display:block;width:34px;height:34px;pointer-events:none}
 .mm-cur span.n{position:absolute;left:12px;top:36px;padding:6px 14px 8px;border-radius:999px;font:400 clamp(14px,1.5vw,20px)/1 'ONY One',sans-serif;white-space:nowrap;pointer-events:none}
+.mm-cur[data-who="dsg"] svg{color:#8b5cf6;transform:scaleX(-1)}.mm-cur[data-who="dsg"] span.n{left:auto;right:14px}
 .mm-cur[data-who="dsg"] svg{color:#8b5cf6}.mm-cur[data-who="dsg"] span.n{background:#8b5cf6;color:#fff}
 .mm-cur[data-who="you"] svg{color:#f0561a}.mm-cur[data-who="you"] span.n{background:#f0561a;color:#000}
 </style>
@@ -1615,17 +1616,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const stick = document.getElementById('mmStick'), grid = document.getElementById('mmGrid');
     const circ = Array.prototype.slice.call(wrap.querySelectorAll('.mm-c')), title = document.getElementById('mmTitle'), sub = document.getElementById('mmSub'), lbl = document.getElementById('mmLbl');
     const curs = [document.getElementById('mmCurA'), document.getElementById('mmCurB')], vid = document.getElementById('mmVideo');
-    // шрифт точек 5×7: «1» и «2», между ними пустой столбец → 11 колонок
-    const G1 = '00100011000010000100001000010001110', G2 = '01110100010000100010001000100011111';
-    const cells = [];
-    for (let r = 0; r < 7; r++) for (let c = 0; c < 11; c++){
-      const on = c < 5 ? G1[r * 5 + c] === '1' : c > 5 ? G2[r * 5 + (c - 6)] === '1' : false;
-      if (on) cells.push({ c: c, r: r, el: null });
-    }
-    const slots = [[7, 0], [8, 0], [9, 0]]; // верхний ряд «2»: сюда садятся круги
+    // число «12» по макету: 12 колонок × 10 рядов. «1» — колонки 0–2, «2» — колонки 4–11; L — место круга-логотипа
+    const ROWS = ['0010LLLXXX00', '0110XXXXXXX0', '111000000XXX', '111000000XXX', '111000XXXXX0', '11100XXXXX00', '1110XXX00000', '1110XXX00000', '1110XXXXXXXX', '1110XXXXXXXX'];
+    const cells = [], slots = [[4, 0], [5, 0], [6, 0]];
+    ROWS.forEach(function(row, r){ for (let c = 0; c < 12; c++){ const ch = row[c]; if (ch === '1' || ch === 'X') cells.push({ c: c, r: r, el: null }); } });
     cells.forEach(function(d){
-      d.logo = slots.findIndex(function(sl){ return sl[0] === d.c && sl[1] === d.r; });
-      if (d.logo < 0){ d.el = document.createElement('i'); grid.appendChild(d.el); d.rnd = Math.random(); }
+      d.el = document.createElement('i'); grid.appendChild(d.el); d.rnd = Math.random();
     });
     let W = 0, H = 0, S = 0, ov = 0, pitch = 0, dia = 0, cx = 0, cy = 0, curOff = [{ x: 0, y: 0 }, { x: 0, y: 0 }], P = -1, near = false;
     const clamp = function(v, a, b){ return Math.max(a, Math.min(b, v)); };
@@ -1634,15 +1630,15 @@ document.addEventListener('DOMContentLoaded', () => {
     function layout(){
       W = stick.clientWidth; H = stick.clientHeight;
       S = clamp(W * .1625, 72, 234); ov = S * 36 / 234;
-      pitch = Math.min(H * .36 / 7, W * .8 / 11); dia = pitch * .8;
-      cx = W / 2; cy = H * .34;
-      const bottom = cy + Math.max(S / 2, 3.5 * pitch + dia / 2);
+      pitch = Math.min(H * .4 / 10, W * .8 / 12); dia = pitch * .78;
+      cx = W / 2; cy = H * .36;
+      const bottom = cy + Math.max(S / 2, 4.5 * pitch + dia / 2);
       title.style.top = (bottom + H * .035) + 'px';
       sub.style.top = (bottom + H * .035 + title.offsetHeight + 6) + 'px';
       cells.forEach(function(d){ if (d.el){ d.el.style.width = d.el.style.height = dia + 'px'; } });
       P = -1; update();
     }
-    const dotX = function(c){ return cx + (c - 5) * pitch; }, dotY = function(r){ return cy + (r - 3) * pitch; };
+    const dotX = function(c){ return cx + (c - 5.5) * pitch; }, dotY = function(r){ return cy + (r - 4.5) * pitch; };
     function update(){
       const r = wrap.getBoundingClientRect(), range = r.height - innerHeight;
       near = r.bottom > -200 && r.top < innerHeight + 200;
@@ -1663,7 +1659,7 @@ document.addEventListener('DOMContentLoaded', () => {
         d.el.style.opacity = t; d.el.style.transform = 'translate(' + (dotX(d.c) - dia / 2) + 'px,' + (dotY(d.r) - dia / 2) + 'px) scale(' + (.2 + .8 * t) + ')';
       });
       curs.forEach(function(el, i){
-        const bx = i === 0 ? cx - 6.3 * pitch : cx + 5.4 * pitch, by = i === 0 ? cy + 1.6 * pitch : cy + 2.9 * pitch;
+        const bx = i === 0 ? dotX(-0.85) - 36 : dotX(12) - 10, by = (i === 0 ? dotY(5.8) : dotY(6.9)) - 10;
         el.style.opacity = cu; el.style.pointerEvents = cu > .5 ? 'auto' : 'none';
         el.style.transform = 'translate(' + clamp(bx + curOff[i].x, 0, W - 100) + 'px,' + clamp(by + curOff[i].y, 0, H - 70) + 'px)';
       });
