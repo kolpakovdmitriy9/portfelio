@@ -2518,7 +2518,7 @@ switchTab('websites');
     preSpin     : 16,     // градусов лёгкой подкрутки, пока блок подъезжает снизу
     scaleFar    : 1,      // масштаб круга, пока блок ещё далеко
     scaleNear   : 0.92,   // масштаб круга, когда блок прилип
-    pulseScale  : 1.18,   // во сколько раз круг крупнее во время активного скролла (энергия→1)
+    pulseScale  : 1,      // пульс размера от скролла выключен: круг дёргался на каждом колесе мыши;   // во сколько раз круг крупнее во время активного скролла (энергия→1)
     sizeGrowFrom: 0.85,   // с какой доли прогресса сцены начинается рост — только хвост третьего блока
     sizeGrowRate: 2.4,    // насколько круг прибавляет в размере за единицу прогресса после старта — без потолка
     fadeGrowFrom: 0.92,   // с этой точки роста круг начинает растворяться
@@ -2578,7 +2578,7 @@ switchTab('websites');
     return { id, fe };
   }
 
-  const REEL_DUR_MS = 1400, REEL_STAGGER_MS = 90, REEL_SPIN_BLUR_PX = 3; // держать в паре с --reel-* в CSS
+  const REEL_DUR_MS = 1400, REEL_STAGGER_MS = 90, REEL_SPIN_BLUR_PX = 0; // держать в паре с --reel-* в CSS
   function animateReelBlur(fe, delayMs){
     if (!fe) return;
     const startAt = performance.now() + delayMs;
@@ -3016,7 +3016,7 @@ switchTab('websites');
     publishExpReveal(progressGrow);
 
     const prev = rot;
-    rot += (rotTarget - rot) * (reduced ? 1 : CFG.inertia);
+    rot += (rotTarget - rot) * (reduced ? 1 : Math.min(CFG.inertia, .1));
     vel += ((rot - prev) - vel) * 0.25;
 
     accent = accentAt(progress);
