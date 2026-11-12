@@ -1791,7 +1791,7 @@ document.addEventListener('DOMContentLoaded', () => {
         s.turn = 3 + Math.floor(Math.random() * 6);
       }
       s.d = d; s.cells.unshift({ c: clamp(h.c + d[0], gB.c0, gB.c1), r: clamp(h.r + d[1], gB.r0, gB.r1) });
-      while (s.cells.length > s.len) s.cells.pop();
+      while (s.cells.length > s.len) s.prev = s.cells.pop();
       const hd = s.cells[0];
       g.fr.forEach(function(f){
         if (!f.solid || f.dead || !inFr(f, hd.c, hd.r)) return;
@@ -1896,26 +1896,38 @@ document.addEventListener('DOMContentLoaded', () => {
       gx.setTransform(gdpr, 0, 0, gdpr, 0, 0); gx.clearRect(0, 0, W, H);
       if (!g) return;
       const cells2 = g.sn.cells, n = cells2.length, ro = Math.max(1.5, 2.2 * k);
-      // подсветка поля из точек вокруг змейки: сетка проявляется там, где она проползла и где ползёт
-      const R = 4, glow = {};
-      cells2.forEach(function(s){
+      // плавное движение: между тиками каждый сегмент едет из прежней клетки в нынешнюю (не прыгает с шага на шаг)
+      const f = g.state === 'play' ? ease(clamp(g.acc / TICK, 0, 1)) : 1, pos = [];
+      for (let i = 0; i < n; i++){
+        const cur = cells2[i], prv = i + 1 < n ? cells2[i + 1] : (g.sn.prev || cur);
+        pos.push({ c: prv.c + (cur.c - prv.c) * f, r: prv.r + (cur.r - prv.r) * f });
+      }
+      // подсветка поля из точек: свет догоняет змейку и медленно гаснет за ней (плавное нарастание и затухание по времени)
+      const dtg = Math.min(.05, Math.max(.001, (now - (g.gT || now)) / 1000)); g.gT = now;
+      const R = 4, tgt = {}; g.gl = g.gl || {};
+      pos.forEach(function(s){
+        const c0 = Math.round(s.c), r0 = Math.round(s.r);
         for (let a = -R; a <= R; a++) for (let b = -R; b <= R; b++){
-          const dd = Math.hypot(a, b); if (dd > R) continue;
-          const c = s.c + a, r = s.r + b; if (c < gB.c0 || c > gB.c1 || r < gB.r0 || r > gB.r1) continue;
+          const c = c0 + a, r = r0 + b; if (c < gB.c0 || c > gB.c1 || r < gB.r0 || r > gB.r1) continue;
+          const dd = Math.hypot(c - s.c, r - s.r); if (dd > R) continue;
           const key = c + ',' + r, al = Math.pow(1 - dd / (R + .5), 1.6);
-          if (!glow[key] || glow[key].a < al) glow[key] = { c: c, r: r, a: al };
+          if (!tgt[key] || tgt[key].a < al) tgt[key] = { c: c, r: r, a: al };
         }
       });
-      Object.keys(glow).forEach(function(key){
-        const q = glow[key]; gx.beginPath(); gx.arc(dotX(q.c), dotY(q.r), dia * (.1 + .12 * q.a), 0, 7);
-        gx.fillStyle = 'rgba(167,139,250,' + (.12 + .6 * q.a).toFixed(3) + ')'; gx.fill();
+      Object.keys(tgt).forEach(function(key){ if (!g.gl[key]) g.gl[key] = { c: tgt[key].c, r: tgt[key].r, a: 0 }; });
+      Object.keys(g.gl).forEach(function(key){
+        const q = g.gl[key], t = tgt[key] ? tgt[key].a : 0;
+        q.a += (t - q.a) * (1 - Math.exp(-dtg * (t > q.a ? 9 : 2.2)));
+        if (q.a < .012 && !t){ delete g.gl[key]; return; }
+        gx.beginPath(); gx.arc(dotX(q.c), dotY(q.r), dia * (.1 + .12 * q.a), 0, 7);
+        gx.fillStyle = 'rgba(255,255,255,' + (.07 + .5 * q.a).toFixed(3) + ')'; gx.fill();
       });
-      cells2.forEach(function(s, i){
-        const kk = n > 1 ? i / (n - 1) : 0, x = dotX(s.c), y = dotY(s.r), rad = .5 * dia;
+      for (let i = n - 1; i >= 0; i--){
+        const kk = n > 1 ? i / (n - 1) : 0, x = dotX(pos[i].c), y = dotY(pos[i].r), rad = .5 * dia;
         gx.beginPath(); gx.arc(x, y, rad + ro, 0, 7); gx.fillStyle = '#000'; gx.fill();
         gx.beginPath(); gx.arc(x, y, rad, 0, 7);
-        gx.fillStyle = 'hsl(258,' + Math.round(90 - kk * 28) + '%,' + Math.round(66 + kk * 24) + '%)'; gx.fill();
-      });
+        const L = Math.round(100 - kk * 52); gx.fillStyle = 'hsl(0,0%,' + L + '%)'; gx.fill();   // голова белая, хвост серый
+      }
       g.fx = g.fx.filter(function(q){ return now - q.t < 1300; });
       g.fx.forEach(function(q){
         const e = (now - q.t) / 1300; gx.globalAlpha = 1 - e * e;
