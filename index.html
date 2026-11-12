@@ -561,7 +561,7 @@ touch-action: none;
   --dial-gap:clamp(16px,2.87vmin,32px);
   --dial-count:3;                /* количество блоков — должно совпадать с числом .dial-slide */
   --dial-vh:100;                 /* сколько vh скролла приходится на один блок */
-  --dial-exit:95vh;              /* дополнительный закреплённый отрезок в конце: первый экран превращается в «Опыт работы» */
+  --dial-exit:140vh;              /* дополнительный закреплённый отрезок в конце: первый экран превращается в «Опыт работы» */
   position:relative;
   margin-top:80px;
   height:calc((var(--dial-count) * var(--dial-vh) * 1vh) + 100vh + var(--dial-exit));
@@ -1769,11 +1769,11 @@ document.addEventListener('DOMContentLoaded', () => {
     function trFrame(now){
       trQ = false;
       if (!trOK || !W) return;
-      const vh = innerHeight, EXIT = .95 * vh, sr = dialStage.getBoundingClientRect(), total = sr.height - vh - EXIT;
+      const vh = innerHeight, EXIT = 1.4 * vh, sr = dialStage.getBoundingClientRect(), total = sr.height - vh - EXIT;
       const Et = total > 0 ? clamp((-sr.top - total) / EXIT, 0, 1) : 0;
       const dt = lastT ? Math.min(Math.max((now - lastT) / 1000, .001), .05) : .016; lastT = now || 0;
       if (Es === null) Es = Et;
-      Es += (Et - Es) * (1 - Math.exp(-dt * 9)); if (Math.abs(Et - Es) < .0004) Es = Et;
+      Es += (Et - Es) * (1 - Math.exp(-dt * (Et < Es ? 18 : 10))); if (Math.abs(Et - Es) < .0004) Es = Et;
       const E = Es;
       // деления кольца циферблата расходятся и гаснут, когда иконка выросла
       const re = smooth(c01((E - .28) / .20)), rK = 1 + .55 * re, rO = 1 - smooth(c01((re - .35) / .65));
@@ -2874,7 +2874,7 @@ switchTab('websites');
   let gate = 0;   // 0 — блок ещё подъезжает и полностью серый, 1 — сцена прилипла
 
   /* прогресс сцены: 0 — сцена только прилипла, 1 — вот-вот отлипнет */
-  const EXIT = function(){ return 0.95 * window.innerHeight; };   // дополнительный отрезок в конце (CSS: --dial-exit:95vh)
+  const EXIT = function(){ return 1.4 * window.innerHeight; };   // дополнительный отрезок в конце (CSS: --dial-exit:140vh)
   function sceneProgress(){
     const r = stage.getBoundingClientRect();
     const total = r.height - window.innerHeight - EXIT();
