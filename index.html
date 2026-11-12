@@ -1920,7 +1920,7 @@ document.addEventListener('DOMContentLoaded', () => {
       g.fx.forEach(function(q){
         const e = (now - q.t) / 1300; gx.globalAlpha = 1 - e * e;
         gx.font = '500 ' + (22 * k) + 'px ' + FONT; gx.textAlign = 'center'; gx.lineJoin = 'round'; gx.lineWidth = 5 * k; gx.strokeStyle = '#000';
-        gx.strokeText(q.txt, q.x, q.y - 16 * k - e * 30 * k); gx.fillStyle = q.col; gx.fillText(q.txt, q.x, q.y - 16 * k - e * 30 * k);
+        gx.fillStyle = q.col; gx.fillText(q.txt, q.x, q.y - 16 * k - e * 30 * k);
       });
       gx.globalAlpha = 1; gx.textAlign = 'left';
       if (g.state === 'end'){
