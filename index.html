@@ -652,7 +652,7 @@ touch-action: none;
 .mm-c[data-i="1"] img{background:#fff}
 .mm-ring{position:absolute;inset:0;width:100%;height:100%;overflow:visible;transform:rotate(-90deg);pointer-events:none}
 .mm-stick.mm-own,.mm-stick.mm-own *{cursor:none!important}
-.mm-frames{position:absolute;inset:0;pointer-events:none;z-index:4}
+.mm-frames{position:absolute;inset:0;pointer-events:none;z-index:0}
 .mm-stick.mm-own{user-select:none;-webkit-user-select:none}
 .mm-fr{position:absolute;box-sizing:border-box;border:1.5px solid var(--c);background:color-mix(in srgb,var(--c) 12%,transparent);pointer-events:none;font-family:Arial,sans-serif}
 .mm-fr .nm{position:absolute;left:0;bottom:100%;margin-bottom:calc(5px*var(--fk,1));font-size:calc(12px*var(--fk,1));line-height:1;color:var(--c);white-space:nowrap}
@@ -1660,7 +1660,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const auto = { x: 0, y: 0, tx: 0, ty: 0, next: 0, fa: 0, ph: 'wander', init: false };
     const drag = { x: 0, y: 0, init: false };
     const layer = document.createElement('div'); layer.className = 'mm-frames'; layer.setAttribute('aria-hidden', 'true');
-    stick.insertBefore(layer, curs[0]);
+    stick.insertBefore(layer, stick.firstChild);
     const frames = [], COL = { me: '#f0561a', dsg: '#8b5cf6' };
     let fSeq = 2136140070;
     function mkFrame(who, x, y){
@@ -1773,7 +1773,7 @@ document.addEventListener('DOMContentLoaded', () => {
       vRaf = 0;
       if (!(dialVis || near)){ if (vid && !vid.paused) vid.pause(); if (dialVidEl && !dialVidEl.paused) dialVidEl.pause(); return; }
       [vid, dialVidEl].forEach(function(v){ if (v && v.paused) v.play().catch(function(){}); });
-      if (vid && dialVidEl && vid.readyState > 1 && dialVidEl.readyState > 1 && Math.abs(vid.currentTime - dialVidEl.currentTime) > .12) vid.currentTime = dialVidEl.currentTime;
+      if (vid && dialVidEl && vid.readyState > 1 && dialVidEl.readyState > 1 && (function(){ const d = Math.abs(vid.currentTime - dialVidEl.currentTime), du = vid.duration || 1e9, hid = !(parseFloat(circ[2].style.opacity) > .01); return hid ? (d > .12 && d < du - .12) : (d > .45 && d < du - .45); })()) vid.currentTime = dialVidEl.currentTime;
       if (vid && vid.duration){ const rf = document.getElementById('mmRingFill'); if (rf) rf.style.strokeDashoffset = String(1 - vid.currentTime / vid.duration); }
       vRaf = requestAnimationFrame(vLoop);
     }
@@ -1821,7 +1821,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const mv = ease(c01((E - .10) / .20)), g = ease(c01((E - .16) / .24)), TL0 = .40, TL = .24;
       const pL = ease(c01((E - TL0) / TL)), pB = ease(c01((E - .50) / .26)), pA = ease(c01((E - .62) / .26));
       const sB = lerp(C.x, f3.x, ease(c01((.50 - TL0) / TL)));          // где видео в тот момент, когда из-под него выезжает Пятёрочка
-      dIcon.style.visibility = E > .001 ? 'hidden' : '';
+      const vReady = vid.readyState > 1 && vid.currentTime > 0; const swap = E > .001 && vReady; dIcon.style.visibility = swap ? 'hidden' : '';
       const s0 = dIcon.getBoundingClientRect();
       const ax = lerp(s0.left + s0.width / 2, C.x, mv), ay = lerp(s0.top + s0.height / 2, sy0, mv), w = lerp(s0.width, S, g);
       stick.style.overflow = 'visible'; stick.style.background = 'transparent';
@@ -1831,7 +1831,7 @@ document.addEventListener('DOMContentLoaded', () => {
         el.style.opacity = o.toFixed(3); el.style.zIndex = z;
         el.style.transform = 'translate(' + (x - size / 2) + 'px,' + (y - size / 2 - T) + 'px)';
       };
-      put(circ[2], lerp(ax, f3.x, pL), lerp(ay, sy0, pL), lerp(w, S, pL), E > .001 ? 1 : 0, 3);   // видео: растёт в центре, потом вправо
+      put(circ[2], lerp(ax, f3.x, pL), lerp(ay, sy0, pL), lerp(w, S, pL), swap ? 1 : 0, 3);   // видео: растёт в центре, потом вправо
       const c2x = lerp(sB, f2.x, pB), c1x = c2x + (f1.x - f2.x) * pA;
       put(circ[1], c2x, sy0, S, fade(.50, .26), 2);                       // Пятёрочка — из-под видео
       put(circ[0], c1x, sy0, S, fade(.62, .26), 1);                       // «Рив Гош» — из-под Пятёрочки
