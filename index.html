@@ -647,6 +647,10 @@ touch-action: none;
 .mm-grid i{position:absolute;left:0;top:0;border-radius:50%;background:#fff;opacity:0;will-change:transform,opacity}
 .mm-c{position:absolute;left:0;top:0;border-radius:50%;box-sizing:border-box;background:#fff;overflow:visible;will-change:transform,width,height;cursor:default}
 .mm-c img,.mm-c video{display:block;width:100%;height:100%;border-radius:50%;object-fit:cover;background:#0b0b0b}
+.mm-c[data-i="1"] img{background:#fff}
+.mm-ring{position:absolute;inset:0;width:100%;height:100%;overflow:visible;transform:rotate(-90deg);pointer-events:none}
+.mm-ring circle{fill:none;stroke:currentColor;stroke-width:3}
+.mm-stick.mm-own,.mm-stick.mm-own *{cursor:none!important}
 .mm-title{position:absolute;left:0;right:0;margin:0;text-align:center;font-family:'ONY Track Moscow',sans-serif;font-weight:400;letter-spacing:0;color:#000;pointer-events:none;white-space:nowrap}
 .mm-sub{position:absolute;left:0;right:0;margin:0;text-align:center;font-family:Arial,sans-serif;font-weight:400;color:#0b0b0b;pointer-events:none;white-space:nowrap}
 .mm-cur{position:absolute;left:0;top:0;opacity:0;touch-action:none;cursor:grab;will-change:transform;z-index:5;padding:6px;font-family:'PP Neue Montreal','Helvetica Neue',Arial,sans-serif}
@@ -860,7 +864,7 @@ touch-action: none;
       <div class="mm-grid" id="mmGrid" aria-hidden="true"></div>
       <div class="mm-c" data-i="0" aria-label="Рив Гош"><img src="files/logo-rivgosh.png" alt="" draggable="false"></div>
       <div class="mm-c" data-i="1" aria-label="Пятёрочка"><img src="files/logo-5.png" alt="" draggable="false"></div>
-      <div class="mm-c" data-i="2" aria-label="Видео"><video id="mmVideo" src="https://github.com/kolpakovdmitriy9/newbring.github.io/raw/refs/heads/master/lovelllas.hyperesources/video.mp4" muted loop playsinline preload="none"></video></div>
+      <div class="mm-c" data-i="2" aria-label="Видео"><video id="mmVideo" src="https://github.com/kolpakovdmitriy9/newbring.github.io/raw/refs/heads/master/lovelllas.hyperesources/video.mp4" muted loop playsinline preload="none"></video><svg class="mm-ring" id="mmRing" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="48.5" opacity=".25"/><circle id="mmRingFill" cx="50" cy="50" r="48.5" pathLength="1" stroke-linecap="round" stroke-dasharray="1" stroke-dashoffset="1"/></svg></div>
       <h2 class="mm-title" id="mmTitle">ОПЫТ РАБОТЫ</h2>
       <p class="mm-sub" id="mmSub">рассказываю и показываю</p>
       <div class="mm-cur" data-who="dsg" id="mmCurA"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 3l7.5 18 2.6-7.4L21 10.9z"/></svg><span class="n">dsg#</span></div>
@@ -1626,23 +1630,62 @@ document.addEventListener('DOMContentLoaded', () => {
       cells.forEach(function(d){
         if (!d.el) return;
         const t = ease((m - .45 - d.rnd * .3) / .25);
-        d.el.style.opacity = t; d.el.style.transform = 'translate(' + (dotX(d.c) - dia / 2) + 'px,' + (dotY(d.r) - dia / 2) + 'px) scale(' + (.2 + .8 * t) + ')';
+        d.el.style.opacity = t; d.el.style.transform = 'translate(' + (dotX(d.c) - dia / 2) + 'px,' + (dotY(d.r) - dia / 2) + 'px)';
       });
-      curs.forEach(function(el, i){
-        const bx = i === 0 ? cx - 238 * k : cx + 167 * k, by = oy + (i === 0 ? 307 : 336) * k;
-        el.style.opacity = cu; el.style.pointerEvents = cu > .5 ? 'auto' : 'none';
-        el.style.transform = 'translate(' + clamp(bx + curOff[i].x, 0, W - 100 * k) + 'px,' + clamp(by + curOff[i].y, 0, H - 70 * k) + 'px)';
-      });
+      CU = cu; ring.style.opacity = 1 - clamp(m / .35, 0, 1); ring.style.color = fg;
+      curs.forEach(function(el, i){ el.style.opacity = cu; el.style.pointerEvents = (!canOwn && i === 1 && cu > .5) ? 'auto' : 'none'; });
+      stick.classList.toggle('mm-own', cu > .5 && canOwn);
+      placeCurs();
       if (vid){ if (near && vid.paused) vid.play().catch(function(){}); else if (!near && !vid.paused) vid.pause(); }
     }
-    // курсоры можно двигать
-    curs.forEach(function(el, i){
-      let st = null;
-      el.addEventListener('pointerdown', function(e){ st = { x: e.clientX, y: e.clientY, ox: curOff[i].x, oy: curOff[i].y }; el.setPointerCapture(e.pointerId); el.classList.add('drag'); e.preventDefault(); });
-      el.addEventListener('pointermove', function(e){ if (!st) return; curOff[i].x = st.ox + e.clientX - st.x; curOff[i].y = st.oy + e.clientY - st.y; P = -1; update(); });
-      const end = function(){ st = null; el.classList.remove('drag'); };
-      el.addEventListener('pointerup', end); el.addEventListener('pointercancel', end);
+    // Фиолетовый курсор (dsg#) ходит по точкам сам, оранжевый («Вы») ведёт пользователь:
+    // в этом блоке он заменяет обычный курсор. На тач-экранах оранжевый можно перетаскивать.
+    const canOwn = matchMedia('(hover: hover) and (pointer: fine)').matches;
+    const TIP = 11.5;                                    // остриё стрелки от угла элемента (до масштаба k)
+    const ring = document.getElementById('mmRing'), ringFill = document.getElementById('mmRingFill');
+    let CU = 0, mouse = null;
+    const auto = { x: 0, y: 0, tx: 0, ty: 0, next: 0, init: false };
+    const drag = { x: 0, y: 0, init: false };
+    function placeCurs(){
+      if (!W) return;
+      if (!auto.init){ auto.x = auto.tx = cx - 238 * k + TIP * k; auto.y = auto.ty = oy + 307 * k + TIP * k; auto.init = true; }
+      if (!drag.init){ drag.x = cx + 167 * k + TIP * k; drag.y = oy + 336 * k + TIP * k; drag.init = true; }
+      const pos = [auto, canOwn && mouse ? mouse : drag];
+      curs.forEach(function(el, i){
+        const q = pos[i];
+        el.style.transform = 'translate(' + (clamp(q.x, 0, W) - TIP * k) + 'px,' + (clamp(q.y, 0, H) - TIP * k) + 'px)';
+      });
+    }
+    let raf = 0;
+    function loop(now){
+      raf = 0; if (!near) return;
+      if (CU > .02){
+        if (now > auto.next){                            // новая цель — случайная точка числа «12»
+          const d = cells[Math.floor(Math.random() * cells.length)];
+          auto.tx = dotX(d.c) + (Math.random() - .5) * pitch * .6; auto.ty = dotY(d.r) + (Math.random() - .5) * pitch * .6;
+          auto.next = now + 900 + Math.random() * 1400;
+        }
+        auto.x += (auto.tx - auto.x) * .05; auto.y += (auto.ty - auto.y) * .05;
+        placeCurs();
+      }
+      if (vid && vid.duration){ ringFill.style.strokeDashoffset = String(1 - vid.currentTime / vid.duration); }
+      raf = requestAnimationFrame(loop);
+    }
+    function kick(){ if (!raf && near) raf = requestAnimationFrame(loop); }
+    stick.addEventListener('pointermove', function(e){
+      const r = stick.getBoundingClientRect();
+      if (drag.st){ drag.x = drag.st.ox + e.clientX - drag.st.x; drag.y = drag.st.oy + e.clientY - drag.st.y; placeCurs(); return; }
+      if (canOwn){ mouse = { x: e.clientX - r.left, y: e.clientY - r.top }; placeCurs(); }
     });
+    stick.addEventListener('pointerleave', function(){ mouse = null; });
+    if (!canOwn){
+      const el = curs[1];
+      el.style.pointerEvents = 'auto';
+      el.addEventListener('pointerdown', function(e){ drag.st = { x: e.clientX, y: e.clientY, ox: drag.x, oy: drag.y }; el.setPointerCapture(e.pointerId); e.preventDefault(); });
+      const end = function(){ drag.st = null; };
+      el.addEventListener('pointerup', end); el.addEventListener('pointercancel', end);
+    }
+    window.addEventListener('scroll', kick, { passive: true });
     // наведение на логотип (когда он стал точкой): рябь по точкам и подпрыгивание
     circ.forEach(function(el, i){
       el.addEventListener('pointerenter', function(){
