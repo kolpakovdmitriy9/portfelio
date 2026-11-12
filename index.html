@@ -585,7 +585,9 @@ touch-action: none;
 .dial-icon--asset{border:none}
 .dial-icon--asset svg{width:100%;height:100%}
 .dial-icon--logo{border:none;background:#fff;overflow:hidden}
-.dial-icon--logo video,.dial-icon--logo img{width:91.46%;height:91.46%;border-radius:50%;object-fit:cover;display:block}
+.dial-icon--logo{position:relative}
+.dial-icon--logo video{position:absolute;left:4.27%;top:4.27%;width:91.46%;height:91.46%;border-radius:50%;object-fit:cover;display:block}
+.dial-icon--logo img{width:91.46%;height:91.46%;border-radius:50%;object-fit:cover;display:block}
 /* число набрано Regular без трекинга — в макете межбуквенное задано только тексту */
 .dial-count{color:var(--dial-accent);font-family:'ONY Track Moscow',sans-serif;font-size:var(--dial-num);font-weight:var(--dial-regular);line-height:1;font-variant-numeric:tabular-nums;white-space:nowrap}
 /* цифра — барабан: колонка 0…9 (+довесок до нужного значения) едет вверх и приземляется на цель.
