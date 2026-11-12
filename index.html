@@ -1615,7 +1615,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // всё считается в координатах макета (экран 1440 px) и умножается на k = ширина окна / 1440
     function layout(){
       W = stick.clientWidth; H = stick.clientHeight;
-      k = clamp(W / 1440, .27, 1.4);
+      k = clamp(W / 1440, .27, 1);
       oy = Math.max(0, (H - 741 * k) / 2);           // кадр макета стоит по центру экрана
       S = 234 * k; ov = 36 * k;                       // круг 234, наезд 36
       pitch = 26.7 * k; dia = pitch * .77;            // шаг и диаметр точек числа «12»
