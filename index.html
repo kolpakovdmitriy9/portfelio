@@ -651,7 +651,6 @@ touch-action: none;
 .mm-c img,.mm-c video{display:block;width:100%;height:100%;border-radius:50%;object-fit:cover;background:#0b0b0b}
 .mm-c[data-i="1"] img{background:#fff}
 .mm-ring{position:absolute;inset:0;width:100%;height:100%;overflow:visible;transform:rotate(-90deg);pointer-events:none}
-.mm-ring circle{fill:none;stroke:currentColor;stroke-width:3}
 .mm-stick.mm-own,.mm-stick.mm-own *{cursor:none!important}
 .mm-frames{position:absolute;inset:0;pointer-events:none;z-index:4}
 .mm-stick.mm-own{user-select:none;-webkit-user-select:none}
@@ -665,12 +664,12 @@ touch-action: none;
 .mm-sub{position:absolute;left:0;right:0;margin:0;text-align:center;font-family:Arial,sans-serif;font-weight:400;color:#0b0b0b;pointer-events:none;white-space:nowrap}
 .mm-cur{position:absolute;left:0;top:0;opacity:0;touch-action:none;cursor:grab;will-change:transform;z-index:5;padding:6px;font-family:'PP Neue Montreal','Helvetica Neue',Arial,sans-serif}
 .mm-cur.drag{cursor:grabbing}
-.mm-cur svg{display:block;width:44px;height:44px;pointer-events:none}
-.mm-cur span.n{position:absolute;top:45px;padding:12px 14px;border-radius:999px;font:400 32.3px/1 'PP Neue Montreal','Helvetica Neue',Arial,sans-serif;white-space:nowrap;pointer-events:none;transform-origin:0 0}
+.mm-cur svg{display:block;width:30px;height:30px;pointer-events:none}
+.mm-cur span.n{position:absolute;top:32px;padding:8px 14px 9px;border-radius:999px;font:500 22px/1 'PP Neue Montreal','Helvetica Neue',Arial,sans-serif;white-space:nowrap;pointer-events:none;transform-origin:0 0}
 .mm-cur[data-who="dsg"] svg{color:#8b5cf6;transform:scaleX(-1)}
-.mm-cur[data-who="dsg"] span.n{right:23px;background:#8b5cf6;color:#fff;transform-origin:100% 0}
+.mm-cur[data-who="dsg"] span.n{right:21px;background:#8b5cf6;color:#fff;transform-origin:100% 0}
 .mm-cur[data-who="you"] svg{color:#f0561a}
-.mm-cur[data-who="you"] span.n{left:41px;background:#f0561a;color:#000}
+.mm-cur[data-who="you"] span.n{left:30px;background:#f0561a;color:#000}
 </style>
 </head>
 <body>
@@ -803,7 +802,7 @@ touch-action: none;
 
         <article class="dial-slide">
           <div class="dial-mark">
-            <span class="dial-icon dial-icon--logo"><video src="https://github.com/kolpakovdmitriy9/newbring.github.io/raw/refs/heads/master/lovelllas.hyperesources/video.mp4" muted playsinline preload="auto" aria-hidden="true"></video></span>
+            <span class="dial-icon dial-icon--logo"><video src="https://github.com/kolpakovdmitriy9/newbring.github.io/raw/refs/heads/master/lovelllas.hyperesources/video.mp4" muted loop autoplay playsinline preload="auto" aria-hidden="true"></video></span>
             <span class="dial-count">17</span>
           </div>
           <div class="dial-copy">
@@ -874,7 +873,7 @@ touch-action: none;
       <div class="mm-grid" id="mmGrid" aria-hidden="true"></div>
       <div class="mm-c" data-i="0" aria-label="Рив Гош"><img src="files/logo-rivgosh.png" alt="" draggable="false"></div>
       <div class="mm-c" data-i="1" aria-label="Пятёрочка"><img src="files/logo-5.png" alt="" draggable="false"></div>
-      <div class="mm-c" data-i="2" aria-label="Видео"><video id="mmVideo" src="https://github.com/kolpakovdmitriy9/newbring.github.io/raw/refs/heads/master/lovelllas.hyperesources/video.mp4" muted loop playsinline preload="auto"></video><svg class="mm-ring" id="mmRing" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="48.5" opacity=".25"/><circle id="mmRingFill" cx="50" cy="50" r="48.5" pathLength="1" stroke-linecap="round" stroke-dasharray="1" stroke-dashoffset="1"/></svg></div>
+      <div class="mm-c" data-i="2" aria-label="Видео"><video id="mmVideo" src="https://github.com/kolpakovdmitriy9/newbring.github.io/raw/refs/heads/master/lovelllas.hyperesources/video.mp4" muted loop autoplay playsinline preload="auto"></video><svg class="mm-ring" id="mmRing" viewBox="0 0 100 100" aria-hidden="true"><defs><mask id="mmRingMask" maskUnits="userSpaceOnUse" x="-10" y="-10" width="120" height="120"><circle id="mmRingFill" cx="50" cy="50" r="43.5" fill="none" stroke="#fff" stroke-width="3" pathLength="1" stroke-dasharray="1" stroke-dashoffset="1"/></mask></defs><g id="mmRingArcs" mask="url(#mmRingMask)"></g></svg></div>
       <h2 class="mm-title" id="mmTitle">ОПЫТ РАБОТЫ</h2>
       <p class="mm-sub" id="mmSub">рассказываю и показываю</p>
       <div class="mm-cur" data-who="dsg" id="mmCurA"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 3l7.5 18 2.6-7.4L21 10.9z"/></svg><span class="n">dsg#</span></div>
@@ -1649,13 +1648,13 @@ document.addEventListener('DOMContentLoaded', () => {
       curs.forEach(function(el, i){ el.style.opacity = cu; el.style.pointerEvents = (!canOwn && i === 1 && cu > .5) ? 'auto' : 'none'; });
       stick.classList.toggle('mm-own', cu > .5 && canOwn);
       placeCurs();
-      if (vid){ if (near && vid.paused) vid.play().catch(function(){}); else if (!near && !vid.paused) vid.pause(); }
+      if (near) vKick();
     }
     // Оба курсора рисуют фреймы, как в Фигме: фиолетовый (dsg#) ходит сам и время от времени «тянет» рамку,
     // оранжевый («Вы») ведёт пользователь — в этом блоке он заменяет обычный курсор; зажать кнопку и вести = нарисовать фрейм.
     // Под рамкой — размер в пикселях. Нарисованные фреймы остаются. На тач-экранах оранжевый можно только перетаскивать.
     const canOwn = matchMedia('(hover: hover) and (pointer: fine)').matches;
-    const TIP = 11.5;                                    // остриё стрелки от угла элемента (до масштаба k)
+    const TIP = 9.75;                                    // остриё стрелки от угла элемента (до масштаба k)
     const ring = document.getElementById('mmRing'), ringFill = document.getElementById('mmRingFill');
     let CU = 0, mouse = null, own = null;
     const auto = { x: 0, y: 0, tx: 0, ty: 0, next: 0, fa: 0, ph: 'wander', init: false };
@@ -1754,6 +1753,35 @@ document.addEventListener('DOMContentLoaded', () => {
           d.el.animate([{ scale: 1 }, { scale: 1.45 }, { scale: 1 }], { duration: 420, delay: dd * 55, easing: 'ease-out' }); });
       });
     });
+    // Кольцо прогресса: тонкая дуга внутри фото, цвет по ходу дуги от белого к чёрному (без серой дорожки); заполняется по времени видео
+    (function(){
+      const g = document.getElementById('mmRingArcs'); if (!g) return;
+      const N = 90, R = 43.5, NS = 'http://www.w3.org/2000/svg';
+      for (let i = 0; i < N; i++){
+        const a0 = i / N * 2 * Math.PI, a1 = (i + 1.6) / N * 2 * Math.PI, v = Math.round(255 * (1 - i / (N - 1)));
+        const pth = document.createElementNS(NS, 'path');
+        pth.setAttribute('d', 'M' + (50 + R * Math.cos(a0)).toFixed(2) + ' ' + (50 + R * Math.sin(a0)).toFixed(2) + 'A' + R + ' ' + R + ' 0 0 1 ' + (50 + R * Math.cos(a1)).toFixed(2) + ' ' + (50 + R * Math.sin(a1)).toFixed(2));
+        pth.setAttribute('fill', 'none'); pth.setAttribute('stroke', 'rgb(' + v + ',' + v + ',' + v + ')'); pth.setAttribute('stroke-width', '1.3');
+        g.appendChild(pth);
+      }
+    })();
+    // Два видео (иконка циферблата и круг в «Опыте работы») играют одновременно и держатся на одном кадре:
+    // при подмене одного другим нет ни чёрной вспышки, ни скачка кадра
+    const dialVidEl = document.querySelector('#dialStage .dial-icon--logo video');
+    let dialVis = false, vRaf = 0;
+    function vLoop(){
+      vRaf = 0;
+      if (!(dialVis || near)){ if (vid && !vid.paused) vid.pause(); if (dialVidEl && !dialVidEl.paused) dialVidEl.pause(); return; }
+      [vid, dialVidEl].forEach(function(v){ if (v && v.paused) v.play().catch(function(){}); });
+      if (vid && dialVidEl && vid.readyState > 1 && dialVidEl.readyState > 1 && Math.abs(vid.currentTime - dialVidEl.currentTime) > .12) vid.currentTime = dialVidEl.currentTime;
+      if (vid && vid.duration){ const rf = document.getElementById('mmRingFill'); if (rf) rf.style.strokeDashoffset = String(1 - vid.currentTime / vid.duration); }
+      vRaf = requestAnimationFrame(vLoop);
+    }
+    function vKick(){ if (!vRaf) vRaf = requestAnimationFrame(vLoop); }
+    if ('IntersectionObserver' in window && dialStageEl()){
+      new IntersectionObserver(function(en){ dialVis = en[0].isIntersecting; if (dialVis) vKick(); }, { rootMargin: '300px' }).observe(dialStageEl());
+    } else { dialVis = true; vKick(); }
+    function dialStageEl(){ return document.getElementById('dialStage'); }
     // === Переход «циферблат → Опыт работы» ===
     // Последний слайд циферблата: иконка-видео растёт, встаёт в центр, уезжает вправо на своё место, из-под неё
     // раскрываются Пятёрочка и «Рив Гош», потом проявляется заголовок. Всё — функции от одного числа E (0…1)
@@ -1807,8 +1835,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const c2x = lerp(sB, f2.x, pB), c1x = c2x + (f1.x - f2.x) * pA;
       put(circ[1], c2x, sy0, S, fade(.50, .26), 2);                       // Пятёрочка — из-под видео
       put(circ[0], c1x, sy0, S, fade(.62, .26), 1);                       // «Рив Гош» — из-под Пятёрочки
-      ring.style.opacity = 1; ring.style.color = '#000';
-      if (E > .001){ if (vid.paused) vid.play().catch(function(){}); } else { if (!vid.paused) vid.pause(); if (vid.currentTime) vid.currentTime = 0; }
+      ring.style.opacity = ease(c01(E / .12));
       const t = ease(c01((E - .88) / .12));
       title.style.top = (oy + 403 * k - T) + 'px'; sub.style.top = (oy + 571 * k - T) + 'px';
       title.style.opacity = sub.style.opacity = t.toFixed(3);
