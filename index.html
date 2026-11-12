@@ -1796,8 +1796,8 @@ document.addEventListener('DOMContentLoaded', () => {
       g.fr.forEach(function(f){
         if (!f.solid || f.dead || !inFr(f, hd.c, hd.r)) return;
         f.dead = true; const x = dotX(hd.c), y = dotY(hd.r);
-        if (f.who === 'dsg'){ s.len++; g.sc.eat++; gFx(x, y, '+1 сегмент', COL.dsg, now); }
-        else { s.len = Math.max(0, s.len - 1); while (s.cells.length > s.len) s.cells.pop(); g.sc.cut++; gFx(x, y, '−1 сегмент', COL.me, now); }
+        if (f.who === 'dsg'){ s.len++; g.sc.eat++; gFx(x, y, '+1', COL.dsg, now); }
+        else { s.len = Math.max(0, s.len - 1); while (s.cells.length > s.len) s.cells.pop(); g.sc.cut++; gFx(x, y, '−1', COL.me, now); }
       });
     }
     function gValid(f, who){
@@ -1896,17 +1896,26 @@ document.addEventListener('DOMContentLoaded', () => {
       gx.setTransform(gdpr, 0, 0, gdpr, 0, 0); gx.clearRect(0, 0, W, H);
       if (!g) return;
       const cells2 = g.sn.cells, n = cells2.length, ro = Math.max(1.5, 2.2 * k);
+      // подсветка поля из точек вокруг змейки: сетка проявляется там, где она проползла и где ползёт
+      const R = 4, glow = {};
+      cells2.forEach(function(s){
+        for (let a = -R; a <= R; a++) for (let b = -R; b <= R; b++){
+          const dd = Math.hypot(a, b); if (dd > R) continue;
+          const c = s.c + a, r = s.r + b; if (c < gB.c0 || c > gB.c1 || r < gB.r0 || r > gB.r1) continue;
+          const key = c + ',' + r, al = Math.pow(1 - dd / (R + .5), 1.6);
+          if (!glow[key] || glow[key].a < al) glow[key] = { c: c, r: r, a: al };
+        }
+      });
+      Object.keys(glow).forEach(function(key){
+        const q = glow[key]; gx.beginPath(); gx.arc(dotX(q.c), dotY(q.r), dia * (.1 + .12 * q.a), 0, 7);
+        gx.fillStyle = 'rgba(167,139,250,' + (.12 + .6 * q.a).toFixed(3) + ')'; gx.fill();
+      });
       cells2.forEach(function(s, i){
-        const kk = n > 1 ? i / (n - 1) : 0, x = dotX(s.c), y = dotY(s.r), rad = (i === 0 ? .56 : .5) * dia;
+        const kk = n > 1 ? i / (n - 1) : 0, x = dotX(s.c), y = dotY(s.r), rad = .5 * dia;
         gx.beginPath(); gx.arc(x, y, rad + ro, 0, 7); gx.fillStyle = '#000'; gx.fill();
         gx.beginPath(); gx.arc(x, y, rad, 0, 7);
         gx.fillStyle = 'hsl(258,' + Math.round(90 - kk * 28) + '%,' + Math.round(66 + kk * 24) + '%)'; gx.fill();
       });
-      if (n){
-        const s = cells2[0], d = g.sn.d, x = dotX(s.c), y = dotY(s.r), e = dia * .12;
-        gx.fillStyle = '#fff';
-        [1, -1].forEach(function(a){ gx.beginPath(); gx.arc(x + d[0] * dia * .16 - d[1] * dia * .2 * a, y + d[1] * dia * .16 + d[0] * dia * .2 * a, e, 0, 7); gx.fill(); });
-      }
       g.fx = g.fx.filter(function(q){ return now - q.t < 1300; });
       g.fx.forEach(function(q){
         const e = (now - q.t) / 1300; gx.globalAlpha = 1 - e * e;
