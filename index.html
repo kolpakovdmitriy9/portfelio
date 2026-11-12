@@ -1639,6 +1639,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const dark = ease((p - .06) / .3), m = ease((p - .12) / .38), df = clamp((p - .52) / .26, 0, 1), cu = ease((p - .82) / .14);
       const v = Math.round(255 * (1 - dark)), bg = 'rgb(' + v + ',' + v + ',' + v + ')', fg = 'rgb(' + (255 - v) + ',' + (255 - v) + ',' + (255 - v) + ')';
       stick.style.background = bg; title.style.color = fg; sub.style.color = fg; lbl.style.opacity = dark;
+      title.style.opacity = sub.style.opacity = (1 - .9 * cu).toFixed(3);   // когда начинается игра, заголовок уходит в прозрачность и не закрывает поле
       title.style.top = (oy + lerp(403, 458, m) * k) + 'px'; sub.style.top = (oy + lerp(571, 626, m) * k) + 'px';
       const rowW = 3 * S - 2 * ov;
       circ.forEach(function(el, i){
@@ -1910,12 +1911,14 @@ document.addEventListener('DOMContentLoaded', () => {
       // подсветка поля из точек: свет догоняет змейку и медленно гаснет за ней (плавное нарастание и затухание по времени)
       const dtg = Math.min(.05, Math.max(.001, (now - (g.gT || now)) / 1000)); g.gT = now;
       const R = 4, tgt = {}; g.gl = g.gl || {};
+      if (!g.nk){ g.nk = {}; cells.forEach(function(d){ g.nk[d.c + ',' + d.r] = 1; }); }
       pos.forEach(function(s){
         const c0 = Math.round(s.c), r0 = Math.round(s.r);
         for (let a = -R; a <= R; a++) for (let b = -R; b <= R; b++){
           const c = c0 + a, r = r0 + b; if (c < gB.c0 || c > gB.c1 || r < gB.r0 || r > gB.r1) continue;
           const dd = Math.hypot(c - s.c, r - s.r); if (dd > R) continue;
           const key = c + ',' + r, al = Math.pow(1 - dd / (R + .5), 1.6);
+          if (g.nk[key]) continue;                       // точки самого числа не подсвечиваем — их темнит змейка
           if (!tgt[key] || tgt[key].a < al) tgt[key] = { c: c, r: r, a: al };
         }
       });
@@ -1931,8 +1934,8 @@ document.addEventListener('DOMContentLoaded', () => {
       cells.forEach(function(d){
         if (!d.el) return;
         let dd = 9; for (let i = 0; i < n; i++){ const e = Math.hypot(d.c - pos[i].c, d.r - pos[i].r); if (e < dd) dd = e; }
-        const t = clamp(1.5 - dd, 0, 1); d.dm = (d.dm || 0) + (t - (d.dm || 0)) * (1 - Math.exp(-dtg * (t > (d.dm || 0) ? 14 : 4)));
-        d.el.style.setProperty('--g', Math.round(255 - 215 * d.dm));
+        const t = clamp((1.15 - dd) / .5, 0, 1); d.dm = (d.dm || 0) + (t - (d.dm || 0)) * (1 - Math.exp(-dtg * (t > (d.dm || 0) ? 14 : 4)));
+        d.el.style.setProperty('--g', Math.round(255 * (1 - d.dm)));
       });
       for (let i = n - 1; i >= 0; i--){
         const kk = n > 1 ? i / (n - 1) : 0, x = dotX(pos[i].c), y = dotY(pos[i].r), rad = .5 * dia;
