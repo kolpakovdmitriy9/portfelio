@@ -1616,7 +1616,7 @@ document.addEventListener('DOMContentLoaded', () => {
       lbl.style.fontSize = (40 * k) + 'px'; lbl.style.lineHeight = (48 * k) + 'px';
       lbl.style.left = (cx - 720 * k + 55 * k) + 'px'; lbl.style.top = (oy + 55 * k) + 'px';
       stick.style.setProperty('--fk', Math.max(k, .75));
-      curs.forEach(function(el){ el.style.scale = k; el.style.transformOrigin = '0 0'; });
+      curs.forEach(function(el){ el.style.transformOrigin = '0 0'; });
       cells.forEach(function(d){ if (d.el){ d.el.style.width = d.el.style.height = dia + 'px'; } });
       P = -1; update();
     }
@@ -1686,7 +1686,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const pos = [auto, canOwn && mouse ? mouse : drag];
       curs.forEach(function(el, i){
         const q = pos[i];
-        el.style.transform = 'translate(' + (clamp(q.x, 0, W) - TIP * k) + 'px,' + (clamp(q.y, 0, H) - TIP * k) + 'px)';
+        el.style.transform = 'translate(' + (clamp(q.x, 0, W) - TIP * k) + 'px,' + (clamp(q.y, 0, H) - TIP * k) + 'px) scale(' + k + ')';
       });
     }
     function stepAuto(now){
