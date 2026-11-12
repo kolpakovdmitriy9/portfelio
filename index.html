@@ -662,6 +662,10 @@ touch-action: none;
 .mm-fr.sel .sz,.mm-fr.sel .h{display:block}
 .mm-title{position:absolute;left:0;right:0;margin:0;text-align:center;font-family:'ONY Track Moscow',sans-serif;font-weight:400;letter-spacing:0;color:#000;pointer-events:none;white-space:nowrap}
 .mm-sub{position:absolute;left:0;right:0;margin:0;text-align:center;font-family:Arial,sans-serif;font-weight:400;color:#0b0b0b;pointer-events:none;white-space:nowrap}
+.mm-snake{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;opacity:0}
+.mm-hud{position:absolute;margin:0;transform:translateX(-100%);opacity:0;pointer-events:none;white-space:nowrap;text-align:right;color:#fff;font-weight:500;font-family:'PP Neue Montreal','Helvetica Neue',Arial,sans-serif}
+.mm-hud .bar{display:block;margin:calc(8px*var(--hk,1)) 0 0 auto;width:calc(220px*var(--hk,1));height:calc(5px*var(--hk,1));border-radius:99px;background:rgba(255,255,255,.2);overflow:hidden}
+.mm-hud .bar b{display:block;height:100%;width:100%;background:#f0561a}
 .mm-cur{position:absolute;left:0;top:0;opacity:0;touch-action:none;cursor:grab;will-change:transform;z-index:5;padding:6px;font-family:'PP Neue Montreal','Helvetica Neue',Arial,sans-serif}
 .mm-cur.drag{cursor:grabbing}
 .mm-cur svg{display:block;width:30px;height:30px;pointer-events:none}
@@ -1619,7 +1623,7 @@ document.addEventListener('DOMContentLoaded', () => {
       stick.style.setProperty('--fk', Math.max(k, .75));
       curs.forEach(function(el){ el.style.transformOrigin = '0 0'; });
       cells.forEach(function(d){ if (d.el){ d.el.style.width = d.el.style.height = dia + 'px'; } });
-      P = -1; update();
+      P = -1; if (typeof gLayout === 'function') gLayout(); update();
     }
     const dotX = function(c){ return cx + (c - 5.5) * pitch; }, dotY = function(r){ return cy + (r - 4.5) * pitch; };
     function update(){
@@ -1644,7 +1648,8 @@ document.addEventListener('DOMContentLoaded', () => {
         d.el.style.opacity = t; d.el.style.transform = 'translate(' + (dotX(d.c) - dia / 2) + 'px,' + (dotY(d.r) - dia / 2) + 'px)';
       });
       CU = cu; ring.style.opacity = 1 - clamp(m / .35, 0, 1); ring.style.color = fg;
-      if (cu < .02 && frames.length) clearFrames();
+      if (cu < .02 && (frames.length || g)){ clearFrames(); }
+      gcv.style.opacity = hud.style.opacity = cu; if (cu > .5 && canOwn && !g) gReset();
       curs.forEach(function(el, i){ el.style.opacity = cu; el.style.pointerEvents = (!canOwn && i === 1 && cu > .5) ? 'auto' : 'none'; });
       stick.classList.toggle('mm-own', cu > .5 && canOwn);
       placeCurs();
@@ -1679,7 +1684,7 @@ document.addEventListener('DOMContentLoaded', () => {
       f.w = w; f.h = h; f.sz.textContent = Math.round(w / k) + ' × ' + Math.round(h / k);
     }
     function endFrame(f){ if (f.w < 10 * k || f.h < 10 * k){ f.el.remove(); const i = frames.indexOf(f); if (i >= 0) frames.splice(i, 1); } }
-    function clearFrames(){ frames.forEach(function(f){ f.el.remove(); }); frames.length = 0; own = null; auto.ph = 'wander'; auto.fr = null; auto.fa = 0; }
+    function clearFrames(){ if (typeof gClear === 'function') gClear(); frames.forEach(function(f){ f.el.remove(); }); frames.length = 0; own = null; auto.ph = 'wander'; auto.fr = null; auto.fa = 0; }
     function placeCurs(){
       if (!W) return;
       if (!auto.init){ auto.x = auto.tx = cx - 238 * k + TIP * k; auto.y = auto.ty = oy + 307 * k + TIP * k; auto.init = true; }
@@ -1714,27 +1719,228 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e >= 1){ endFrame(auto.fr); auto.fr = null; auto.ph = 'wander'; auto.fa = now + 3500 + Math.random() * 3000; auto.next = 0; }
       }
     }
+    // === Игра «змейка»: ползёт по невидимой сетке точек числа «12». Фиолетовый ставит фреймы на её пути (+1 сегмент),
+    // пользователь строит оранжевые (−1 сегмент). Цель пользователя — убрать змейку, фиолетового — вырастить до GOAL ===
+    const START = 6, GOAL = 14, LIFE = 9000, TICK = 190;
+    const gcv = document.createElement('canvas'); gcv.className = 'mm-snake'; gcv.setAttribute('aria-hidden', 'true');
+    stick.insertBefore(gcv, title);
+    const gx = gcv.getContext('2d');
+    const hud = document.createElement('div'); hud.className = 'mm-hud'; hud.setAttribute('aria-hidden', 'true');
+    hud.innerHTML = '<span class="t"></span><i class="bar"><b></b></i>'; stick.appendChild(hud);
+    const hudT = hud.querySelector('.t'), hudB = hud.querySelector('.bar b');
+    const gB = { c0: 0, c1: 0, r0: 0, r1: 0 }; let gdpr = 1, g = null;
+    const FONT = "'PP Neue Montreal','Helvetica Neue',Arial,sans-serif";
+    function gLayout(){
+      gdpr = Math.min(2, window.devicePixelRatio || 1);
+      gcv.width = Math.round(W * gdpr); gcv.height = Math.round(H * gdpr);
+      gB.c0 = Math.ceil(5.5 + (pitch / 2 - cx) / pitch); gB.c1 = Math.floor(5.5 + (W - pitch / 2 - cx) / pitch);
+      gB.r0 = Math.ceil(4.5 + (pitch / 2 - cy) / pitch); gB.r1 = Math.floor(4.5 + (H - pitch / 2 - cy) / pitch);
+      hud.style.left = (cx + 720 * k - 55 * k) + 'px'; hud.style.top = (oy + 55 * k) + 'px';
+      hud.style.fontSize = (40 * k) + 'px'; hud.style.lineHeight = (48 * k) + 'px';
+      hud.style.setProperty('--hk', k);
+      if (g && g.b !== gB.c0 + ':' + gB.c1 + ':' + gB.r0 + ':' + gB.r1) gClear();
+    }
+    function gEl(who){
+      const el = document.createElement('div'); el.className = 'mm-fr sel'; el.style.setProperty('--c', COL[who]);
+      el.innerHTML = '<span class="nm">Frame ' + (fSeq++) + '</span><span class="sz"></span><i class="h tl"></i><i class="h tr"></i><i class="h bl"></i><i class="h br"></i>';
+      layer.appendChild(el); return el;
+    }
+    function gPlace(f, p){
+      p = p == null ? 1 : p;
+      const w = (f.c1 - f.c0) * pitch * p, h = (f.r1 - f.r0) * pitch * p;
+      f.el.style.left = (dotX(f.c0) - pitch / 2) + 'px'; f.el.style.top = (dotY(f.r0) - pitch / 2) + 'px';
+      f.el.style.width = w + 'px'; f.el.style.height = h + 'px';
+      f.sz.textContent = Math.round((f.c1 - f.c0) * 26.7 * p) + ' × ' + Math.round((f.r1 - f.r0) * 26.7 * p);
+    }
+    function gMake(who, c0, r0, c1, r1, anim, now){
+      const f = { who: who, c0: c0, r0: r0, c1: c1, r1: r1, anim: !!anim, solid: !anim, dead: false, t: now, el: gEl(who) };
+      f.sz = f.el.querySelector('.sz'); if (anim) f.el.style.opacity = 0; gPlace(f, anim ? .02 : 1); return f;
+    }
+    function gClear(){
+      if (g){ g.fr.forEach(function(f){ f.el.remove(); }); if (g.drag && g.drag.el) g.drag.el.remove(); }
+      g = null;
+    }
+    function gReset(){
+      const now = performance.now();
+      if (g) gClear();
+      g = { b: gB.c0 + ':' + gB.c1 + ':' + gB.r0 + ':' + gB.r1, sn: { cells: [], d: [1, 0], len: START, turn: 3 }, fr: [], ink: 100, sc: { cut: 0, eat: 0 }, state: 'play', acc: 0, botT: now + 1800, fx: [], drag: null, msgT: 0, msg: '' };
+      const r = clamp(5, gB.r0, gB.r1), hc = clamp(-2, gB.c0 + START, gB.c1);
+      for (let i = 0; i < START; i++) g.sn.cells.push({ c: hc - i, r: r });
+      g.last = now;
+    }
+    const inFr = function(f, c, r){ return c >= f.c0 && c < f.c1 && r >= f.r0 && r < f.r1; };
+    const ovl = function(a, b, m){ return a.c0 < b.c1 + m && a.c1 > b.c0 - m && a.r0 < b.r1 + m && a.r1 > b.r0 - m; };
+    const gCell = function(x, y){ return { c: clamp(Math.round(5.5 + (x - cx) / pitch), gB.c0, gB.c1), r: clamp(Math.round(4.5 + (y - cy) / pitch), gB.r0, gB.r1) }; };
+    const gCost = function(f){ return 8 + (f.c1 - f.c0) * (f.r1 - f.r0) / 6; };
+    const inBounds = function(f){ return f.c0 >= gB.c0 && f.r0 >= gB.r0 && f.c1 <= gB.c1 + 1 && f.r1 <= gB.r1 + 1; };
+    function gFx(x, y, txt, col, now){ g.fx.push({ x: x, y: y, t: now, txt: txt, col: col }); }
+    const DIRS = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+    function gSnakeTick(now){
+      const s = g.sn; if (!s.cells.length) return;
+      const h = s.cells[0], n = s.cells.length;
+      const ok = function(d){
+        const c = h.c + d[0], r = h.r + d[1];
+        if (c < gB.c0 || c > gB.c1 || r < gB.r0 || r > gB.r1) return false;
+        if (n > 1 && d[0] === -s.d[0] && d[1] === -s.d[1]) return false;
+        return !s.cells.some(function(q, i){ return i < n - 1 && q.c === c && q.r === r; });
+      };
+      let d = s.d; s.turn--;
+      if (s.turn <= 0 || !ok(d)){
+        const opts = DIRS.filter(ok);
+        if (opts.length){ const side = opts.filter(function(x){ return x[0] !== d[0] || x[1] !== d[1]; }), pool = side.length ? side : opts; d = pool[Math.floor(Math.random() * pool.length)]; }
+        s.turn = 3 + Math.floor(Math.random() * 6);
+      }
+      s.d = d; s.cells.unshift({ c: clamp(h.c + d[0], gB.c0, gB.c1), r: clamp(h.r + d[1], gB.r0, gB.r1) });
+      while (s.cells.length > s.len) s.cells.pop();
+      const hd = s.cells[0];
+      g.fr.forEach(function(f){
+        if (!f.solid || f.dead || !inFr(f, hd.c, hd.r)) return;
+        f.dead = true; const x = dotX(hd.c), y = dotY(hd.r);
+        if (f.who === 'dsg'){ s.len++; g.sc.eat++; gFx(x, y, '+1 сегмент', COL.dsg, now); }
+        else { s.len = Math.max(0, s.len - 1); while (s.cells.length > s.len) s.cells.pop(); g.sc.cut++; gFx(x, y, '−1 сегмент', COL.me, now); }
+      });
+    }
+    function gValid(f, who){
+      if (!inBounds(f)) return false;
+      const m = who === 'dsg' ? 1 : 0;
+      return !g.fr.some(function(o){ return o !== f && !o.dead && ovl(f, o, m); });
+    }
+    function gBotSpawn(now){
+      if (g.fr.filter(function(f){ return f.who === 'dsg'; }).length >= 3) return;
+      const h = g.sn.cells[0]; if (!h) return;
+      for (let n = 0; n < 16; n++){
+        const kk = 4 + Math.floor(Math.random() * 8), pc = h.c + g.sn.d[0] * kk, pr = h.r + g.sn.d[1] * kk;
+        const w = 3 + Math.floor(Math.random() * 3), hh = 3 + Math.floor(Math.random() * 3);
+        const c0 = pc - Math.floor(Math.random() * w), r0 = pr - Math.floor(Math.random() * hh);
+        const t = { who: 'dsg', c0: c0, r0: r0, c1: c0 + w, r1: r0 + hh };
+        if (!gValid(t, 'dsg') || g.sn.cells.some(function(q){ return inFr(t, q.c, q.r); })) continue;
+        const f = gMake('dsg', c0, r0, c0 + w, r0 + hh, true, now); f.t0 = now + 350; g.fr.push(f); return;
+      }
+    }
+    function gMkRect(a, b){ return { who: 'me', c0: Math.min(a.c, b.c), r0: Math.min(a.r, b.r), c1: Math.max(a.c, b.c) + 1, r1: Math.max(a.r, b.r) + 1 }; }
+    // рамка упирается в соседние фреймы и змейку, как в стену
+    function gFit(a, b){
+      for (let i = 0; i < 80; i++){
+        const f = gMkRect(a, b);
+        if (inBounds(f) && !g.fr.some(function(o){ return !o.dead && ovl(f, o, 0); }) && !g.sn.cells.some(function(q){ return inFr(f, q.c, q.r); })) return f;
+        const dc = b.c - a.c, dr = b.r - a.r; if (!dc && !dr) return f;
+        if (Math.abs(dc) >= Math.abs(dr) && dc) b = { c: b.c - Math.sign(dc), r: b.r }; else if (dr) b = { c: b.c, r: b.r - Math.sign(dr) }; else b = { c: b.c - Math.sign(dc), r: b.r };
+      }
+      return gMkRect(a, a);
+    }
+    function gWhy(f){
+      if (f.c1 - f.c0 < 2 || f.r1 - f.r0 < 2) return 'мал';
+      if (gCost(f) > g.ink) return 'чернила';
+      return '';
+    }
+    function gDown(e){
+      if (!g || g.state !== 'play') return;
+      const r = stick.getBoundingClientRect(); mouse = { x: e.clientX - r.left, y: e.clientY - r.top };
+      g.drag = { a: gCell(mouse.x, mouse.y), el: gEl('me') }; g.drag.sz = g.drag.el.querySelector('.sz');
+      stick.setPointerCapture(e.pointerId); gDragView(); e.preventDefault();
+    }
+    function gDragView(){
+      const d = g.drag; if (!d) return;
+      const f = gFit(d.a, gCell(mouse.x, mouse.y)); d.f = f; d.why = gWhy(f);
+      d.el.style.setProperty('--c', d.why ? '#d33' : COL.me);
+      d.el.style.left = (dotX(f.c0) - pitch / 2) + 'px'; d.el.style.top = (dotY(f.r0) - pitch / 2) + 'px';
+      d.el.style.width = ((f.c1 - f.c0) * pitch) + 'px'; d.el.style.height = ((f.r1 - f.r0) * pitch) + 'px';
+      d.sz.textContent = Math.round((f.c1 - f.c0) * 26.7) + ' × ' + Math.round((f.r1 - f.r0) * 26.7);
+    }
+    function gUp(){
+      if (!g || !g.drag) return;
+      const d = g.drag, now = performance.now(); g.drag = null; d.el.remove();
+      if (d.why){ gFx(mouse ? mouse.x : cx, mouse ? mouse.y : cy, d.why === 'мал' ? 'слишком мал' : 'мало чернил', '#ff6b6b', now); return; }
+      g.ink -= gCost(d.f);
+      const f = gMake('me', d.f.c0, d.f.r0, d.f.c1, d.f.r1, false, now); g.fr.push(f);
+      const mine = g.fr.filter(function(o){ return o.who === 'me'; }); if (mine.length > 3){ mine[0].dead = true; }
+    }
+    function gEnd(now){
+      if (g.state !== 'play') return;
+      if (g.sn.len <= 0){ g.state = 'end'; g.msg = 'Змейка исчезла — вы победили'; }
+      else if (g.sn.len >= GOAL){ g.state = 'end'; g.msg = 'Змейка доросла до ' + GOAL + ' — победил фиолетовый'; }
+      if (g.state === 'end'){ g.msgT = now; g.fr.forEach(function(f){ f.el.remove(); }); g.fr = []; if (g.drag){ g.drag.el.remove(); g.drag = null; } }
+    }
+    function stepGame(now){
+      if (!g) gReset();
+      const dt = Math.min(60, now - (g.last || now)); g.last = now;
+      let cur = null;
+      if (g.state === 'play'){
+        g.ink = Math.min(100, g.ink + dt * .008);
+        g.acc += dt; while (g.acc > TICK){ g.acc -= TICK; gSnakeTick(now); gEnd(now); if (g.state !== 'play') break; }
+        if (g.state === 'play'){
+          if (now > g.botT){ gBotSpawn(now); g.botT = now + 1500 + Math.random() * 1100; }
+          g.fr.forEach(function(f){
+            if (f.anim){
+              if (now < f.t0){ cur = { x: dotX(f.c0) - pitch / 2, y: dotY(f.r0) - pitch / 2, snap: true }; return; }
+              const e = clamp((now - f.t0) / 650, 0, 1), p = Math.max(.02, ease(e));
+              f.el.style.opacity = 1; gPlace(f, p);
+              cur = { x: dotX(f.c0) - pitch / 2 + (f.c1 - f.c0) * pitch * p, y: dotY(f.r0) - pitch / 2 + (f.r1 - f.r0) * pitch * p };
+              if (e >= 1){ f.anim = false; f.solid = true; f.t = now; }
+            } else {
+              const age = now - f.t; if (age > LIFE) f.dead = true; else f.el.style.opacity = clamp((LIFE - age) / 900, 0, 1);
+            }
+          });
+          g.fr = g.fr.filter(function(f){ if (f.dead) f.el.remove(); return !f.dead; });
+          if (g.drag) gDragView();
+        }
+      } else if (now - g.msgT > 3500) gReset();
+      // фиолетовый курсор: идёт к углу строящегося фрейма и тянет его, иначе гуляет по числу
+      if (cur){ auto.x += (cur.x - auto.x) * (cur.snap ? .22 : 1); auto.y += (cur.y - auto.y) * (cur.snap ? .22 : 1); auto.next = 0; }
+      else {
+        if (now > auto.next){ const d = cells[Math.floor(Math.random() * cells.length)]; auto.tx = dotX(d.c) + (Math.random() - .5) * pitch * .6; auto.ty = dotY(d.r) + (Math.random() - .5) * pitch * .6; auto.next = now + 900 + Math.random() * 1400; }
+        auto.x += (auto.tx - auto.x) * .05; auto.y += (auto.ty - auto.y) * .05;
+      }
+    }
+    function gDraw(now){
+      gx.setTransform(gdpr, 0, 0, gdpr, 0, 0); gx.clearRect(0, 0, W, H);
+      if (!g) return;
+      const cells2 = g.sn.cells, n = cells2.length, ro = Math.max(1.5, 2.2 * k);
+      cells2.forEach(function(s, i){
+        const kk = n > 1 ? i / (n - 1) : 0, x = dotX(s.c), y = dotY(s.r), rad = (i === 0 ? .56 : .5) * dia;
+        gx.beginPath(); gx.arc(x, y, rad + ro, 0, 7); gx.fillStyle = '#000'; gx.fill();
+        gx.beginPath(); gx.arc(x, y, rad, 0, 7);
+        gx.fillStyle = 'hsl(258,' + Math.round(90 - kk * 28) + '%,' + Math.round(66 + kk * 24) + '%)'; gx.fill();
+      });
+      if (n){
+        const s = cells2[0], d = g.sn.d, x = dotX(s.c), y = dotY(s.r), e = dia * .12;
+        gx.fillStyle = '#fff';
+        [1, -1].forEach(function(a){ gx.beginPath(); gx.arc(x + d[0] * dia * .16 - d[1] * dia * .2 * a, y + d[1] * dia * .16 + d[0] * dia * .2 * a, e, 0, 7); gx.fill(); });
+      }
+      g.fx = g.fx.filter(function(q){ return now - q.t < 1300; });
+      g.fx.forEach(function(q){
+        const e = (now - q.t) / 1300; gx.globalAlpha = 1 - e * e;
+        gx.font = '500 ' + (22 * k) + 'px ' + FONT; gx.textAlign = 'center'; gx.lineJoin = 'round'; gx.lineWidth = 5 * k; gx.strokeStyle = '#000';
+        gx.strokeText(q.txt, q.x, q.y - 16 * k - e * 30 * k); gx.fillStyle = q.col; gx.fillText(q.txt, q.x, q.y - 16 * k - e * 30 * k);
+      });
+      gx.globalAlpha = 1; gx.textAlign = 'left';
+      if (g.state === 'end'){
+        gx.fillStyle = 'rgba(0,0,0,.78)'; const bh = 110 * k; gx.fillRect(0, cy - bh / 2, W, bh);
+        gx.fillStyle = '#fff'; gx.textAlign = 'center'; gx.font = '500 ' + (34 * k) + 'px ' + FONT; gx.fillText(g.msg, cx, cy + 4 * k);
+        gx.fillStyle = 'rgba(255,255,255,.6)'; gx.font = '500 ' + (18 * k) + 'px ' + FONT; gx.fillText('новый раунд сейчас начнётся', cx, cy + 34 * k); gx.textAlign = 'left';
+      }
+      hudT.textContent = 'Змейка ' + g.sn.len + ' / ' + GOAL;
+      hudB.style.width = g.ink + '%';
+    }
     let raf = 0;
     function loop(now){
       raf = 0; if (!near) return;
-      if (CU > .02){ stepAuto(now); placeCurs(); }
+      if (CU > .02){ if (canOwn){ stepGame(now); gDraw(now); } else stepAuto(now); placeCurs(); }
       if (vid && vid.duration){ ringFill.style.strokeDashoffset = String(1 - vid.currentTime / vid.duration); }
       raf = requestAnimationFrame(loop);
     }
     function kick(){ if (!raf && near) raf = requestAnimationFrame(loop); }
     stick.addEventListener('pointerdown', function(e){
-      if (e.pointerType === 'touch' || e.button !== 0 || CU < .5) return;
-      const r = stick.getBoundingClientRect(); mouse = { x: e.clientX - r.left, y: e.clientY - r.top };
-      own = mkFrame('me', mouse.x, mouse.y); stick.setPointerCapture(e.pointerId); placeCurs(); e.preventDefault();
+      if (e.pointerType === 'touch' || e.button !== 0 || CU < .5 || !canOwn) return;
+      gDown(e); placeCurs();
     });
     stick.addEventListener('pointermove', function(e){
       const r = stick.getBoundingClientRect();
       if (drag.st){ drag.x = drag.st.ox + e.clientX - drag.st.x; drag.y = drag.st.oy + e.clientY - drag.st.y; placeCurs(); return; }
-      if (canOwn){ mouse = { x: e.clientX - r.left, y: e.clientY - r.top }; if (own) setFrame(own, mouse.x, mouse.y); placeCurs(); }
+      if (canOwn){ mouse = { x: e.clientX - r.left, y: e.clientY - r.top }; placeCurs(); }
     });
-    const upFrame = function(){ if (own){ endFrame(own); own = null; } };
-    stick.addEventListener('pointerup', upFrame); stick.addEventListener('pointercancel', upFrame);
-    stick.addEventListener('pointerleave', function(){ if (!own) mouse = null; });
+    stick.addEventListener('pointerup', gUp); stick.addEventListener('pointercancel', gUp);
+    stick.addEventListener('pointerleave', function(){ if (!(g && g.drag)) mouse = null; });
     if (!canOwn){
       const el = curs[1];
       el.style.pointerEvents = 'auto';
