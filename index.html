@@ -885,7 +885,7 @@ touch-action: none;
       <h2 class="mm-title" id="mmTitle">ОПЫТ РАБОТЫ</h2>
       <p class="mm-sub" id="mmSub">рассказываю и показываю</p>
       <div class="mm-cur" data-who="dsg" id="mmCurA"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 3l7.5 18 2.6-7.4L21 10.9z"/></svg><span class="n">dsg#</span></div>
-      <div class="mm-cur" data-who="you" id="mmCurB"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 3l7.5 18 2.6-7.4L21 10.9z"/></svg><span class="n">Origin</span></div>
+      <div class="mm-cur" data-who="you" id="mmCurB"><svg viewBox="0 0 24 24"><defs><linearGradient id="mmInkG" gradientUnits="userSpaceOnUse" x1="3" y1="3" x2="17" y2="17"><stop offset="0" stop-color="#7c2d12"/><stop id="mmInkS0" offset="0" stop-color="#7c2d12"/><stop id="mmInkS1" offset="0" stop-color="#f0561a"/><stop offset="1" stop-color="#f0561a"/></linearGradient></defs><path fill="url(#mmInkG)" d="M3 3l7.5 18 2.6-7.4L21 10.9z"/></svg><span class="n">Origin</span></div>
     </div>
   </section>
 
@@ -1732,8 +1732,9 @@ document.addEventListener('DOMContentLoaded', () => {
     stick.insertBefore(gcv, curs[0]);   // слой змейки поверх заголовка: тень вокруг неё затемняет текст только рядом
     const gx = gcv.getContext('2d');
     const hud = document.createElement('div'); hud.className = 'mm-hud'; hud.setAttribute('aria-hidden', 'true');
-    hud.innerHTML = '<span class="t"></span><i class="tug"><b class="o"></b><b class="p"></b></i><i class="bar"><b></b></i>'; stick.appendChild(hud);
-    const hudT = hud.querySelector('.t'), hudB = hud.querySelector('.bar b'), hudO = hud.querySelector('.tug .o');
+    hud.innerHTML = '<span class="t"></span><i class="tug"><b class="o"></b><b class="p"></b></i>'; stick.appendChild(hud);
+    const inkS0 = document.getElementById('mmInkS0'), inkS1 = document.getElementById('mmInkS1');
+    const hudT = hud.querySelector('.t'), hudO = hud.querySelector('.tug .o');
     const gB = { c0: 0, c1: 0, r0: 0, r1: 0 }; let gdpr = 1, g = null;
     const FONT = "'PP Neue Montreal','Helvetica Neue',Arial,sans-serif";
     function gLayout(){
@@ -1956,7 +1957,9 @@ document.addEventListener('DOMContentLoaded', () => {
       });
       gx.globalAlpha = 1; gx.textAlign = 'left';
       hudT.textContent = g.state === 'end' ? g.msg : 'Змейка ' + g.sn.len + ' / ' + GOAL;
-      hudB.style.width = g.ink + '%'; hudO.style.width = (100 * (1 - clamp(g.sn.len / GOAL, 0, 1))) + '%';
+      hudO.style.width = (100 * (1 - clamp(g.sn.len / GOAL, 0, 1))) + '%';
+      // чернила: оранжевый курсор «заливается» по своей оси, расход — тёмный оранжевый от кончика к хвосту
+      const iv = clamp(g.ink / 100, 0, 1), ie = (1 - iv).toFixed(3); inkS0.setAttribute('offset', ie); inkS1.setAttribute('offset', ie);
     }
     let raf = 0;
     function loop(now){
