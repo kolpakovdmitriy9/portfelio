@@ -662,14 +662,18 @@ touch-action: none;
 .mm-fr.sel .sz,.mm-fr.sel .h{display:block}
 .mm-title{position:absolute;left:0;right:0;margin:0;text-align:center;font-family:'ONY Track Moscow',sans-serif;font-weight:400;letter-spacing:0;color:#000;pointer-events:none;white-space:nowrap}
 .mm-sub{position:absolute;left:0;right:0;margin:0;text-align:center;font-family:Arial,sans-serif;font-weight:400;color:#0b0b0b;pointer-events:none;white-space:nowrap}
-.mm-snake{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;opacity:0}
-.mm-hud{position:absolute;margin:0;transform:translateX(-100%);opacity:0;pointer-events:none;white-space:nowrap;text-align:right;color:#fff;font-weight:500;font-family:'PP Neue Montreal','Helvetica Neue',Arial,sans-serif}
-.mm-hud .tug{display:flex;margin:calc(10px*var(--hk,1)) 0 0 auto;width:calc(300px*var(--hk,1));height:calc(10px*var(--hk,1));border-radius:99px;overflow:hidden;background:#8b5cf6}
+.mm-snake{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;opacity:0;z-index:4}
+.mm-hud{position:absolute;margin:0;transform:translateX(-100%);opacity:0;pointer-events:none;white-space:nowrap;color:#fff;font-weight:400;font-family:'PP Neue Montreal','Helvetica Neue',Arial,sans-serif;z-index:3}
+.mm-hud .in{opacity:calc(1 - .9*var(--dm,0))}
+.mm-hud .ti{display:block;text-align:right;font-size:calc(32px*var(--hk,1));line-height:1.1}
+.mm-hud .tug{display:flex;margin:calc(14px*var(--hk,1)) 0 0 auto;width:calc(273px*var(--hk,1));height:calc(5px*var(--hk,1));border-radius:99px;overflow:hidden}
 .mm-hud .tug b{display:block;height:100%}
-.mm-hud .tug .o{width:57%;background:#f0561a;border-right:calc(2px*var(--hk,1)) solid #000;transition:width .35s cubic-bezier(.3,.8,.3,1)}
-.mm-hud .tug .p{flex:1;background:#8b5cf6}
-.mm-hud .bar{display:block;margin:calc(8px*var(--hk,1)) 0 0 auto;width:calc(300px*var(--hk,1));height:calc(3px*var(--hk,1));border-radius:99px;background:rgba(255,255,255,.14);overflow:hidden}
-.mm-hud .bar b{display:block;height:100%;width:100%;background:rgba(255,255,255,.55)}
+.mm-hud .tug .p{width:50%;background:#8b5cf6;transition:width .35s cubic-bezier(.3,.8,.3,1)}
+.mm-hud .tug .o{flex:1;background:#f0561a}
+.mm-hud .nums{display:flex;justify-content:space-between;width:calc(273px*var(--hk,1));margin:calc(10px*var(--hk,1)) 0 0 auto;font-size:calc(16px*var(--hk,1));line-height:1}
+.mm-hud .rules{width:calc(273px*var(--hk,1));margin:calc(24px*var(--hk,1)) 0 0 auto;white-space:normal;text-align:left;font-size:calc(16px*var(--hk,1));line-height:1.4;color:rgba(255,255,255,.6)}
+.mm-hud .rules p{margin:0 0 calc(8px*var(--hk,1))}
+.mm-hud .rules .len{color:#fff}
 .mm-cur{position:absolute;left:0;top:0;opacity:0;touch-action:none;cursor:grab;will-change:transform;z-index:5;padding:6px;font-family:'PP Neue Montreal','Helvetica Neue',Arial,sans-serif}
 .mm-cur.drag{cursor:grabbing}
 .mm-cur svg{display:block;width:30px;height:30px;pointer-events:none}
@@ -1735,9 +1739,11 @@ document.addEventListener('DOMContentLoaded', () => {
     stick.insertBefore(gcv, curs[0]);   // слой змейки поверх заголовка: тень вокруг неё затемняет текст только рядом
     const gx = gcv.getContext('2d');
     const hud = document.createElement('div'); hud.className = 'mm-hud'; hud.setAttribute('aria-hidden', 'true');
-    hud.innerHTML = '<span class="t"></span><i class="tug"><b class="o"></b><b class="p"></b></i>'; stick.appendChild(hud);
+    // «правила игры»: счёт (фиолетовый слева, оранжевый справа) и короткие правила. Тексты правил — черновик, правятся здесь
+    hud.innerHTML = '<div class="in"><span class="ti">правила игры</span><i class="tug"><b class="p"></b><b class="o"></b></i><div class="nums"><span class="np">0</span><span class="no">0</span></div>'
+      + '<div class="rules"><p>Фиолетовый ставит рамки на пути змейки: она съедает рамку и растёт.</p><p>Вы рисуете оранжевые рамки: змейка теряет сегмент.</p><p>Змейка исчезла: победили вы. Доросла до предела: победил фиолетовый.</p><p>Рамки рисуются чернилами, они восстанавливаются сами.</p><p class="len"></p></div></div>'; stick.appendChild(hud);
     const inkS0 = document.getElementById('mmInkS0'), inkS1 = document.getElementById('mmInkS1');
-    const hudT = hud.querySelector('.t'), hudO = hud.querySelector('.tug .o');
+    const hudT = hud.querySelector('.ti'), hudP = hud.querySelector('.tug .p'), hudNP = hud.querySelector('.np'), hudNO = hud.querySelector('.no'), hudLen = hud.querySelector('.len'), hudIn = hud.querySelector('.in');
     const gB = { c0: 0, c1: 0, r0: 0, r1: 0 }; let gdpr = 1, g = null;
     const gT = { c0: 0, r0: 0, c1: 0, r1: 0 }, tz = { x0: 0, y0: 0, x1: 0, y1: 0 };   // запретная зона текста: в клетках и в пикселях
     const inTxt = function(c, r){ return c >= gT.c0 && c < gT.c1 && r >= gT.r0 && r < gT.r1; };
@@ -1757,7 +1763,7 @@ document.addEventListener('DOMContentLoaded', () => {
         gT.c0 = a.c; gT.r0 = a.r; gT.c1 = b.c + 1; gT.r1 = b.r + 1;
       })();
       hud.style.left = (cx + 720 * k - 55 * k) + 'px'; hud.style.top = (oy + 55 * k) + 'px';
-      hud.style.fontSize = (40 * k) + 'px'; hud.style.lineHeight = (48 * k) + 'px';
+      hud.style.fontSize = (16 * k) + 'px';
       hud.style.setProperty('--hk', k);
       if (g && g.b !== gB.c0 + ':' + gB.c1 + ':' + gB.r0 + ':' + gB.r1) gClear();
     }
@@ -1970,8 +1976,16 @@ document.addEventListener('DOMContentLoaded', () => {
         gx.fillStyle = q.col; gx.fillText(q.txt, q.x, q.y - 16 * k - e * 30 * k);
       });
       gx.globalAlpha = 1; gx.textAlign = 'left';
-      hudT.textContent = g.state === 'end' ? g.msg : 'Змейка ' + g.sn.len + ' / ' + GOAL;
-      hudO.style.width = (100 * (1 - clamp(g.sn.len / GOAL, 0, 1))) + '%';
+      hudT.textContent = g.state === 'end' ? g.msg : 'правила игры';
+      const eat = g.sc.eat, cut = g.sc.cut;
+      hudP.style.width = (eat + cut ? 100 * eat / (eat + cut) : 50) + '%'; hudNP.textContent = eat; hudNO.textContent = cut;
+      hudLen.textContent = 'Змейка: ' + g.sn.len + ' из ' + GOAL;
+      // змейка рядом с плашкой или над ней: плашка притухает, змейка на первом плане
+      { const sr = stick.getBoundingClientRect(), hr = hud.getBoundingClientRect(); let dmin = 1e9;
+        const rx0 = hr.left - sr.left, rx1 = hr.right - sr.left, ry0 = hr.top - sr.top, ry1 = hr.bottom - sr.top;
+        pos.forEach(function(q){ const x = dotX(q.c), y = dotY(q.r), ddx = Math.max(rx0 - x, 0, x - rx1), ddy = Math.max(ry0 - y, 0, y - ry1); dmin = Math.min(dmin, Math.hypot(ddx, ddy)); });
+        const t = clamp((pitch * 3 - dmin) / (pitch * 2), 0, 1); g.hd = (g.hd || 0) + (t - (g.hd || 0)) * (1 - Math.exp(-dtg * (t > (g.hd || 0) ? 10 : 4)));
+        hud.style.setProperty('--dm', g.hd.toFixed(3)); }
       // чернила: оранжевый курсор «заливается» по своей оси, расход — тёмный оранжевый от кончика к хвосту
       const iv = clamp(g.ink / 100, 0, 1), ie = (1 - iv).toFixed(3); inkS0.setAttribute('offset', ie); inkS1.setAttribute('offset', ie);
     }
