@@ -2128,6 +2128,76 @@ document.addEventListener('DOMContentLoaded', () => {
     layout();
   })();
 
+
+  // === Темп скролла в анимированных блоках (циферблат → «Опыт работы» → число 12) ===
+  // Колесо и клавиши внутри этой зоны идут через «регулятор»: скорость ограничена, а на ключевых кадрах
+  // (каждый слайд циферблата, круги в ряд, число собрано, игра) скролл плавно тормозит и держит паузу.
+  // Так анимации не пролетают, даже если крутить сильно. Вне зоны, на тач-экранах и при reduced-motion скролл обычный.
+  (function(){
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const dialEl = document.getElementById('dialStage'), mmEl = document.getElementById('expMorph'); if (!dialEl || !mmEl) return;
+    const VMAX = 1.15, DWELL_DOWN = 750, DWELL_UP = 300, QUIET = 110;       // VMAX — экранов в секунду
+    const S = { y: 0, target: 0, raf: 0, last: 0, hold: 0, needQuiet: false, capCp: null, lastWheel: 0, dir: 1 };
+    let cps = [], zs = 0, ze = 0, geoT = 0;
+    const abs = function(el){ return el.getBoundingClientRect().top + window.scrollY; };
+    function geo(){
+      const vh = innerHeight, D = abs(dialEl), EXIT = 1.4 * vh, total = dialEl.offsetHeight - vh - EXIT, N = dialEl.querySelectorAll('.dial-slide').length || 3;
+      const M = abs(mmEl), range = mmEl.offsetHeight - vh, c = [];
+      for (let i = 0; i < N; i++) c.push(D + total * (N > 1 ? i / (N - 1) : 0));      // слайды циферблата
+      c.push(D + total + EXIT * .55);                                                  // круги раскрываются из иконки
+      c.push(D + total + EXIT);                                                        // круги в ряд, заголовок
+      [.5, .8, 1].forEach(function(p){ c.push(M + range * p); });                      // круги встали / число собрано / игра
+      cps = c.filter(function(v, i, a){ return a.indexOf(v) === i; }).sort(function(a, b){ return a - b; }).filter(function(v, i, a){ return i === 0 || v - a[i - 1] > 40; });
+      zs = D - vh * .5; ze = cps[cps.length - 1]; geoT = performance.now();
+    }
+    function inZone(y){ if (performance.now() - geoT > 1500) geo(); return y >= zs - 1 && y <= ze + 1; }
+    function step(now){
+      S.raf = 0;
+      const dt = Math.min(.05, Math.max(.001, (now - (S.last || now)) / 1000)); S.last = now;
+      const d = S.target - S.y;
+      if (Math.abs(d) < .5){
+        S.y = S.target; window.scrollTo(0, S.y); S.last = 0;
+        if (S.capCp != null){ S.hold = now + (S.dir > 0 ? DWELL_DOWN : DWELL_UP); S.needQuiet = true; S.capCp = null; }
+        return;
+      }
+      const cap = VMAX * innerHeight * dt;
+      S.y += Math.max(-cap, Math.min(cap, d * (1 - Math.exp(-dt * 7))));
+      window.scrollTo(0, S.y);
+      S.raf = requestAnimationFrame(step);
+    }
+    function push(dy){
+      const now = performance.now(), vh = innerHeight;
+      if (!S.raf) S.y = S.target = window.scrollY;
+      if (!inZone(S.y)) return false;
+      if (now < S.hold) return true;                                   // пауза на ключевом кадре — лишнее колесо гасим
+      if (S.needQuiet){ if (now - S.lastWheel < QUIET) return true; S.needQuiet = false; }
+      S.dir = dy > 0 ? 1 : -1;
+      S.target = Math.max(S.y - 1.2 * vh, Math.min(S.y + 1.2 * vh, S.target + dy));
+      if (S.dir > 0){ const nx = cps.find(function(v){ return v > S.y + 1.5; }); if (nx != null && S.target >= nx){ S.target = nx; S.capCp = nx; } else S.capCp = null; if (nx == null) return false; }
+      else { let pv = null; cps.forEach(function(v){ if (v < S.y - 1.5) pv = v; }); if (pv != null && S.target <= pv){ S.target = pv; S.capCp = pv; } else S.capCp = null; if (pv == null && S.y <= zs) return false; }
+      if (!S.raf){ S.last = 0; S.raf = requestAnimationFrame(step); }
+      return true;
+    }
+    window.addEventListener('wheel', function(e){
+      if (e.ctrlKey || e.defaultPrevented) return;
+      const dy = e.deltaY * (e.deltaMode === 1 ? 32 : e.deltaMode === 2 ? innerHeight : 1);
+      const was = S.lastWheel; S.lastWheel = performance.now(); void was;
+      if (!dy) return;
+      if (push(dy)) e.preventDefault();
+    }, { passive: false });
+    window.addEventListener('keydown', function(e){
+      if (e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey) return;
+      const t = e.target; if (t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return;
+      let dy = 0; const vh = innerHeight;
+      if (e.key === 'ArrowDown') dy = 100; else if (e.key === 'ArrowUp') dy = -100;
+      else if (e.key === 'PageDown' || (e.key === ' ' && !e.shiftKey)) dy = vh * .85; else if (e.key === 'PageUp' || (e.key === ' ' && e.shiftKey)) dy = -vh * .85;
+      if (dy && push(dy)) e.preventDefault();
+    });
+    window.addEventListener('resize', function(){ geoT = 0; });
+    window.addEventListener('load', function(){ geoT = 0; });
+    window.__scrollPace = { geo: function(){ geo(); return { cps: cps, zs: zs, ze: ze }; } };
+  })();
+
   // === HERO HEIGHT ===
   // на широких экранах весь первый экран масштабируется вместе с кнопкой (до 1.6×)
   function setHeroScale(){ document.documentElement.style.setProperty('--ui', Math.min(1.6, Math.max(1, innerWidth / 1440)).toFixed(3)); }
