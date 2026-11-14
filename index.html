@@ -2383,22 +2383,34 @@ document.addEventListener('DOMContentLoaded', () => {
       grid.appendChild(cell);
     }
     const cells = Array.from(grid.children);
-    grid.addEventListener('pointermove', (e) => {
+    // Две причины «не везде»: (1) при быстром движении мыши события приходят редко — клетки между ними пропускались;
+    // (2) клетка, зажжённая повторно, гасла по таймеру от ПЕРВОГО зажигания. Теперь клетки между точками заполняются по линии,
+    // используются все промежуточные события браузера, а у каждой клетки свой таймер, который сбрасывается при повторе.
+    const timers = new Array(rows * cols);
+    let last = null;
+    const light = function(col, row){
+      const index = row * cols + col, cell = cells[index]; if (!cell) return;
+      cell.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+      clearTimeout(timers[index]);
+      timers[index] = setTimeout(function(){ cell.style.backgroundColor = normalColor; }, tailDuration);
+    };
+    const cellOf = function(ev, rect){
+      return {
+        col: Math.max(0, Math.min(cols - 1, Math.floor((ev.clientX - rect.left) / (rect.width / cols)))),
+        row: Math.max(0, Math.min(rows - 1, Math.floor((ev.clientY - rect.top) / (rect.height / rows))))
+      };
+    };
+    grid.addEventListener('pointermove', function(e){
       const rect = grid.getBoundingClientRect();
-      const col = Math.floor((e.clientX - rect.left) / (rect.width / cols));
-      const row = Math.floor((e.clientY - rect.top) / (rect.height / rows));
-      if (row >= 0 && row < rows && col >= 0 && col < cols) {
-        const index = row * cols + col;
-        const cell = cells[index];
-        if (cell) {
-          const randomColor = colors[Math.floor(Math.random() * colors.length)];
-          cell.style.backgroundColor = randomColor;
-          setTimeout(() => {
-            cell.style.backgroundColor = normalColor;
-          }, tailDuration);
-        }
-      }
+      const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [];
+      (evs.length ? evs : [e]).forEach(function(ev){
+        const c = cellOf(ev, rect), from = last || c, n = Math.max(Math.abs(c.col - from.col), Math.abs(c.row - from.row), 1);
+        for (let i = 0; i <= n; i++) light(Math.round(from.col + (c.col - from.col) * i / n), Math.round(from.row + (c.row - from.row) * i / n));
+        last = c;
+      });
     });
+    grid.addEventListener('pointerleave', function(){ last = null; });
+    grid.addEventListener('pointerdown', function(){ last = null; });
   }
 
   // === 3D LOGO ===
