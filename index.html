@@ -1966,6 +1966,25 @@ document.addEventListener('DOMContentLoaded', () => {
         const side = Math.round(dia * .9), x = Math.round(dotX(q.c) - side / 2), y = Math.round(dotY(q.r) - side / 2);
         gx.fillStyle = 'rgba(255,255,255,' + (.5 * q.w * Math.pow(1 - age / TTL, 1.6)).toFixed(3) + ')'; gx.fillRect(x, y, side, side);
       });
+      // пиксельная «выделялка» под мышкой: пиксели загораются там, где провели курсором (по линии между кадрами, без дыр), и гаснут
+      g.tm = g.tm || {};
+      if (mouse && CU > .5 && canOwn){
+        const cm = gCell(mouse.x, mouse.y), pv = g.mc || cm, n2 = Math.max(Math.abs(cm.c - pv.c), Math.abs(cm.r - pv.r), 1);
+        for (let i = 0; i <= n2; i++){
+          const c0 = Math.round(pv.c + (cm.c - pv.c) * i / n2), r0 = Math.round(pv.r + (cm.r - pv.r) * i / n2);
+          for (let a = -1; a <= 1; a++) for (let b = -1; b <= 1; b++){
+            const c = c0 + a, r = r0 + b; if (c < gB.c0 || c > gB.c1 || r < gB.r0 || r > gB.r1 || inTxt(c, r)) continue;
+            const hsh = (((c * 83492791) ^ (r * 29996677)) >>> 0) % 100 / 100, w = (a || b) ? (hsh < .45 ? .5 : 0) : 1; if (!w) continue;
+            const key = c + ',' + r, q = g.tm[key]; if (!q) g.tm[key] = { c: c, r: r, t: now, w: w }; else { q.t = now; q.w = Math.max(q.w, w); }
+          }
+        }
+        g.mc = cm;
+      } else g.mc = null;
+      Object.keys(g.tm).forEach(function(key){
+        const q = g.tm[key], age = now - q.t, TTL = 1300; if (age > TTL){ delete g.tm[key]; return; }
+        const side = Math.round(dia * .9), x = Math.round(dotX(q.c) - side / 2), y = Math.round(dotY(q.r) - side / 2);
+        gx.fillStyle = 'rgba(240,86,26,' + (.75 * q.w * Math.pow(1 - age / TTL, 1.4)).toFixed(3) + ')'; gx.fillRect(x, y, side, side);
+      });
       // точки числа под змейкой и рядом с ней плавно темнеют — змейка выходит на первый план
       cells.forEach(function(d){
         if (!d.el) return;
