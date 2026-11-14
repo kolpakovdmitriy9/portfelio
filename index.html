@@ -1792,7 +1792,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (g) gClear();
       g = { b: gB.c0 + ':' + gB.c1 + ':' + gB.r0 + ':' + gB.r1, sn: { cells: [], d: [0, 1], len: START, turn: 8 }, fr: [], ink: 100, sc: { cut: 0, eat: 0 }, state: 'play', acc: 0, botT: now + 1800, fx: [], drag: null, msgT: 0, msg: '' };
       // змейка выползает сверху: голова у верхнего края поля над числом, тело ещё за краем
-      const hc = clamp(3 + Math.floor(Math.random() * 6), gB.c0, gB.c1);
+      const hc = clamp(gB.c0 + 2 + Math.floor(Math.random() * Math.max(1, gB.c1 - gB.c0 - 3)), gB.c0, gB.c1);
       for (let i = 0; i < START; i++) g.sn.cells.push({ c: hc, r: gB.r0 - i });
       g.last = now;
     }
@@ -1816,7 +1816,18 @@ document.addEventListener('DOMContentLoaded', () => {
       let d = s.d; s.turn--;
       if (s.turn <= 0 || !ok(d)){
         const opts = DIRS.filter(ok);
-        if (opts.length){ const side = opts.filter(function(x){ return x[0] !== d[0] || x[1] !== d[1]; }), pool = side.length ? side : opts; d = pool[Math.floor(Math.random() * pool.length)]; }
+        if (opts.length){
+          // путь-цель: змейка «идёт» к случайной точке всего поля (вне текста), так она обходит всё поле, а не топчется у центра
+          if (!s.wp || Math.hypot(s.wp.c - h.c, s.wp.r - h.r) < 3 || s.wpT-- <= 0){
+            for (let t = 0; t < 20; t++){ const c = gB.c0 + Math.floor(Math.random() * (gB.c1 - gB.c0 + 1)), r = gB.r0 + Math.floor(Math.random() * (gB.r1 - gB.r0 + 1)); if (!inTxt(c, r)){ s.wp = { c: c, r: r }; break; } }
+            s.wpT = 40;
+          }
+          const side = opts.filter(function(x){ return x[0] !== d[0] || x[1] !== d[1]; }), pool = side.length ? side : opts;
+          if (s.wp && Math.random() < .75){
+            pool.sort(function(a, b){ return Math.hypot(h.c + a[0] - s.wp.c, h.r + a[1] - s.wp.r) - Math.hypot(h.c + b[0] - s.wp.c, h.r + b[1] - s.wp.r); });
+            d = pool[0];
+          } else d = pool[Math.floor(Math.random() * pool.length)];
+        }
         s.turn = 3 + Math.floor(Math.random() * 6);
       }
       s.d = d; s.cells.unshift({ c: clamp(h.c + d[0], gB.c0, gB.c1), r: clamp(h.r + d[1], gB.r0, gB.r1) });
@@ -1933,27 +1944,24 @@ document.addEventListener('DOMContentLoaded', () => {
         const cur = cells2[i], prv = i + 1 < n ? cells2[i + 1] : (g.sn.prev || cur);
         pos.push({ c: prv.c + (cur.c - prv.c) * f, r: prv.r + (cur.r - prv.r) * f });
       }
-      // подсветка поля из точек: свет догоняет змейку и медленно гаснет за ней (плавное нарастание и затухание по времени)
+      // пиксельный след: клетки, по которым прошла змейка (и часть соседних), вспыхивают квадратами и гаснут — как «выделялка» при наведении
       const dtg = Math.min(.05, Math.max(.001, (now - (g.gT || now)) / 1000)); g.gT = now;
-      const R = 3, tgt = {}; g.gl = g.gl || {};
       if (!g.nk){ g.nk = {}; cells.forEach(function(d){ g.nk[d.c + ',' + d.r] = 1; }); }
+      g.tr = g.tr || {};
       pos.forEach(function(s){
         const c0 = Math.round(s.c), r0 = Math.round(s.r);
-        for (let a = -R; a <= R; a++) for (let b = -R; b <= R; b++){
+        for (let a = -1; a <= 1; a++) for (let b = -1; b <= 1; b++){
           const c = c0 + a, r = r0 + b; if (c < gB.c0 || c > gB.c1 || r < gB.r0 || r > gB.r1) continue;
-          const dd = Math.hypot(c - s.c, r - s.r); if (dd > R) continue;
-          const key = c + ',' + r, al = Math.pow(1 - dd / (R + .5), 1.6) * vis;
-          if (g.nk[key]) continue;                       // точки самого числа не подсвечиваем — их темнит змейка
-          if (!tgt[key] || tgt[key].a < al) tgt[key] = { c: c, r: r, a: al };
+          const key = c + ',' + r; if (g.nk[key]) continue;                      // точки самого числа не трогаем — их темнит змейка
+          const hsh = (((c * 73856093) ^ (r * 19349663)) >>> 0) % 100 / 100;       // постоянный «случайный» набор соседей — без мерцания
+          const w = (a || b) ? (hsh < .5 ? .55 : 0) : 1; if (!w) continue;
+          const q = g.tr[key]; if (!q) g.tr[key] = { c: c, r: r, t: now, w: w }; else { q.t = now; q.w = Math.max(q.w, w); }
         }
       });
-      Object.keys(tgt).forEach(function(key){ if (!g.gl[key]) g.gl[key] = { c: tgt[key].c, r: tgt[key].r, a: 0 }; });
-      Object.keys(g.gl).forEach(function(key){
-        const q = g.gl[key], t = tgt[key] ? tgt[key].a : 0;
-        q.a += (t - q.a) * (1 - Math.exp(-dtg * (t > q.a ? 12 : 7)));
-        if (q.a < .012 && !t){ delete g.gl[key]; return; }
-        gx.beginPath(); gx.arc(dotX(q.c), dotY(q.r), dia * (.08 + .08 * q.a), 0, 7);
-        gx.fillStyle = 'rgba(255,255,255,' + (.04 + .3 * q.a).toFixed(3) + ')'; gx.fill();
+      Object.keys(g.tr).forEach(function(key){
+        const q = g.tr[key], age = now - q.t, TTL = 1500; if (age > TTL){ delete g.tr[key]; return; }
+        const side = Math.round(dia * .9), x = Math.round(dotX(q.c) - side / 2), y = Math.round(dotY(q.r) - side / 2);
+        gx.fillStyle = 'rgba(255,255,255,' + (.5 * q.w * Math.pow(1 - age / TTL, 1.6)).toFixed(3) + ')'; gx.fillRect(x, y, side, side);
       });
       // точки числа под змейкой и рядом с ней плавно темнеют — змейка выходит на первый план
       cells.forEach(function(d){
