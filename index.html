@@ -2166,12 +2166,12 @@ document.addEventListener('DOMContentLoaded', () => {
       window.scrollTo(0, S.y);
       S.raf = requestAnimationFrame(step);
     }
-    function push(dy){
+    function push(dy, gap){
       const now = performance.now(), vh = innerHeight;
       if (!S.raf) S.y = S.target = window.scrollY;
       if (!inZone(S.y)) return false;
       if (now < S.hold) return true;                                   // пауза на ключевом кадре — лишнее колесо гасим
-      if (S.needQuiet){ if (now - S.lastWheel < QUIET) return true; S.needQuiet = false; }
+      if (S.needQuiet){ if (gap < QUIET && now < S.hold + 1500) return true; S.needQuiet = false; }   // ждём паузу в колесе; предохранитель: не дольше 1,5 с после остановки
       S.dir = dy > 0 ? 1 : -1;
       S.target = Math.max(S.y - 1.2 * vh, Math.min(S.y + 1.2 * vh, S.target + dy));
       if (S.dir > 0){ const nx = cps.find(function(v){ return v > S.y + 1.5; }); if (nx != null && S.target >= nx){ S.target = nx; S.capCp = nx; } else S.capCp = null; if (nx == null) return false; }
@@ -2182,9 +2182,9 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('wheel', function(e){
       if (e.ctrlKey || e.defaultPrevented) return;
       const dy = e.deltaY * (e.deltaMode === 1 ? 32 : e.deltaMode === 2 ? innerHeight : 1);
-      const was = S.lastWheel; S.lastWheel = performance.now(); void was;
+      const t = performance.now(), gap = t - S.lastWheel; S.lastWheel = t;      // gap — пауза с предыдущего события колеса
       if (!dy) return;
-      if (push(dy)) e.preventDefault();
+      if (push(dy, gap)) e.preventDefault();
     }, { passive: false });
     window.addEventListener('keydown', function(e){
       if (e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey) return;
@@ -2192,7 +2192,7 @@ document.addEventListener('DOMContentLoaded', () => {
       let dy = 0; const vh = innerHeight;
       if (e.key === 'ArrowDown') dy = 100; else if (e.key === 'ArrowUp') dy = -100;
       else if (e.key === 'PageDown' || (e.key === ' ' && !e.shiftKey)) dy = vh * .85; else if (e.key === 'PageUp' || (e.key === ' ' && e.shiftKey)) dy = -vh * .85;
-      if (dy && push(dy)) e.preventDefault();
+      if (dy){ const t = performance.now(), gap = t - S.lastWheel; S.lastWheel = t; if (push(dy, gap)) e.preventDefault(); }
     });
     window.addEventListener('resize', function(){ geoT = 0; });
     window.addEventListener('load', function(){ geoT = 0; });
