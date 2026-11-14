@@ -662,6 +662,7 @@ touch-action: none;
 .mm-fr.sel .sz,.mm-fr.sel .h{display:block}
 .mm-title{position:absolute;left:0;right:0;margin:0;text-align:center;font-family:'ONY Track Moscow',sans-serif;font-weight:400;letter-spacing:0;color:#000;pointer-events:none;white-space:nowrap}
 .mm-sub{position:absolute;left:0;right:0;margin:0;text-align:center;font-family:Arial,sans-serif;font-weight:400;color:#0b0b0b;pointer-events:none;white-space:nowrap}
+.mm-pix{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:2}
 .mm-snake{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;opacity:0;z-index:4}
 .mm-hud{position:absolute;margin:0;transform:translateX(-100%);opacity:0;pointer-events:none;white-space:nowrap;color:#fff;font-weight:400;font-family:'PP Neue Montreal','Helvetica Neue',Arial,sans-serif;z-index:3}
 .mm-hud .in{opacity:calc(1 - .9*var(--dm,0))}
@@ -1612,7 +1613,7 @@ document.addEventListener('DOMContentLoaded', () => {
     cells.forEach(function(d){
       d.el = document.createElement('i'); grid.appendChild(d.el); d.rnd = Math.random();
     });
-    let trActive = false, W = 0, H = 0, k = 1, oy = 0, S = 0, ov = 0, pitch = 0, dia = 0, cx = 0, cy = 0, sy0 = 0, curOff = [{ x: 0, y: 0 }, { x: 0, y: 0 }], P = -1, near = false;
+    let PXon = false, trActive = false, W = 0, H = 0, k = 1, oy = 0, S = 0, ov = 0, pitch = 0, dia = 0, cx = 0, cy = 0, sy0 = 0, curOff = [{ x: 0, y: 0 }, { x: 0, y: 0 }], P = -1, near = false;
     const clamp = function(v, a, b){ return Math.max(a, Math.min(b, v)); };
     const ease = function(t){ t = clamp(t, 0, 1); return t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; };
     const lerp = function(a, b, t){ return a + (b - a) * t; };
@@ -1641,6 +1642,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const p = clamp(-r.top / range, 0, 1); if (p === P) return; P = p;
       // порядок: темнеет и круги встают на место (m) → только потом точки числа заполняются (df) → потом появляются курсоры (cu)
       const dark = ease((p - .06) / .3), m = ease((p - .12) / .38), df = clamp((p - .52) / .26, 0, 1), cu = ease((p - .82) / .14);
+      PXon = df > .02;                                // пиксельная подсветка под мышкой включается вместе с полем из точек
       const v = Math.round(255 * (1 - dark)), bg = 'rgb(' + v + ',' + v + ',' + v + ')', fg = 'rgb(' + (255 - v) + ',' + (255 - v) + ',' + (255 - v) + ')';
       stick.style.background = bg; title.style.color = fg; sub.style.color = fg; lbl.style.opacity = dark;
       title.style.opacity = sub.style.opacity = '';   // заголовок остаётся целиком; под змейкой он темнеет только вокруг неё (тень рисуется на её слое)
@@ -1748,9 +1750,38 @@ document.addEventListener('DOMContentLoaded', () => {
     const gT = { c0: 0, r0: 0, c1: 0, r1: 0 }, tz = { x0: 0, y0: 0, x1: 0, y1: 0 };   // запретная зона текста: в клетках и в пикселях
     const inTxt = function(c, r){ return c >= gT.c0 && c < gT.c1 && r >= gT.r0 && r < gT.r1; };
     const FONT = "'PP Neue Montreal','Helvetica Neue',Arial,sans-serif";
+    // === Пиксельная подсветка под курсором (как у карточки «Кибербар»): клетка под мышью мгновенно загорается лаймовым или синим
+    // и через 1,5 с быстро гаснет. Работает по всему полю точек, как только оно появилось, и независимо от игры ===
+    const pcv = document.createElement('canvas'); pcv.className = 'mm-pix'; pcv.setAttribute('aria-hidden', 'true'); stick.insertBefore(pcv, gcv);
+    const px = pcv.getContext('2d'), PX = {}, PXC = ['#A6FF14', '#4B3CFC'], PX_HOLD = 1500, PX_OFF = 110;
+    let pxRaf = 0, pxLast = null;
+    function pxDraw(now){
+      pxRaf = 0; px.setTransform(gdpr, 0, 0, gdpr, 0, 0); px.clearRect(0, 0, W, H);
+      const keys = Object.keys(PX); if (!keys.length) return;
+      keys.forEach(function(k2){
+        const q = PX[k2], age = now - q.t; if (age > PX_HOLD + PX_OFF){ delete PX[k2]; return; }
+        px.globalAlpha = age < PX_HOLD ? 1 : 1 - (age - PX_HOLD) / PX_OFF; px.fillStyle = q.col;
+        px.fillRect(Math.round(dotX(q.c) - pitch / 2), Math.round(dotY(q.r) - pitch / 2), Math.ceil(pitch), Math.ceil(pitch));
+      });
+      px.globalAlpha = 1; pxRaf = requestAnimationFrame(pxDraw);
+    }
+    function pxMove(e){
+      if (!PXon || !pitch) return;
+      const r = stick.getBoundingClientRect(), c1 = Math.round(5.5 + (e.clientX - r.left - cx) / pitch), r1 = Math.round(4.5 + (e.clientY - r.top - cy) / pitch), pv = pxLast || { c: c1, r: r1 };
+      const n = Math.max(Math.abs(c1 - pv.c), Math.abs(r1 - pv.r), 1), now = performance.now();
+      for (let i = 0; i <= n; i++){                                     // клетки по линии между кадрами — без дыр при быстром движении
+        const c = Math.round(pv.c + (c1 - pv.c) * i / n), rr = Math.round(pv.r + (r1 - pv.r) * i / n);
+        if (c < gB.c0 || c > gB.c1 || rr < gB.r0 || rr > gB.r1 || inTxt(c, rr)) continue;
+        PX[c + ',' + rr] = { c: c, r: rr, t: now, col: PXC[Math.random() < .5 ? 0 : 1] };
+      }
+      pxLast = { c: c1, r: r1 };
+      if (!pxRaf) pxRaf = requestAnimationFrame(pxDraw);
+    }
+    stick.addEventListener('pointermove', pxMove);
+    stick.addEventListener('pointerleave', function(){ pxLast = null; });
     function gLayout(){
       gdpr = Math.min(2, window.devicePixelRatio || 1);
-      gcv.width = Math.round(W * gdpr); gcv.height = Math.round(H * gdpr);
+      gcv.width = Math.round(W * gdpr); gcv.height = Math.round(H * gdpr); pcv.width = gcv.width; pcv.height = gcv.height;
       gB.c0 = Math.ceil(5.5 + (pitch / 2 - cx) / pitch); gB.c1 = Math.floor(5.5 + (W - pitch / 2 - cx) / pitch);
       gB.r0 = Math.ceil(4.5 + (pitch / 2 - cy) / pitch); gB.r1 = Math.floor(4.5 + (H - pitch / 2 - cy) / pitch);
       // запретная зона под текст «ОПЫТ РАБОТЫ / рассказываю и показываю»: сюда не заходит змейка и нельзя рисовать фреймы
@@ -1965,25 +1996,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const q = g.tr[key], age = now - q.t, TTL = 1500; if (age > TTL){ delete g.tr[key]; return; }
         const side = Math.round(dia * .9), x = Math.round(dotX(q.c) - side / 2), y = Math.round(dotY(q.r) - side / 2);
         gx.fillStyle = 'rgba(255,255,255,' + (.5 * q.w * Math.pow(1 - age / TTL, 1.6)).toFixed(3) + ')'; gx.fillRect(x, y, side, side);
-      });
-      // пиксельная «выделялка» под мышкой: пиксели загораются там, где провели курсором (по линии между кадрами, без дыр), и гаснут
-      g.tm = g.tm || {};
-      if (mouse && CU > .5 && canOwn){
-        const cm = gCell(mouse.x, mouse.y), pv = g.mc || cm, n2 = Math.max(Math.abs(cm.c - pv.c), Math.abs(cm.r - pv.r), 1);
-        for (let i = 0; i <= n2; i++){
-          const c0 = Math.round(pv.c + (cm.c - pv.c) * i / n2), r0 = Math.round(pv.r + (cm.r - pv.r) * i / n2);
-          for (let a = -1; a <= 1; a++) for (let b = -1; b <= 1; b++){
-            const c = c0 + a, r = r0 + b; if (c < gB.c0 || c > gB.c1 || r < gB.r0 || r > gB.r1 || inTxt(c, r)) continue;
-            const hsh = (((c * 83492791) ^ (r * 29996677)) >>> 0) % 100 / 100, w = (a || b) ? (hsh < .45 ? .5 : 0) : 1; if (!w) continue;
-            const key = c + ',' + r, q = g.tm[key]; if (!q) g.tm[key] = { c: c, r: r, t: now, w: w }; else { q.t = now; q.w = Math.max(q.w, w); }
-          }
-        }
-        g.mc = cm;
-      } else g.mc = null;
-      Object.keys(g.tm).forEach(function(key){
-        const q = g.tm[key], age = now - q.t, TTL = 1300; if (age > TTL){ delete g.tm[key]; return; }
-        const side = Math.round(dia * .9), x = Math.round(dotX(q.c) - side / 2), y = Math.round(dotY(q.r) - side / 2);
-        gx.fillStyle = 'rgba(240,86,26,' + (.75 * q.w * Math.pow(1 - age / TTL, 1.4)).toFixed(3) + ')'; gx.fillRect(x, y, side, side);
       });
       // точки числа под змейкой и рядом с ней плавно темнеют — змейка выходит на первый план
       cells.forEach(function(d){
