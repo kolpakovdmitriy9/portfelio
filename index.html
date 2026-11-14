@@ -1818,9 +1818,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const opts = DIRS.filter(ok);
         if (opts.length){
           // путь-цель: змейка «идёт» к случайной точке всего поля (вне текста), так она обходит всё поле, а не топчется у центра
-          if (!s.wp || Math.hypot(s.wp.c - h.c, s.wp.r - h.r) < 3 || s.wpT-- <= 0){
-            for (let t = 0; t < 20; t++){ const c = gB.c0 + Math.floor(Math.random() * (gB.c1 - gB.c0 + 1)), r = gB.r0 + Math.floor(Math.random() * (gB.r1 - gB.r0 + 1)); if (!inTxt(c, r)){ s.wp = { c: c, r: r }; break; } }
-            s.wpT = 40;
+          if (!s.wp || Math.hypot(s.wp.c - h.c, s.wp.r - h.r) < 1.5 || s.wpT-- <= 0){
+            // каждая вторая цель — угол поля по кругу (сначала левый верхний), остальные — случайные точки: так змейка доходит до самых углов
+            s.wn = (s.wn || 0) + 1;
+            if (s.wn % 2 === 1){ const q = ((s.wn - 1) / 2) % 4; s.wp = { c: (q === 0 || q === 3) ? gB.c0 : gB.c1, r: (q === 0 || q === 1) ? gB.r0 : gB.r1 }; }
+            else for (let t = 0; t < 20; t++){ const c = gB.c0 + Math.floor(Math.random() * (gB.c1 - gB.c0 + 1)), r = gB.r0 + Math.floor(Math.random() * (gB.r1 - gB.r0 + 1)); if (!inTxt(c, r)){ s.wp = { c: c, r: r }; break; } }
+            s.wpT = 70;
           }
           const side = opts.filter(function(x){ return x[0] !== d[0] || x[1] !== d[1]; }), pool = side.length ? side : opts;
           if (s.wp && Math.random() < .75){
