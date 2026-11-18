@@ -190,6 +190,39 @@ height: clamp(180px, 45vw, 440px);
 }
 }
 .third-project .border-line-fill { transition-duration: 2.4s; }
+/* === DROPLETS: капли на стекле поверх контейнера swiftlogist === */
+/* source-canvas — внеэкранная текстура (фото), на странице не рисуется */
+#project3-container .droplets-source {
+display: none;
+}
+/* фоновый слой-заглушка под output-canvas (виден до загрузки WebGL) */
+#project3-container .droplets-content {
+position: absolute;
+inset: 0;
+background-image: url('files/img/sls.webp');
+background-size: cover;
+background-position: center;
+}
+/* логотип — над стеклом с каплями, наклон за курсором сохраняется */
+#project3-container .logo-3d-wrap {
+position: absolute;
+inset: 0;
+display: flex;
+align-items: center;
+justify-content: center;
+z-index: 2;
+pointer-events: none;
+transform-style: preserve-3d;
+}
+#project3-container .droplets-output {
+position: absolute;
+inset: 0;
+width: 100%;
+height: 100%;
+pointer-events: none;
+display: block;
+z-index: 1;
+}
 .third-title{text-align:right;margin-top:30px;font-size:24px;font-weight:400;line-height:23px;color:#000;word-wrap:break-word}
 .stat-block{width:100%;max-width:300px;padding-bottom:30px;position:relative;display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-start;gap:18px}
 .stat-line-bg{position:absolute;bottom:0;left:0;width:100%;height:1px;background:#e0e0e3}
@@ -2462,10 +2495,14 @@ document.addEventListener('DOMContentLoaded', () => {
       const rect = container.getBoundingClientRect();
       const rotateX = (rect.height / 2 - (e.clientY - rect.top)) / 15;
       const rotateY = ((e.clientX - rect.left) - rect.width / 2) / 18;
+      logo.style.transition = 'transform 0.15s ease-out';
       logo.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
     };
     container.addEventListener('mousemove', handleMouseMove);
-    container.addEventListener('mouseleave', () => logo.style.transform = 'rotateX(0deg) rotateY(0deg)');
+    container.addEventListener('mouseleave', () => {
+      logo.style.transition = 'transform 0.8s ease-out';
+      logo.style.transform = 'rotateX(0deg) rotateY(0deg)';
+    });
   })();
 
   // === VIDEO PROGRESS ===
@@ -3473,6 +3510,86 @@ switchTab('websites');
   rot = rotTarget = gate > 0.99 ? Math.round(raw0 / STEP) * STEP : raw0;
   renderTicks();
   renderSlides(progress);
+})();
+</script>
+
+<!-- === DROPLETS: капли на стекле в контейнере swiftlogist === -->
+<script src="files/js/droplets.js"></script>
+<script>
+(function () {
+  var container = document.getElementById('project3-container');
+  var logo = document.getElementById('project3-logo');
+  if (!container || !logo || !window.Droplets) return;
+
+  // Фоновый слой под стеклом
+  var content = document.createElement('div');
+  content.className = 'droplets-content';
+  container.appendChild(content);
+
+  // Логотип поверх стекла: отдельная обёртка, чтобы трёхмерный наклон
+  // (transform на #project3-logo) не конфликтовал с позиционированием
+  var wrap = document.createElement('div');
+  wrap.className = 'logo-3d-wrap';
+  wrap.appendChild(logo);
+  container.appendChild(wrap);
+
+  // Внеэкранный canvas — источник текстуры (фото дороги)
+  var source = document.createElement('canvas');
+  source.className = 'droplets-source';
+
+  // Вывод эффекта: капли с преломлением фото
+  var output = document.createElement('canvas');
+  output.className = 'droplets-output';
+  output.setAttribute('aria-hidden', 'true');
+  container.appendChild(output);
+
+  var instance = window.Droplets.create(
+    { source: source, content: content, output: output },
+    {
+      image: 'files/img/sls.webp',
+      // Слабое преломление: фото под каплями и за курсором почти не искажается
+      refraction: 0.08,
+      interactionDistortion: 0,
+      // Дождь идёт только пока курсор внутри контейнера
+      hoverOnly: true
+    }
+  );
+  if (instance) {
+    var RAIN = 0.5;        // рабочая интенсивность дождя
+    var FADE_MS = 1200;    // длительность плавного затухания при уходе курсора
+    var fadeTimer = null;
+
+    function rainEnter() {
+      if (fadeTimer) { clearInterval(fadeTimer); fadeTimer = null; }
+      instance.setOptions({ intensity: RAIN });
+      output.style.transition = 'opacity 0.4s ease-out';
+      output.style.visibility = 'visible';
+      output.style.opacity = '1';
+      instance.setActive(true);
+    }
+
+    function rainLeave() {
+      var start = performance.now();
+      output.style.transition = 'opacity ' + FADE_MS + 'ms ease-out';
+      output.style.opacity = '0';
+      fadeTimer = setInterval(function () {
+        var k = Math.min(1, (performance.now() - start) / FADE_MS);
+        // Дождь постепенно стихает, а не обрывается
+        instance.setOptions({ intensity: RAIN * (1 - k) });
+        if (k >= 1) {
+          clearInterval(fadeTimer);
+          fadeTimer = null;
+          instance.setActive(false);
+          output.style.visibility = 'hidden';
+        }
+      }, 50);
+    }
+
+    output.style.visibility = 'hidden';
+    output.style.opacity = '0';
+    container.addEventListener('pointerenter', rainEnter);
+    container.addEventListener('pointerleave', rainLeave);
+  }
 })();
 </script>
 
